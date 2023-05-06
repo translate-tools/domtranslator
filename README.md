@@ -1,11 +1,16 @@
-Short one paragraph description, which answer to question "what is this?".
-
-Detailed description in few paragrapghs about "for what this?" and how it works.
-
-# Features
-
-<!-- TODO: info about key features -->
+Translate DOM nodes. Package under construction, subscribe on [github page of project](https://github.com/translate-tools/domtranslator).
 
 # Usage
 
-<!-- TODO: info about how it use -->
+Install with `npm install domtranslator`
+
+```js
+import { NodesTranslator } from 'domtranslator';
+
+// Dummy translator
+const translator = async (text) => '[translated] ' + text;
+const domTranslator = new NodesTranslator(translator);
+
+// Translate document
+domTranslator.observe(document.documentElement);
+```
