@@ -1,0 +1,7 @@
+# thirdparty
+node_modules
+
+# artifacts
+/out
+/dist
+/build

@@ -1,0 +1,12 @@
+{
+	"rules": {
+        "write-good": {
+            "passive": false,
+            "thereIs": false
+        },
+        "common-misspellings": {
+            // Misspellings to be ignored (case-insensitive)
+            "ignore": []
+        }
+    }
+}
