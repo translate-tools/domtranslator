@@ -12,7 +12,8 @@ function tsCompilerFactory(outPath, settings) {
 	return function compileTS() {
 		const tsProject = gulpTypescript.createProject('tsconfig.json', settings);
 
-		return gulp.src(['src/**/!(*.test).{ts,tsx}'])
+		return gulp
+			.src(['src/**/!(*.test).{ts,tsx}'])
 			.pipe(gulpSourceMaps.init())
 			.pipe(tsProject())
 			.pipe(gulpSourceMaps.write('./sourcemaps'))
@@ -46,7 +47,9 @@ function buildESM() {
 function copyMetaFiles() {
 	return mergeStream(
 		// Clean package.json
-		gulp.src(['./package.json']).pipe(cleanPackageJson()),
+		gulp
+			.src(['./package.json'])
+			.pipe(cleanPackageJson({ publicProperties: ['publishConfig'] })),
 		// Copy other
 		gulp.src(['README.md', 'LICENSE']),
 	).pipe(gulp.dest(buildDir));
