@@ -1,22 +1,21 @@
-const gulp = require('gulp');
-const ts = require('gulp-typescript');
-const mergeStream = require('merge-stream');
-const sourcemaps = require('gulp-sourcemaps');
-
-const cleanPackageJson = require('gulp-clean-package');
+import { deleteAsync } from 'del';
+import gulp from 'gulp';
+import cleanPackageJson from 'gulp-clean-package';
+import gulpSourceMaps from 'gulp-sourcemaps';
+import gulpTypescript from 'gulp-typescript';
+import mergeStream from 'merge-stream';
 
 const buildDir = 'dist';
 
 // Helpers
 function tsCompilerFactory(outPath, settings) {
 	return function compileTS() {
-		const tsProject = ts.createProject('tsconfig.json', settings);
+		const tsProject = gulpTypescript.createProject('tsconfig.json', settings);
 
-		return gulp
-			.src(['src/**/!(*.test).{ts,tsx}'])
-			.pipe(sourcemaps.init())
+		return gulp.src(['src/**/!(*.test).{ts,tsx}'])
+			.pipe(gulpSourceMaps.init())
 			.pipe(tsProject())
-			.pipe(sourcemaps.write())
+			.pipe(gulpSourceMaps.write('./sourcemaps'))
 			.pipe(gulp.dest(outPath));
 	};
 }
@@ -53,7 +52,11 @@ function copyMetaFiles() {
 	).pipe(gulp.dest(buildDir));
 }
 
-// Compilations
-const fullBuild = gulp.series([copyMetaFiles, buildESM()]);
+function clean() {
+	return deleteAsync(buildDir);
+}
 
-module.exports.default = fullBuild;
+// Compilations
+const fullBuild = gulp.series([clean, copyMetaFiles, buildESM()]);
+
+export default fullBuild;
