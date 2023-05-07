@@ -5,6 +5,9 @@ import { NodesTranslator } from '../NodesTranslator';
 const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 const awaitTranslation = () => delay(10);
 
+const getElementText = (elm: Element | null) =>
+	elm && elm.textContent ? elm.textContent.trim() : null;
+
 const composeName = (...args: (string | boolean)[]) => args.filter(Boolean).join(' ');
 
 const TRANSLATION_SYMBOL = '***TRANSLATED***';
@@ -136,5 +139,50 @@ describe('usage with parameters', () => {
 			expect(elmA.innerHTML).not.toStartWith(TRANSLATION_SYMBOL);
 			expect(elmA.getAttribute('title')).not.toStartWith(TRANSLATION_SYMBOL);
 		}
+	});
+
+	test('translate multiple nodes', async () => {
+		document.write(sample);
+
+		// Translate document
+		const domTranslator = new NodesTranslator(translator, options);
+
+		const pElm = document.querySelector('p');
+		const form = document.querySelector('form');
+		const figure = document.querySelector('figure');
+
+		if (!pElm || !form || !figure) throw new Error('Not found elements for test');
+
+		domTranslator.observe(form);
+		domTranslator.observe(figure);
+
+		await awaitTranslation();
+
+		expect(getElementText(pElm)).not.toInclude(TRANSLATION_SYMBOL);
+		expect(getElementText(figure)).toInclude(TRANSLATION_SYMBOL);
+		expect(getElementText(form)).toInclude(TRANSLATION_SYMBOL);
+
+		// Disable translation
+		domTranslator.unobserve(form);
+		expect(getElementText(form)).not.toInclude(TRANSLATION_SYMBOL);
+		expect(getElementText(figure)).toInclude(TRANSLATION_SYMBOL);
+
+		domTranslator.unobserve(figure);
+		expect(getElementText(form)).not.toInclude(TRANSLATION_SYMBOL);
+		expect(getElementText(figure)).not.toInclude(TRANSLATION_SYMBOL);
+
+		// Enable translation back
+		domTranslator.observe(form);
+		domTranslator.observe(figure);
+		await awaitTranslation();
+
+		expect(getElementText(figure)).toInclude(TRANSLATION_SYMBOL);
+		expect(getElementText(form)).toInclude(TRANSLATION_SYMBOL);
+
+		// Disable translation for all elements
+		domTranslator.unobserve(form);
+		domTranslator.unobserve(figure);
+		expect(getElementText(form)).not.toInclude(TRANSLATION_SYMBOL);
+		expect(getElementText(figure)).not.toInclude(TRANSLATION_SYMBOL);
 	});
 });
