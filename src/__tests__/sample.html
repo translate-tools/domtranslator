@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Demo page with challenges for DOM translator</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" data-rh="true">
+	<link rel="search" type="application/opensearchdescription+xml" title="Opensearch" href="/opensearch.xml">
+	<link rel="preload" href="#file.js" as="script">
+	<script>console.log('console log: page start')</script>
+</head>
+
+<body>
+	Text with no container
+	<div id="rootElement" class="main container">
+		Text in div</br>
+		<p>Text inside container <a href="#url" title="link title">link text</a></p>
+
+		<img title="image" alt="image alt text" data-text="data attribute that must not be translated" />
+		<pre>Text with preserved formatting</pre>
+
+		Some code:
+		<pre>
+			<code lang="javascript">
+				const name = "Jeff";
+				console.log("Your name is " + name);
+			</code>
+		</pre>
+
+		<figure>
+			<blockquote cite="https://www.huxley.net/bnw/four.html">
+				<p>Words can be like X-rays, if you use them properly—they’ll go through anything. You read and you’re pierced.</p>
+			</blockquote>
+			<figcaption>—Aldous Huxley, <cite>Brave New World</cite></figcaption>
+		</figure>
+
+		<form method="post" style="display: flex; flex-flow: column;">
+			<input type="text" name="text" value="text"/>
+			<input type="password" name="text" value="password"/>
+			<textarea>long text in textarea</textarea>
+
+			<label><input type="checkbox"/> checkbox <i>foo</i></label>
+			<label><input type="checkbox"/> checkbox <b>bar</b></label>
+			
+			<label><input type="radio" name="radioGroup"/> radio <i>foo</i></label>
+			<label><input type="radio" name="radioGroup"/> radio <b>bar</b></label>
+
+			<select>
+				<optgroup label="Numbers">
+					<option value="1">1</option>
+					<option value="2">2</option>
+				</optgroup>
+				<option value="foo">foo</option>
+				<option value="bar">bar</option>
+			</select>
+		</form>
+	</div>
+	<script>console.log('console log: page end')</script>
+</body>
+
+</html>

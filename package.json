@@ -2,15 +2,15 @@
   "name": "domtranslator",
   "version": "0.0.1",
   "license": "Apache-2.0",
-	"author": "Robert Vitonsky <https://github.com/vitonsky>",
-	"homepage": "https://github.com/translate-tools/domtranslator",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/translate-tools/domtranslator"
-	},
-	"publishConfig": {
-		"access": "public"
-	},
+  "author": "Robert Vitonsky <https://github.com/vitonsky>",
+  "homepage": "https://github.com/translate-tools/domtranslator",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/translate-tools/domtranslator"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "gulp",
     "test": "jest",
@@ -37,6 +37,8 @@
     "gulp-typescript": "^6.0.0-alpha.1",
     "husky": "^8.0.3",
     "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "jsdom": "^22.0.0",
     "lint-staged": "^13.2.2",
     "merge-stream": "^2.0.0",
     "npm-check-updates": "^16.10.10",

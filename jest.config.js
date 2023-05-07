@@ -11,7 +11,8 @@ if (process.env.TEST_FAST) {
 }
 
 module.exports = {
-	testEnvironment: 'node',
+	testEnvironment: 'jsdom',
+
 	preset: 'ts-jest/presets/js-with-ts-esm',
 	...(Object.keys(jestGlobals).length === 0 ? {} : { globals: jestGlobals }),
 
