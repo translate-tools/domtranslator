@@ -18,4 +18,5 @@ module.exports = {
 
 	resetMocks: true,
 	setupFiles: ['./scripts/jest/setupFiles/index.js'],
+	setupFilesAfterEnv: ['jest-extended/all'],
 };

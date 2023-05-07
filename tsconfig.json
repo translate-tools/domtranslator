@@ -30,5 +30,5 @@
 		"resolveJsonModule": true,
 		"skipLibCheck": true
 	},
-	"include": ["src/*.ts", "src/**/*.ts"]
+	"include": ["./global.d.ts", "src/*.ts", "src/**/*.ts"]
 }
