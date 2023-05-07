@@ -3,6 +3,8 @@ import { readFileSync } from 'fs';
 import { NodesTranslator } from '../NodesTranslator';
 
 const delay = (time: number) => new Promise((res) => setTimeout(res, time));
+const awaitTranslation = () => delay(10);
+
 const composeName = (...args: (string | boolean)[]) => args.filter(Boolean).join(' ');
 
 const TRANSLATION_SYMBOL = '***TRANSLATED***';
@@ -55,7 +57,7 @@ describe('basic usage', () => {
 			const domTranslator = new NodesTranslator(translator, { lazyTranslate });
 			domTranslator.observe(document.documentElement);
 
-			await delay(10);
+			await awaitTranslation();
 			expect(document.documentElement.outerHTML).toMatchSnapshot();
 
 			// Disable translation
@@ -82,7 +84,7 @@ describe('usage with parameters', () => {
 		const domTranslator = new NodesTranslator(translator, options);
 		domTranslator.observe(document.documentElement);
 
-		await delay(10);
+		await awaitTranslation();
 		expect(document.documentElement.outerHTML).toMatchSnapshot();
 
 		// Disable translation
@@ -97,17 +99,17 @@ describe('usage with parameters', () => {
 		const domTranslator = new NodesTranslator(translator, options);
 		domTranslator.observe(document.documentElement);
 
-		await delay(10);
+		await awaitTranslation();
 
 		const div1 = document.createElement('div');
 		document.body.appendChild(div1);
 
 		div1.innerHTML = 'Text 1';
-		await delay(10);
+		await awaitTranslation();
 		expect(div1.innerHTML).toStartWith(TRANSLATION_SYMBOL);
 
 		div1.innerHTML = 'Text 2';
-		await delay(10);
+		await awaitTranslation();
 		expect(div1.innerHTML).toStartWith(TRANSLATION_SYMBOL);
 
 		const elmA = document.querySelector('a');
@@ -118,7 +120,7 @@ describe('usage with parameters', () => {
 			elmA.setAttribute('title', 'changed title');
 			elmA.setAttribute('href', 'changed url');
 
-			await delay(10);
+			await awaitTranslation();
 			expect(elmA.innerHTML).toStartWith(TRANSLATION_SYMBOL);
 			expect(elmA.innerHTML).toEndWith('changed link text');
 
