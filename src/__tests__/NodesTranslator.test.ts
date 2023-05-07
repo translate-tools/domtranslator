@@ -35,16 +35,20 @@ beforeEach(() => {
 			return null;
 		};
 		public disconnect = () => null;
-	};
+	}
 
-	window.IntersectionObserver = IntersectionObserverMock as unknown as typeof IntersectionObserver;
+	window.IntersectionObserver =
+		IntersectionObserverMock as unknown as typeof IntersectionObserver;
 });
 
 describe('basic usage', () => {
 	const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
 	[true, false].forEach((lazyTranslate) => {
-		const testName = composeName('translate whole document', lazyTranslate && 'with lazyTranslate');
+		const testName = composeName(
+			'translate whole document',
+			lazyTranslate && 'with lazyTranslate',
+		);
 		test(testName, async () => {
 			document.write(sample);
 			const parsedHTML = document.documentElement.outerHTML;
@@ -66,30 +70,18 @@ describe('basic usage', () => {
 describe('usage with parameters', () => {
 	const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
+	const options = {
+		lazyTranslate: false,
+		translatableAttributes: ['title', 'alt', 'placeholder', 'label', 'aria-label'],
+		ignoredTags: ['meta', 'link', 'script', 'noscript', 'style', 'code', 'textarea'],
+	};
+
 	test('translate whole document', async () => {
 		document.write(sample);
 		const parsedHTML = document.documentElement.outerHTML;
 
 		// Translate document
-		const domTranslator = new NodesTranslator(translator, {
-			lazyTranslate: false,
-			translatableAttributes: [
-				"title",
-				"alt",
-				"placeholder",
-				"label",
-				"aria-label"
-			],
-			ignoredTags: [
-				"meta",
-				"link",
-				"script",
-				"noscript",
-				"style",
-				"code",
-				"textarea"
-			],
-		});
+		const domTranslator = new NodesTranslator(translator, options);
 		domTranslator.observe(document.documentElement);
 
 		await delay(10);
@@ -99,6 +91,50 @@ describe('usage with parameters', () => {
 		domTranslator.unobserve(document.documentElement);
 		expect(document.documentElement.outerHTML).toBe(parsedHTML);
 	});
-});
 
-// TODO: add tests with dynamic changes
+	test('translate changed nodes', async () => {
+		document.write(sample);
+
+		// Translate document
+		const domTranslator = new NodesTranslator(translator, options);
+		domTranslator.observe(document.documentElement);
+
+		await delay(10);
+
+		const div1 = document.createElement('div');
+		document.body.appendChild(div1);
+
+		div1.innerHTML = 'Text 1';
+		await delay(10);
+		expect(div1.innerHTML).toStartWith(TRANSLATION_SYMBOL);
+
+		div1.innerHTML = 'Text 2';
+		await delay(10);
+		expect(div1.innerHTML).toStartWith(TRANSLATION_SYMBOL);
+
+		const elmA = document.querySelector('a');
+		expect(elmA).not.toBeNull();
+
+		if (elmA !== null) {
+			elmA.innerHTML = 'changed link text';
+			elmA.setAttribute('title', 'changed title');
+			elmA.setAttribute('href', 'changed url');
+
+			await delay(10);
+			expect(elmA.innerHTML).toStartWith(TRANSLATION_SYMBOL);
+			expect(elmA.innerHTML).toEndWith('changed link text');
+
+			expect(elmA.getAttribute('title')).toStartWith(TRANSLATION_SYMBOL);
+			expect(elmA.getAttribute('href')).not.toStartWith(TRANSLATION_SYMBOL);
+		}
+
+		// Disable translation
+		domTranslator.unobserve(document.documentElement);
+		expect(div1.innerHTML).not.toStartWith(TRANSLATION_SYMBOL);
+
+		if (elmA !== null) {
+			expect(elmA.innerHTML).not.toStartWith(TRANSLATION_SYMBOL);
+			expect(elmA.getAttribute('title')).not.toStartWith(TRANSLATION_SYMBOL);
+		}
+	});
+});
