@@ -11,7 +11,6 @@ const translator = async (text: string) => TRANSLATION_SYMBOL + text;
 // TODO: add method to subscribe on queue updates and use it instead of timers for tests
 beforeEach(() => {
 	// IntersectionObserver isn't available in test environment
-	// const mockIntersectionObserver = jest.fn();
 	class IntersectionObserverMock {
 		private callback: IntersectionObserverCallback;
 		constructor(
@@ -22,7 +21,6 @@ beforeEach(() => {
 		}
 
 		public observe = (target: Element) => {
-			// console.log('Elements', target.querySelectorAll('*'));
 			[target, ...Array.from(target.querySelectorAll('*'))].forEach((target) => {
 				this.callback(
 					[{ isIntersecting: true, target }] as IntersectionObserverEntry[],
