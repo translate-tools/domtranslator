@@ -42,7 +42,7 @@
 		"jsdom": "^22.0.0",
 		"lint-staged": "^13.2.2",
 		"merge-stream": "^2.0.0",
-		"npm-check-updates": "^16.10.10",
+		"npm-check-updates": "^16.10.12",
 		"prettier": "^2.8.8",
 		"stylelint": "^15.6.1",
 		"stylelint-config-standard": "^33.0.0",
