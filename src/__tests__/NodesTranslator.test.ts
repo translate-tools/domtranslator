@@ -13,8 +13,31 @@ const composeName = (...args: (string | boolean)[]) => args.filter(Boolean).join
 const TRANSLATION_SYMBOL = '***TRANSLATED***';
 const translator = async (text: string) => TRANSLATION_SYMBOL + text;
 
+function startsWithRegex(input: string): RegExp {
+	// Escape any special regex characters in the input string
+	const escapedInput = input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	// Construct the regex to match strings starting with the escaped input
+	return new RegExp(`^${escapedInput}`);
+}
+function endsWithRegex(input: string): RegExp {
+	// Escape any special regex characters in the input string
+	const escapedInput = input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	// Construct the regex to match strings starting with the escaped input
+	return new RegExp(`${escapedInput}$`);
+}
+
+const fillDocument = (text: string) => {
+	// const div = document.createElement('div');
+	// div.innerHTML = text;
+
+	// document.append(div);
+	document.write(text);
+};
+
 // TODO: add method to subscribe on queue updates and use it instead of timers for tests
 beforeEach(() => {
+	document.clear();
+
 	// IntersectionObserver isn't available in test environment
 	class IntersectionObserverMock {
 		private callback: IntersectionObserverCallback;
@@ -53,7 +76,7 @@ describe('basic usage', () => {
 			lazyTranslate && 'with lazyTranslate',
 		);
 		test(testName, async () => {
-			document.write(sample);
+			fillDocument(sample);
 			const parsedHTML = document.documentElement.outerHTML;
 
 			// Translate document
@@ -80,7 +103,7 @@ describe('usage with parameters', () => {
 	};
 
 	test('translate whole document', async () => {
-		document.write(sample);
+		fillDocument(sample);
 		const parsedHTML = document.documentElement.outerHTML;
 
 		// Translate document
@@ -96,7 +119,7 @@ describe('usage with parameters', () => {
 	});
 
 	test('translate changed nodes', async () => {
-		document.write(sample);
+		fillDocument(sample);
 
 		// Translate document
 		const domTranslator = new NodesTranslator(translator, options);
@@ -109,11 +132,11 @@ describe('usage with parameters', () => {
 
 		div1.innerHTML = 'Text 1';
 		await awaitTranslation();
-		expect(div1.innerHTML).toStartWith(TRANSLATION_SYMBOL);
+		expect(div1.innerHTML).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 		div1.innerHTML = 'Text 2';
 		await awaitTranslation();
-		expect(div1.innerHTML).toStartWith(TRANSLATION_SYMBOL);
+		expect(div1.innerHTML).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 		const elmA = document.querySelector('a');
 		expect(elmA).not.toBeNull();
@@ -124,25 +147,31 @@ describe('usage with parameters', () => {
 			elmA.setAttribute('href', 'changed url');
 
 			await awaitTranslation();
-			expect(elmA.innerHTML).toStartWith(TRANSLATION_SYMBOL);
-			expect(elmA.innerHTML).toEndWith('changed link text');
+			expect(elmA.innerHTML).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+			expect(elmA.innerHTML).toMatch(endsWithRegex('changed link text'));
 
-			expect(elmA.getAttribute('title')).toStartWith(TRANSLATION_SYMBOL);
-			expect(elmA.getAttribute('href')).not.toStartWith(TRANSLATION_SYMBOL);
+			expect(elmA.getAttribute('title')).toMatch(
+				startsWithRegex(TRANSLATION_SYMBOL),
+			);
+			expect(elmA.getAttribute('href')).not.toMatch(
+				startsWithRegex(TRANSLATION_SYMBOL),
+			);
 		}
 
 		// Disable translation
 		domTranslator.unobserve(document.documentElement);
-		expect(div1.innerHTML).not.toStartWith(TRANSLATION_SYMBOL);
+		expect(div1.innerHTML).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 		if (elmA !== null) {
-			expect(elmA.innerHTML).not.toStartWith(TRANSLATION_SYMBOL);
-			expect(elmA.getAttribute('title')).not.toStartWith(TRANSLATION_SYMBOL);
+			expect(elmA.innerHTML).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+			expect(elmA.getAttribute('title')).not.toMatch(
+				startsWithRegex(TRANSLATION_SYMBOL),
+			);
 		}
 	});
 
 	test('translate multiple nodes', async () => {
-		document.write(sample);
+		fillDocument(sample);
 
 		// Translate document
 		const domTranslator = new NodesTranslator(translator, options);
@@ -158,31 +187,31 @@ describe('usage with parameters', () => {
 
 		await awaitTranslation();
 
-		expect(getElementText(pElm)).not.toInclude(TRANSLATION_SYMBOL);
-		expect(getElementText(figure)).toInclude(TRANSLATION_SYMBOL);
-		expect(getElementText(form)).toInclude(TRANSLATION_SYMBOL);
+		expect(getElementText(pElm)).not.toContain(TRANSLATION_SYMBOL);
+		expect(getElementText(figure)).toContain(TRANSLATION_SYMBOL);
+		expect(getElementText(form)).toContain(TRANSLATION_SYMBOL);
 
 		// Disable translation
 		domTranslator.unobserve(form);
-		expect(getElementText(form)).not.toInclude(TRANSLATION_SYMBOL);
-		expect(getElementText(figure)).toInclude(TRANSLATION_SYMBOL);
+		expect(getElementText(form)).not.toContain(TRANSLATION_SYMBOL);
+		expect(getElementText(figure)).toContain(TRANSLATION_SYMBOL);
 
 		domTranslator.unobserve(figure);
-		expect(getElementText(form)).not.toInclude(TRANSLATION_SYMBOL);
-		expect(getElementText(figure)).not.toInclude(TRANSLATION_SYMBOL);
+		expect(getElementText(form)).not.toContain(TRANSLATION_SYMBOL);
+		expect(getElementText(figure)).not.toContain(TRANSLATION_SYMBOL);
 
 		// Enable translation back
 		domTranslator.observe(form);
 		domTranslator.observe(figure);
 		await awaitTranslation();
 
-		expect(getElementText(figure)).toInclude(TRANSLATION_SYMBOL);
-		expect(getElementText(form)).toInclude(TRANSLATION_SYMBOL);
+		expect(getElementText(figure)).toContain(TRANSLATION_SYMBOL);
+		expect(getElementText(form)).toContain(TRANSLATION_SYMBOL);
 
 		// Disable translation for all elements
 		domTranslator.unobserve(form);
 		domTranslator.unobserve(figure);
-		expect(getElementText(form)).not.toInclude(TRANSLATION_SYMBOL);
-		expect(getElementText(figure)).not.toInclude(TRANSLATION_SYMBOL);
+		expect(getElementText(form)).not.toContain(TRANSLATION_SYMBOL);
+		expect(getElementText(figure)).not.toContain(TRANSLATION_SYMBOL);
 	});
 });
