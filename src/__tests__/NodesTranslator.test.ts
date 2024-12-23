@@ -18,30 +18,13 @@ const composeName = (...args: (string | boolean)[]) => args.filter(Boolean).join
 const TRANSLATION_SYMBOL = '***TRANSLATED***';
 const translator = async (text: string) => TRANSLATION_SYMBOL + text;
 
-function startsWithRegex(input: string): RegExp {
-	// Escape any special regex characters in the input string
-	const escapedInput = input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	// Construct the regex to match strings starting with the escaped input
-	return new RegExp(`^${escapedInput}`);
-}
-function endsWithRegex(input: string): RegExp {
-	// Escape any special regex characters in the input string
-	const escapedInput = input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	// Construct the regex to match strings starting with the escaped input
-	return new RegExp(`${escapedInput}$`);
-}
-function containsRegex(input: string): RegExp {
-	// Escape any special regex characters in the input string
-	const escapedInput = input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	// Construct the regex to match strings starting with the escaped input
-	return new RegExp(`${escapedInput}`);
-}
+const escapeRegexString = (input: string) => input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const startsWithRegex = (input: string) => new RegExp(`^${escapeRegexString(input)}`);
+const endsWithRegex = (input: string) => new RegExp(`${escapeRegexString(input)}$`);
+const containsRegex = (input: string) => new RegExp(`${escapeRegexString(input)}`);
 
 const fillDocument = (text: string) => {
-	// const div = document.createElement('div');
-	// div.innerHTML = text;
-
-	// document.append(div);
 	document.write(text);
 };
 
