@@ -217,7 +217,7 @@ describe('basic usage', () => {
 				expect(getElementText(figure)).not.toContain(TRANSLATION_SYMBOL);
 			});
 
-			test.only('use custom nodes filter', async () => {
+			test('use custom nodes filter', async () => {
 				fillDocument(sample);
 
 				// Translate document

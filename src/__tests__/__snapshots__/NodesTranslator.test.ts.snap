@@ -59,6 +59,15 @@ exports[`basic usage > translate whole document 1`] = `
 			<div contenteditable="true">***TRANSLATED***This text must not be translated, since it is editable</div>
 
 			<pre>***TRANSLATED***Text with preserved formatting</pre>
+
+			<div translate="no">
+				<div>***TRANSLATED***Items must not be translated:</div>
+				<div>***TRANSLATED***Foo</div>
+				<div>***TRANSLATED***Bar <span title="baz title">***TRANSLATED***baz</span></div>
+			</div>
+
+			<label><input type="checkbox" title="Item title" checked="">***TRANSLATED*** Checked item</label>
+			<label><input type="checkbox" title="Item title">***TRANSLATED*** Unchecked item</label>
 		</div>
 	</div>
 	<script>***TRANSLATED***console.log('console log: page end')</script>
@@ -127,6 +136,15 @@ exports[`basic usage > translate whole document with lazyTranslate 1`] = `
 			<div contenteditable="true">***TRANSLATED***This text must not be translated, since it is editable</div>
 
 			<pre>***TRANSLATED***Text with preserved formatting</pre>
+
+			<div translate="no">
+				<div>***TRANSLATED***Items must not be translated:</div>
+				<div>***TRANSLATED***Foo</div>
+				<div>***TRANSLATED***Bar <span title="baz title">***TRANSLATED***baz</span></div>
+			</div>
+
+			<label><input type="checkbox" title="Item title" checked="">***TRANSLATED*** Checked item</label>
+			<label><input type="checkbox" title="Item title">***TRANSLATED*** Unchecked item</label>
 		</div>
 	</div>
 	<script>console.log('console log: page end')</script>
@@ -195,6 +213,15 @@ exports[`translation with consider translatable and ignored nodes (lazy translat
 			<div contenteditable="true">***TRANSLATED***This text must not be translated, since it is editable</div>
 
 			<pre>***TRANSLATED***Text with preserved formatting</pre>
+
+			<div translate="no">
+				<div>***TRANSLATED***Items must not be translated:</div>
+				<div>***TRANSLATED***Foo</div>
+				<div>***TRANSLATED***Bar <span title="***TRANSLATED***baz title">***TRANSLATED***baz</span></div>
+			</div>
+
+			<label><input type="checkbox" title="***TRANSLATED***Item title" checked="">***TRANSLATED*** Checked item</label>
+			<label><input type="checkbox" title="***TRANSLATED***Item title">***TRANSLATED*** Unchecked item</label>
 		</div>
 	</div>
 	<script>console.log('console log: page end')</script>
@@ -263,6 +290,15 @@ exports[`translation with consider translatable and ignored nodes > translate wh
 			<div contenteditable="true">***TRANSLATED***This text must not be translated, since it is editable</div>
 
 			<pre>***TRANSLATED***Text with preserved formatting</pre>
+
+			<div translate="no">
+				<div>***TRANSLATED***Items must not be translated:</div>
+				<div>***TRANSLATED***Foo</div>
+				<div>***TRANSLATED***Bar <span title="***TRANSLATED***baz title">***TRANSLATED***baz</span></div>
+			</div>
+
+			<label><input type="checkbox" title="***TRANSLATED***Item title" checked="">***TRANSLATED*** Checked item</label>
+			<label><input type="checkbox" title="***TRANSLATED***Item title">***TRANSLATED*** Unchecked item</label>
 		</div>
 	</div>
 	<script>console.log('console log: page end')</script>
