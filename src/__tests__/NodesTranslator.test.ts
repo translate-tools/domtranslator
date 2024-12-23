@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 
 import { Config, NodesTranslator } from '../NodesTranslator';
-import { configureTranslatableNodePredicate } from '../utils/nodes';
+import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
 
 require('intersection-observer');
 
@@ -78,26 +78,27 @@ describe('basic usage', () => {
 		() => {
 			const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
+			const filterOptions = {
+				translatableAttributes: [
+					'title',
+					'alt',
+					'placeholder',
+					'label',
+					'aria-label',
+				],
+				ignoredSelectors: [
+					'meta',
+					'link',
+					'script',
+					'noscript',
+					'style',
+					'code',
+					'textarea',
+				],
+			} satisfies NodesFilterOptions;
 			const options = {
 				lazyTranslate: isLazyTranslation,
-				isTranslatableNode: configureTranslatableNodePredicate({
-					translatableAttributes: [
-						'title',
-						'alt',
-						'placeholder',
-						'label',
-						'aria-label',
-					],
-					ignoredTags: [
-						'meta',
-						'link',
-						'script',
-						'noscript',
-						'style',
-						'code',
-						'textarea',
-					],
-				}),
+				isTranslatableNode: configureTranslatableNodePredicate(filterOptions),
 			} satisfies Config;
 
 			test('translate whole document', async () => {
@@ -220,32 +221,15 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const ignoreSelectors = [
-					'[translate="no"], .notranslate, [contenteditable], [contenteditable="true"]',
-				];
 				const domTranslator = new NodesTranslator(translator, {
 					...options,
-					isTranslatableNode: (node) => {
-						let targetToParentsCheck: Element | null = null;
-
-						// Check node type and filters for its type
-						if (node instanceof Element) {
-							targetToParentsCheck = node;
-						} else if (node instanceof Attr) {
-							targetToParentsCheck = node.ownerElement;
-						} else if (node instanceof Text) {
-							targetToParentsCheck = node.parentElement;
-						}
-
-						if (!targetToParentsCheck) return false;
-
-						const isNotTranslatable = ignoreSelectors.some(
-							(selector) =>
-								targetToParentsCheck.matches(selector) ||
-								targetToParentsCheck.closest(selector),
-						);
-						return !isNotTranslatable;
-					},
+					isTranslatableNode: configureTranslatableNodePredicate({
+						...filterOptions,
+						ignoredSelectors: [
+							...filterOptions.ignoredSelectors,
+							'[translate="no"], .notranslate, [contenteditable], [contenteditable="true"]',
+						],
+					}),
 				});
 				domTranslator.observe(document.documentElement);
 

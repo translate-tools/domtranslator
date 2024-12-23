@@ -18,52 +18,37 @@ export const searchParent = (
 	return lookingNode;
 };
 
-export const configureTranslatableNodePredicate = (
-	config: {
-		ignoredTags?: string[];
-		translatableAttributes?: string[];
-	} = {},
-) => {
-	const ignoredTags = new Set(config.ignoredTags);
+export type NodesFilterOptions = {
+	ignoredSelectors?: string[];
+	translatableAttributes?: string[];
+};
+
+export const configureTranslatableNodePredicate = (config: NodesFilterOptions = {}) => {
+	const { ignoredSelectors = [] } = config;
 	const translatableAttributes = new Set(config.translatableAttributes);
 
-	return (targetNode: Node) => {
-		let targetToParentsCheck: Element | null = null;
+	return (node: Node) => {
+		let nearestElement: Element | null = null;
 
 		// Check node type and filters for its type
-		if (targetNode instanceof Element) {
-			if (ignoredTags.has(targetNode.localName)) {
+		if (node instanceof Element) {
+			nearestElement = node;
+		} else if (node instanceof Attr) {
+			if (!translatableAttributes.has(node.name)) {
 				return false;
 			}
 
-			targetToParentsCheck = targetNode;
-		} else if (targetNode instanceof Attr) {
-			if (!translatableAttributes.has(targetNode.name)) {
-				return false;
-			}
-
-			targetToParentsCheck = targetNode.ownerElement;
-		} else if (targetNode instanceof Text) {
-			targetToParentsCheck = targetNode.parentElement;
-		} else {
-			return false;
+			nearestElement = node.ownerElement;
+		} else if (node instanceof Text) {
+			nearestElement = node.parentElement;
 		}
 
-		// Check parents to ignore
-		if (targetToParentsCheck !== null) {
-			const ignoredParent = searchParent(
-				targetToParentsCheck,
-				(node: Node) =>
-					node instanceof Element && ignoredTags.has(node.localName),
-				true,
-			);
+		if (!nearestElement) return false;
 
-			if (ignoredParent !== null) {
-				return false;
-			}
-		}
-
-		// We can't proof that node is not translatable
-		return true;
+		const isNotTranslatable = ignoredSelectors.some(
+			(selector) =>
+				nearestElement.matches(selector) || nearestElement.closest(selector),
+		);
+		return !isNotTranslatable;
 	};
 };
