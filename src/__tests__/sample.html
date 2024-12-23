@@ -60,6 +60,15 @@
 			<div contenteditable="true">This text must not be translated, since it is editable</div>
 
 			<pre>Text with preserved formatting</pre>
+
+			<div translate="no">
+				<div>Items must not be translated:</div>
+				<div>Foo</div>
+				<div>Bar <span title="baz title">baz</span></div>
+			</div>
+
+			<label><input type="checkbox" title="Item title" checked/> Checked item</label>
+			<label><input type="checkbox" title="Item title"/> Unchecked item</label>
 		</div>
 	</div>
 	<script>console.log('console log: page end')</script>

@@ -228,6 +228,7 @@ describe('basic usage', () => {
 						ignoredSelectors: [
 							...filterOptions.ignoredSelectors,
 							'[translate="no"], .notranslate, [contenteditable], [contenteditable="true"]',
+							'.custom-elements :checked',
 						],
 					}),
 				});
@@ -235,13 +236,27 @@ describe('basic usage', () => {
 
 				await awaitTranslation();
 
-				['[contenteditable]', '.notranslate'].forEach((selector) => {
-					const element = document.querySelector(selector);
-					expect(element).toBeInstanceOf(Element);
-					expect(getElementText(element)).not.toMatch(
-						containsRegex(TRANSLATION_SYMBOL),
-					);
-				});
+				['[contenteditable]', '.notranslate', '[translate="no"]'].forEach(
+					(selector) => {
+						const element = document.querySelector(selector);
+						expect(element).toBeInstanceOf(Element);
+						expect(getElementText(element)).not.toMatch(
+							containsRegex(TRANSLATION_SYMBOL),
+						);
+					},
+				);
+
+				// Considered even pseudo classes
+				expect(
+					document
+						.querySelector('.custom-elements [type="checkbox"]:checked')
+						?.getAttribute('title'),
+				).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+				expect(
+					document
+						.querySelector('.custom-elements [type="checkbox"]:not(:checked)')
+						?.getAttribute('title'),
+				).toMatch(containsRegex(TRANSLATION_SYMBOL));
 			});
 		},
 	),
