@@ -1,4 +1,5 @@
 import { XMutationObserver } from './lib/XMutationObserver';
+import { configureTranslatableNodePredicate } from './utils/nodes';
 
 interface NodeData {
 	/**
@@ -27,26 +28,6 @@ interface NodeData {
 	 */
 	priority: number;
 }
-
-const searchParent = (
-	node: Node,
-	callback: (value: Node) => boolean,
-	includeSelf = false,
-) => {
-	// Check self
-	if (includeSelf && callback(node)) {
-		return node;
-	}
-
-	// Check parents
-	let lookingNode: Node | null = node;
-	while ((lookingNode = lookingNode.parentNode)) {
-		if (callback(lookingNode)) {
-			break;
-		}
-	}
-	return lookingNode;
-};
 
 /**
  * @param handler if return `false`, loop will stop
@@ -91,14 +72,12 @@ export function isInViewport(element: Element, threshold = 0) {
 type TranslatorInterface = (text: string, priority: number) => Promise<string>;
 
 interface InnerConfig {
-	ignoredTags: Set<string>;
-	translatableAttributes: Set<string>;
+	isTranslatableNode: (node: Node) => boolean;
 	lazyTranslate: boolean;
 }
 
 export interface Config {
-	ignoredTags?: string[];
-	translatableAttributes?: string[];
+	isTranslatableNode?: (node: Node) => boolean;
 	lazyTranslate?: boolean;
 }
 
@@ -117,16 +96,8 @@ export class NodesTranslator {
 		this.translateCallback = translateCallback;
 		this.config = {
 			...config,
-			ignoredTags: new Set(
-				config?.ignoredTags !== undefined
-					? config.ignoredTags.filter(String)
-					: [],
-			),
-			translatableAttributes: new Set(
-				config?.translatableAttributes !== undefined
-					? config.translatableAttributes.filter(String)
-					: [],
-			),
+			isTranslatableNode:
+				config?.isTranslatableNode ?? configureTranslatableNodePredicate(),
 			lazyTranslate:
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
@@ -346,44 +317,7 @@ export class NodesTranslator {
 	}
 
 	private isTranslatableNode(targetNode: Node) {
-		let targetToParentsCheck: Element | null = null;
-
-		// Check node type and filters for its type
-		if (targetNode instanceof Element) {
-			if (this.config.ignoredTags.has(targetNode.localName)) {
-				return false;
-			}
-
-			targetToParentsCheck = targetNode;
-		} else if (targetNode instanceof Attr) {
-			if (!this.config.translatableAttributes.has(targetNode.name)) {
-				return false;
-			}
-
-			targetToParentsCheck = targetNode.ownerElement;
-		} else if (targetNode instanceof Text) {
-			targetToParentsCheck = targetNode.parentElement;
-		} else {
-			return false;
-		}
-
-		// Check parents to ignore
-		if (targetToParentsCheck !== null) {
-			const ignoredParent = searchParent(
-				targetToParentsCheck,
-				(node: Node) =>
-					node instanceof Element &&
-					this.config.ignoredTags.has(node.localName),
-				true,
-			);
-
-			if (ignoredParent !== null) {
-				return false;
-			}
-		}
-
-		// We can't proof that node is not translatable
-		return true;
+		return this.config.isTranslatableNode(targetNode);
 	}
 
 	private isIntersectableNode = (node: Element) => {

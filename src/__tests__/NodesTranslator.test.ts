@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 
-import { NodesTranslator } from '../NodesTranslator';
+import { Config, NodesTranslator } from '../NodesTranslator';
+import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
 
 require('intersection-observer');
 
@@ -17,24 +18,13 @@ const composeName = (...args: (string | boolean)[]) => args.filter(Boolean).join
 const TRANSLATION_SYMBOL = '***TRANSLATED***';
 const translator = async (text: string) => TRANSLATION_SYMBOL + text;
 
-function startsWithRegex(input: string): RegExp {
-	// Escape any special regex characters in the input string
-	const escapedInput = input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	// Construct the regex to match strings starting with the escaped input
-	return new RegExp(`^${escapedInput}`);
-}
-function endsWithRegex(input: string): RegExp {
-	// Escape any special regex characters in the input string
-	const escapedInput = input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	// Construct the regex to match strings starting with the escaped input
-	return new RegExp(`${escapedInput}$`);
-}
+const escapeRegexString = (input: string) => input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const startsWithRegex = (input: string) => new RegExp(`^${escapeRegexString(input)}`);
+const endsWithRegex = (input: string) => new RegExp(`${escapeRegexString(input)}$`);
+const containsRegex = (input: string) => new RegExp(`${escapeRegexString(input)}`);
 
 const fillDocument = (text: string) => {
-	// const div = document.createElement('div');
-	// div.innerHTML = text;
-
-	// document.append(div);
 	document.write(text);
 };
 
@@ -71,8 +61,7 @@ describe('basic usage', () => {
 		() => {
 			const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
-			const options = {
-				lazyTranslate: isLazyTranslation,
+			const filterOptions = {
 				translatableAttributes: [
 					'title',
 					'alt',
@@ -80,7 +69,7 @@ describe('basic usage', () => {
 					'label',
 					'aria-label',
 				],
-				ignoredTags: [
+				ignoredSelectors: [
 					'meta',
 					'link',
 					'script',
@@ -89,7 +78,11 @@ describe('basic usage', () => {
 					'code',
 					'textarea',
 				],
-			};
+			} satisfies NodesFilterOptions;
+			const options = {
+				lazyTranslate: isLazyTranslation,
+				isTranslatableNode: configureTranslatableNodePredicate(filterOptions),
+			} satisfies Config;
 
 			test('translate whole document', async () => {
 				fillDocument(sample);
@@ -205,6 +198,50 @@ describe('basic usage', () => {
 				domTranslator.unobserve(figure);
 				expect(getElementText(form)).not.toContain(TRANSLATION_SYMBOL);
 				expect(getElementText(figure)).not.toContain(TRANSLATION_SYMBOL);
+			});
+
+			test('use custom nodes filter', async () => {
+				fillDocument(sample);
+
+				// Translate document
+				const domTranslator = new NodesTranslator(translator, {
+					...options,
+					isTranslatableNode: configureTranslatableNodePredicate({
+						...filterOptions,
+						ignoredSelectors: [
+							...filterOptions.ignoredSelectors,
+							'[translate="no"], .notranslate, [contenteditable], [contenteditable="true"]',
+							'.custom-elements :checked',
+						],
+					}),
+				});
+				domTranslator.observe(document.documentElement);
+
+				await awaitTranslation();
+
+				['[contenteditable]', '.notranslate', '[translate="no"]'].forEach(
+					(selector) => {
+						const element = document.querySelector(selector);
+						expect(element).toBeInstanceOf(Element);
+						expect(getElementText(element)).not.toMatch(
+							containsRegex(TRANSLATION_SYMBOL),
+						);
+					},
+				);
+
+				// Considered even pseudo classes
+				expect(
+					document
+						.querySelector('.custom-elements [type="checkbox"]:checked')
+						?.getAttribute('title'),
+				).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+				expect(
+					document
+						.querySelector('.custom-elements [type="checkbox"]:not(:checked)')
+						?.getAttribute('title'),
+				).toMatch(containsRegex(TRANSLATION_SYMBOL));
+
+				expect(document.documentElement.outerHTML).toMatchSnapshot();
 			});
 		},
 	),
