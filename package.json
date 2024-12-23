@@ -12,9 +12,10 @@
 		"access": "public"
 	},
 	"scripts": {
-		"build": "gulp",
 		"test": "vitest",
 		"test-fast": "TEST_FAST=true vitest",
+		"build": "rm -rf dist && gulp",
+		"release": "npm run build && cd dist && npm publish",
 		"prettify": "prettier --write \"{*,**/*}.{ts,tsx,js,jsx}\" && eslint --fix \"{*,**/*}.{ts,tsx,js,jsx}\" && stylelint --fix \"{*,**/*}.css\"",
 		"lint:text": "textlint \"{*,**/*}.md\"",
 		"packages:upgrade": "npm-check-updates -u",
