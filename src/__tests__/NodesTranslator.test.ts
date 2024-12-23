@@ -2,8 +2,12 @@ import { readFileSync } from 'fs';
 
 import { NodesTranslator } from '../NodesTranslator';
 
+require('intersection-observer');
+
+(IntersectionObserver.prototype as any).POLL_INTERVAL = 100;
+
 const delay = (time: number) => new Promise((res) => setTimeout(res, time));
-const awaitTranslation = () => delay(10);
+const awaitTranslation = () => delay(120);
 
 const getElementText = (elm: Element | null) =>
 	elm && elm.textContent ? elm.textContent.trim() : null;
@@ -34,40 +38,7 @@ const fillDocument = (text: string) => {
 	document.write(text);
 };
 
-// TODO: add method to subscribe on queue updates and use it instead of timers for tests
-beforeEach(() => {
-	document.clear();
-
-	// IntersectionObserver isn't available in test environment
-	class IntersectionObserverMock {
-		private callback: IntersectionObserverCallback;
-		constructor(
-			callback: IntersectionObserverCallback,
-			_options?: IntersectionObserverInit | undefined,
-		) {
-			this.callback = callback;
-		}
-
-		public observe = (target: Element) => {
-			[target, ...Array.from(target.querySelectorAll('*'))].forEach((target) => {
-				this.callback(
-					[{ isIntersecting: true, target }] as IntersectionObserverEntry[],
-					this as unknown as IntersectionObserver,
-				);
-			});
-			return null;
-		};
-		public unobserve = (_target: Element) => {
-			return null;
-		};
-		public disconnect = () => null;
-	}
-
-	window.IntersectionObserver =
-		IntersectionObserverMock as unknown as typeof IntersectionObserver;
-});
-
-describe('basic usage', () => {
+describe.only('basic usage', () => {
 	const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
 	[true, false].forEach((lazyTranslate) => {

@@ -36,6 +36,7 @@
 		"gulp-sourcemaps": "^3.0.0",
 		"gulp-typescript": "^6.0.0-alpha.1",
 		"husky": "^8.0.3",
+		"intersection-observer": "^0.12.2",
 		"jsdom": "^22.0.0",
 		"lint-staged": "^13.2.2",
 		"merge-stream": "^2.0.0",
