@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 
-import { NodesTranslator } from '../NodesTranslator';
+import { Config, NodesTranslator } from '../NodesTranslator';
+import { configureTranslatableNodePredicate } from '../utils/nodes';
 
 require('intersection-observer');
 
@@ -71,24 +72,26 @@ describe('basic usage', () => {
 		() => {
 			const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
-			const options = {
+			const options: Config = {
 				lazyTranslate: isLazyTranslation,
-				translatableAttributes: [
-					'title',
-					'alt',
-					'placeholder',
-					'label',
-					'aria-label',
-				],
-				ignoredTags: [
-					'meta',
-					'link',
-					'script',
-					'noscript',
-					'style',
-					'code',
-					'textarea',
-				],
+				isTranslatableNode: configureTranslatableNodePredicate({
+					translatableAttributes: [
+						'title',
+						'alt',
+						'placeholder',
+						'label',
+						'aria-label',
+					],
+					ignoredTags: [
+						'meta',
+						'link',
+						'script',
+						'noscript',
+						'style',
+						'code',
+						'textarea',
+					],
+				}),
 			};
 
 			test('translate whole document', async () => {
