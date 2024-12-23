@@ -30,6 +30,12 @@ function endsWithRegex(input: string): RegExp {
 	// Construct the regex to match strings starting with the escaped input
 	return new RegExp(`${escapedInput}$`);
 }
+function containsRegex(input: string): RegExp {
+	// Escape any special regex characters in the input string
+	const escapedInput = input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	// Construct the regex to match strings starting with the escaped input
+	return new RegExp(`${escapedInput}`);
+}
 
 const fillDocument = (text: string) => {
 	// const div = document.createElement('div');
@@ -72,7 +78,7 @@ describe('basic usage', () => {
 		() => {
 			const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
-			const options: Config = {
+			const options = {
 				lazyTranslate: isLazyTranslation,
 				isTranslatableNode: configureTranslatableNodePredicate({
 					translatableAttributes: [
@@ -92,7 +98,7 @@ describe('basic usage', () => {
 						'textarea',
 					],
 				}),
-			};
+			} satisfies Config;
 
 			test('translate whole document', async () => {
 				fillDocument(sample);
@@ -208,6 +214,50 @@ describe('basic usage', () => {
 				domTranslator.unobserve(figure);
 				expect(getElementText(form)).not.toContain(TRANSLATION_SYMBOL);
 				expect(getElementText(figure)).not.toContain(TRANSLATION_SYMBOL);
+			});
+
+			test.only('use custom nodes filter', async () => {
+				fillDocument(sample);
+
+				// Translate document
+				const ignoreSelectors = [
+					'[translate="no"], .notranslate, [contenteditable], [contenteditable="true"]',
+				];
+				const domTranslator = new NodesTranslator(translator, {
+					...options,
+					isTranslatableNode: (node) => {
+						let targetToParentsCheck: Element | null = null;
+
+						// Check node type and filters for its type
+						if (node instanceof Element) {
+							targetToParentsCheck = node;
+						} else if (node instanceof Attr) {
+							targetToParentsCheck = node.ownerElement;
+						} else if (node instanceof Text) {
+							targetToParentsCheck = node.parentElement;
+						}
+
+						if (!targetToParentsCheck) return false;
+
+						const isNotTranslatable = ignoreSelectors.some(
+							(selector) =>
+								targetToParentsCheck.matches(selector) ||
+								targetToParentsCheck.closest(selector),
+						);
+						return !isNotTranslatable;
+					},
+				});
+				domTranslator.observe(document.documentElement);
+
+				await awaitTranslation();
+
+				['[contenteditable]', '.notranslate'].forEach((selector) => {
+					const element = document.querySelector(selector);
+					expect(element).toBeInstanceOf(Element);
+					expect(getElementText(element)).not.toMatch(
+						containsRegex(TRANSLATION_SYMBOL),
+					);
+				});
 			});
 		},
 	),
