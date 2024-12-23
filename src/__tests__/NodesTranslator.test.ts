@@ -257,6 +257,8 @@ describe('basic usage', () => {
 						.querySelector('.custom-elements [type="checkbox"]:not(:checked)')
 						?.getAttribute('title'),
 				).toMatch(containsRegex(TRANSLATION_SYMBOL));
+
+				expect(document.documentElement.outerHTML).toMatchSnapshot();
 			});
 		},
 	),
