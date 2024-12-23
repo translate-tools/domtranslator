@@ -1,6 +1,6 @@
 {
 	"name": "domtranslator",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"license": "Apache-2.0",
 	"author": "Robert Vitonsky <https://github.com/vitonsky>",
 	"homepage": "https://github.com/translate-tools/domtranslator",
