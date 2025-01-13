@@ -21,11 +21,7 @@ export class DecorateNodes implements IDecorateNodes {
 	private intersectWatcher: IntersectWatcher;
 	private nodes: NodeStorageInterface;
 
-	constructor(
-		intersectWatcher: IntersectWatcher,
-
-		nodes: NodeStorageInterface,
-	) {
+	constructor(intersectWatcher: IntersectWatcher, nodes: NodeStorageInterface) {
 		this.intersectWatcher = intersectWatcher;
 		this.nodes = nodes;
 	}

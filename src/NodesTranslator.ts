@@ -2,19 +2,8 @@ import { DecorateNodes, IDecorateNodes } from './DecorateNodes';
 import { IntersectWatcher } from './IntersectWatcher';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { Nodes } from './NodePrimitive';
+import { Config, InnerConfig, TranslatorInterface } from './types';
 import { configureTranslatableNodePredicate } from './utils/nodes';
-
-type TranslatorInterface = (text: string, priority: number) => Promise<string>;
-
-interface InnerConfig {
-	isTranslatableNode: (node: Node) => boolean;
-	lazyTranslate: boolean;
-}
-
-export interface Config {
-	isTranslatableNode?: (node: Node) => boolean;
-	lazyTranslate?: boolean;
-}
 
 // TODO: consider local language definitions (and implement `from`, `to` parameters for translator to specify default or locale languages)
 // TODO: scan nodes lazy - defer scan to `requestIdleCallback` instead of instant scan

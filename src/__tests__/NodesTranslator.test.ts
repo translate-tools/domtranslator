@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 
-import { Config, NodesTranslator } from '../NodesTranslator';
+import { NodesTranslator } from '../NodesTranslator';
+import { Config } from '../types';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
 
 require('intersection-observer');

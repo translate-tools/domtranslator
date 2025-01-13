@@ -1,3 +1,4 @@
+import { InnerConfig, TranslatorInterface } from './types';
 import { isInViewport } from './utils/isInViewport';
 import { nodeExplore } from './utils/nodeExplore';
 
@@ -27,13 +28,6 @@ interface NodeData {
 	 * Priority to translate node. The bigger the faster will translate
 	 */
 	priority: number;
-}
-
-type TranslatorInterface = (text: string, priority: number) => Promise<string>;
-
-interface InnerConfig {
-	isTranslatableNode: (node: Node) => boolean;
-	lazyTranslate: boolean;
 }
 
 export interface NodeStorageInterface {
