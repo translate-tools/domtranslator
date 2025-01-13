@@ -1,5 +1,7 @@
-import { IntersectWatcher } from './IntersectWatcher';
+import { IntersectionWatcher } from './IntersectWatcher';
 import { NodeStorageInterface } from './NodePrimitive';
+
+type IsTranslatableNode = (node: Node) => boolean;
 
 export interface IDecorateNodes {
 	addNode: (node: Node) => void;
@@ -18,20 +20,38 @@ export interface IDecorateNodes {
 }
 
 export class DecorateNodes implements IDecorateNodes {
-	private intersectWatcher: IntersectWatcher;
-	private nodes: NodeStorageInterface;
+	private intersectionWatcher: IntersectionWatcher;
+	private isTranslatableNode: IsTranslatableNode;
 
-	constructor(intersectWatcher: IntersectWatcher, nodes: NodeStorageInterface) {
-		this.intersectWatcher = intersectWatcher;
-		this.nodes = nodes;
+	constructor(
+		private nodes: NodeStorageInterface,
+		isTranslatableNode: IsTranslatableNode,
+	) {
+		this.intersectionWatcher = new IntersectionWatcher((node: Element) => {
+			this.process(node);
+		});
+
+		this.isTranslatableNode = isTranslatableNode;
+	}
+
+	private process(node: Element) {
+		// Translate child text nodes and attributes of target node
+		// WARNING: we shall not touch inner nodes, because its may still not intersected
+		node.childNodes.forEach((node) => {
+			if (node instanceof Element || !this.isTranslatableNode(node)) {
+				return;
+			}
+
+			this.handleNode(node);
+		});
 	}
 
 	public addNode(node: Node) {
 		this.nodes.addNode(
 			node,
-			this.intersectWatcher.isIntersectableNode.bind(this.intersectWatcher),
-			this.intersectWatcher.handleElementByIntersectViewport.bind(
-				this.intersectWatcher,
+			this.intersectionWatcher.isIntersectableNode,
+			this.intersectionWatcher.handleElementByIntersectViewport.bind(
+				this.intersectionWatcher,
 			),
 		);
 	}
@@ -39,7 +59,7 @@ export class DecorateNodes implements IDecorateNodes {
 	public deleteNode(node: Node, onlyTarget?: boolean) {
 		this.nodes.deleteNode(node, onlyTarget);
 		if (node instanceof Element) {
-			this.intersectWatcher.unobserve(node);
+			this.intersectionWatcher.unobserve(node);
 		}
 	}
 

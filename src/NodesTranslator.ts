@@ -1,5 +1,4 @@
 import { DecorateNodes, IDecorateNodes } from './DecorateNodes';
-import { IntersectWatcher } from './IntersectWatcher';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { Nodes } from './NodePrimitive';
 import { Config, InnerConfig, TranslatorInterface } from './types';
@@ -30,11 +29,9 @@ export class NodesTranslator {
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
 
-		const nodes = new Nodes(translateCallback, this.config);
-
 		this.nodesManager = new DecorateNodes(
-			new IntersectWatcher(this.config.isTranslatableNode, nodes.handleNode),
-			nodes,
+			new Nodes(translateCallback, this.config),
+			this.config.isTranslatableNode,
 		);
 	}
 
