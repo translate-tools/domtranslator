@@ -21,29 +21,12 @@ export interface IDecorateNodes {
 
 export class DecorateNodes implements IDecorateNodes {
 	private intersectionWatcher: IntersectionWatcher;
-	private isTranslatableNode: IsTranslatableNode;
 
 	constructor(
 		private nodes: NodeStorageInterface,
-		isTranslatableNode: IsTranslatableNode,
+		intersectionWatcher: IntersectionWatcher,
 	) {
-		this.intersectionWatcher = new IntersectionWatcher((node: Element) => {
-			this.process(node);
-		});
-
-		this.isTranslatableNode = isTranslatableNode;
-	}
-
-	private process(node: Element) {
-		// Translate child text nodes and attributes of target node
-		// WARNING: we shall not touch inner nodes, because its may still not intersected
-		node.childNodes.forEach((node) => {
-			if (node instanceof Element || !this.isTranslatableNode(node)) {
-				return;
-			}
-
-			this.handleNode(node);
-		});
+		this.intersectionWatcher = intersectionWatcher;
 	}
 
 	public addNode(node: Node) {

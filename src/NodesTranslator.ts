@@ -1,4 +1,5 @@
 import { DecorateNodes, IDecorateNodes } from './DecorateNodes';
+import { IntersectionWatcher } from './IntersectWatcher';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { Nodes } from './NodePrimitive';
 import { Config, InnerConfig, TranslatorInterface } from './types';
@@ -17,6 +18,10 @@ export class NodesTranslator {
 
 	private nodesManager: IDecorateNodes;
 
+	private intersectionWatcher: IntersectionWatcher;
+
+	private nodes: Nodes;
+
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 
 	constructor(translateCallback: TranslatorInterface, config?: Config) {
@@ -29,10 +34,25 @@ export class NodesTranslator {
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
 
-		this.nodesManager = new DecorateNodes(
-			new Nodes(translateCallback, this.config),
-			this.config.isTranslatableNode,
-		);
+		this.intersectionWatcher = new IntersectionWatcher((node: Element) => {
+			this.process(node);
+		});
+
+		this.nodes = new Nodes(translateCallback, this.config);
+
+		this.nodesManager = new DecorateNodes(this.nodes, this.intersectionWatcher);
+	}
+
+	private process(node: Element) {
+		// Translate child text nodes and attributes of target node
+		// WARNING: we shall not touch inner nodes, because its may still not intersected
+		node.childNodes.forEach((node) => {
+			if (node instanceof Element || !this.config.isTranslatableNode(node)) {
+				return;
+			}
+
+			this.nodes.handleNode(node);
+		});
 	}
 
 	public observe(node: Element) {
