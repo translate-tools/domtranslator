@@ -44,7 +44,7 @@ export class NodesTranslator {
 		const nodes = new Nodes(translateCallback, this.config);
 
 		this.nodesManager = new DecorateNodes(
-			new IntersectWatcher(nodes.handleNode),
+			new IntersectWatcher(this.config.isTranslatableNode, nodes.handleNode),
 			nodes,
 		);
 	}
