@@ -50,6 +50,10 @@ export interface NodeStorageInterface {
 	handleNode: (node: Node) => void;
 
 	isNodeStorageHas: (attribute: Attr) => boolean;
+
+	getNodeData: (node: Node) => {
+		originalText: string | null;
+	} | null;
 }
 
 export class Nodes implements NodeStorageInterface {

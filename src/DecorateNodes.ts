@@ -11,6 +11,10 @@ export interface IDecorateNodes {
 	handleNode: (node: Node) => void;
 
 	isNodeStorageHas: (attribute: Attr) => boolean;
+
+	getNodeData: (node: Node) => {
+		originalText: string | null;
+	} | null;
 }
 
 export class DecorateNodes implements IDecorateNodes {
@@ -53,5 +57,9 @@ export class DecorateNodes implements IDecorateNodes {
 
 	public handleNode(node: Node) {
 		this.nodes.handleNode(node);
+	}
+
+	public getNodeData(node: Node) {
+		return this.nodes.getNodeData(node);
 	}
 }
