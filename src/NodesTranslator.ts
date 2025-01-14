@@ -1,4 +1,3 @@
-import { DecorateNodes, IDecorateNodes } from './DecorateNodes';
 import { IntersectionWatcher } from './IntersectWatcher';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { Nodes } from './NodePrimitive';
@@ -15,8 +14,6 @@ import { configureTranslatableNodePredicate } from './utils/nodes';
 export class NodesTranslator {
 	// private readonly translateCallback: TranslatorInterface;
 	private readonly config: InnerConfig;
-
-	private nodesManager: IDecorateNodes;
 
 	private intersectionWatcher: IntersectionWatcher;
 
@@ -39,8 +36,6 @@ export class NodesTranslator {
 		});
 
 		this.nodes = new Nodes(translateCallback, this.config);
-
-		this.nodesManager = new DecorateNodes(this.nodes, this.intersectionWatcher);
 	}
 
 	private process(node: Element) {
@@ -55,6 +50,23 @@ export class NodesTranslator {
 		});
 	}
 
+	private addNode(node: Node) {
+		this.nodes.addNode(
+			node,
+			this.intersectionWatcher.isIntersectableNode,
+			this.intersectionWatcher.handleElementByIntersectViewport.bind(
+				this.intersectionWatcher,
+			),
+		);
+	}
+
+	private deleteNode(node: Node, onlyTarget?: boolean) {
+		this.nodes.deleteNode(node, onlyTarget);
+		if (node instanceof Element) {
+			this.intersectionWatcher.unobserve(node);
+		}
+	}
+
 	public observe(node: Element) {
 		if (this.observedNodesStorage.has(node)) {
 			throw new Error('Node already under observe');
@@ -64,14 +76,10 @@ export class NodesTranslator {
 		const observer = new XMutationObserver();
 		this.observedNodesStorage.set(node, observer);
 
-		observer.addHandler('elementAdded', ({ target }) =>
-			this.nodesManager.addNode(target),
-		);
-		observer.addHandler('elementRemoved', ({ target }) =>
-			this.nodesManager.deleteNode(target),
-		);
+		observer.addHandler('elementAdded', ({ target }) => this.addNode(target));
+		observer.addHandler('elementRemoved', ({ target }) => this.deleteNode(target));
 		observer.addHandler('characterData', ({ target }) => {
-			this.nodesManager.updateNode(target);
+			this.nodes.updateNode(target);
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
 			if (attributeName === undefined || attributeName === null) return;
@@ -82,15 +90,15 @@ export class NodesTranslator {
 			if (attribute === null) return;
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
-			if (!this.nodesManager.isNodeStorageHas(attribute)) {
-				this.nodesManager.addNode(attribute);
+			if (!this.nodes.isNodeStorageHas(attribute)) {
+				this.addNode(attribute);
 			} else {
-				this.nodesManager.updateNode(attribute);
+				this.nodes.updateNode(attribute);
 			}
 		});
 
 		observer.observe(node);
-		this.nodesManager.addNode(node);
+		this.addNode(node);
 	}
 
 	public unobserve(node: Element) {
@@ -98,12 +106,12 @@ export class NodesTranslator {
 			throw new Error('Node is not under observe');
 		}
 
-		this.nodesManager.deleteNode(node);
+		this.deleteNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
 	}
 
 	public getNodeData(node: Node) {
-		this.nodesManager.getNodeData(node);
+		this.nodes.getNodeData(node);
 	}
 }
