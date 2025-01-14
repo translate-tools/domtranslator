@@ -32,13 +32,13 @@ export class NodesTranslator {
 		};
 
 		this.intersectionWatcher = new IntersectionWatcher((node: Element) => {
-			this.process(node);
+			this.handleIntersection(node);
 		});
 
 		this.nodes = new Nodes(translateCallback, this.config);
 	}
 
-	private process(node: Element) {
+	private handleIntersection(node: Element) {
 		// Translate child text nodes and attributes of target node
 		// WARNING: we shall not touch inner nodes, because its may still not intersected
 		node.childNodes.forEach((node) => {
