@@ -35,7 +35,37 @@ export class NodesTranslator {
 			this.handleIntersection(node);
 		});
 
-		this.nodes = new Nodes(translateCallback, this.config);
+		this.nodes = new Nodes(
+			translateCallback,
+			this.config,
+			this.lazyTranslationHander.bind(this),
+		);
+	}
+
+	private lazyTranslationHander(node: Node) {
+		// Handle text nodes and attributes
+
+		// Lazy translate when own element intersect viewport
+		// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
+
+		if (this.config.lazyTranslate) {
+			const isAttachedToDOM = node.getRootNode() !== node;
+			const observableNode =
+				node instanceof Attr ? node.ownerElement : node.parentElement;
+
+			// Ignore lazy translation for not intersectable nodes and translate it immediately
+			if (
+				isAttachedToDOM &&
+				observableNode !== null &&
+				this.intersectionWatcher.isIntersectableNode(observableNode)
+			) {
+				this.intersectionWatcher.handleElementByIntersectViewport(observableNode);
+				return;
+			}
+		}
+
+		// Add to storage
+		this.nodes.handleNode(node);
 	}
 
 	private handleIntersection(node: Element) {
@@ -50,18 +80,9 @@ export class NodesTranslator {
 		});
 	}
 
-	private addNode(node: Node) {
-		this.nodes.addNode(
-			node,
-			this.intersectionWatcher.isIntersectableNode,
-			this.intersectionWatcher.handleElementByIntersectViewport.bind(
-				this.intersectionWatcher,
-			),
-		);
-	}
-
 	private deleteNode(node: Node, onlyTarget?: boolean) {
 		this.nodes.deleteNode(node, onlyTarget);
+
 		if (node instanceof Element) {
 			this.intersectionWatcher.unobserve(node);
 		}
@@ -76,7 +97,7 @@ export class NodesTranslator {
 		const observer = new XMutationObserver();
 		this.observedNodesStorage.set(node, observer);
 
-		observer.addHandler('elementAdded', ({ target }) => this.addNode(target));
+		observer.addHandler('elementAdded', ({ target }) => this.nodes.addNode(target));
 		observer.addHandler('elementRemoved', ({ target }) => this.deleteNode(target));
 		observer.addHandler('characterData', ({ target }) => {
 			this.nodes.updateNode(target);
@@ -91,14 +112,14 @@ export class NodesTranslator {
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
 			if (!this.nodes.isNodeStorageHas(attribute)) {
-				this.addNode(attribute);
+				this.nodes.addNode(attribute);
 			} else {
 				this.nodes.updateNode(attribute);
 			}
 		});
 
 		observer.observe(node);
-		this.addNode(node);
+		this.nodes.addNode(node);
 	}
 
 	public unobserve(node: Element) {

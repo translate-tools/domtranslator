@@ -30,12 +30,10 @@ interface NodeData {
 	priority: number;
 }
 
+//TODO: violanse ISP princeple
+//TODO: violanse SRP prisiple. The add method should not have lazy translate
 export interface NodeStorageInterface {
-	addNode: (
-		node: Node,
-		isIntersectableNode: (node: Element) => boolean,
-		handleElementByIntersectViewport: (node: Element) => void,
-	) => void;
+	addNode: (node: Node) => void;
 
 	deleteNode: (node: Node, onlyTarget?: boolean) => void;
 
@@ -50,17 +48,25 @@ export interface NodeStorageInterface {
 	} | null;
 }
 
+type LazyTranslationHander = (node: Node) => void;
+
 export class Nodes implements NodeStorageInterface {
 	private readonly translateCallback: TranslatorInterface;
+	private readonly lazyTranslationHander: LazyTranslationHander;
 
 	private readonly config: InnerConfig;
 
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 
-	constructor(translateCallback: TranslatorInterface, config: InnerConfig) {
+	constructor(
+		translateCallback: TranslatorInterface,
+		config: InnerConfig,
+		lazyTranslate: LazyTranslationHander,
+	) {
 		this.translateCallback = translateCallback;
 		this.config = config;
+		this.lazyTranslationHander = lazyTranslate;
 	}
 
 	public getNodeData(node: Node) {
@@ -97,50 +103,21 @@ export class Nodes implements NodeStorageInterface {
 		this.translateNode(node);
 	};
 
-	public addNode(
-		node: Node,
-		isIntersectableNode: (node: Element) => boolean,
-		handleElementByIntersectViewport: (node: Element) => void,
-	) {
+	public addNode(node: Node) {
 		// Add all nodes which element contains (text nodes and attributes of current and inner elements)
 		if (node instanceof Element) {
 			this.handleTree(node, (node) => {
 				if (node instanceof Element) return;
 
 				if (this.isTranslatableNode(node)) {
-					this.addNode(
-						node,
-						isIntersectableNode,
-						handleElementByIntersectViewport,
-					);
+					this.addNode(node);
 				}
 			});
 
 			return;
 		}
 
-		// Handle text nodes and attributes
-
-		// Lazy translate when own element intersect viewport
-		// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
-		if (this.config.lazyTranslate) {
-			const isAttachedToDOM = node.getRootNode() !== node;
-			const observableNode =
-				node instanceof Attr ? node.ownerElement : node.parentElement;
-
-			// Ignore lazy translation for not intersectable nodes and translate it immediately
-			if (
-				isAttachedToDOM &&
-				observableNode !== null &&
-				isIntersectableNode(observableNode)
-			) {
-				handleElementByIntersectViewport(observableNode);
-				return;
-			}
-		}
-
-		// Add to storage
-		this.handleNode(node);
+		this.lazyTranslationHander(node);
 	}
 
 	public deleteNode(node: Node, onlyTarget = false) {
@@ -151,9 +128,6 @@ export class Nodes implements NodeStorageInterface {
 					this.deleteNode(node, true);
 				});
 			}
-
-			// Unobserve
-			// this.intersectionObserver.unobserve(node);
 		}
 
 		const nodeData = this.nodeStorage.get(node);
