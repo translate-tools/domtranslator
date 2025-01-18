@@ -1,4 +1,4 @@
-import { IntersectionWatcher } from './IntersectWatcher';
+import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { Nodes } from './NodePrimitive';
 import { Config, InnerConfig, TranslatorInterface } from './types';
@@ -15,7 +15,7 @@ export class NodesTranslator {
 	// private readonly translateCallback: TranslatorInterface;
 	private readonly config: InnerConfig;
 
-	private intersectionWatcher: IntersectionWatcher;
+	private LazyTranslator: LazyTranslator;
 
 	private nodes: Nodes;
 
@@ -31,9 +31,7 @@ export class NodesTranslator {
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
 
-		this.intersectionWatcher = new IntersectionWatcher((node: Element) => {
-			this.handleIntersection(node);
-		});
+		this.LazyTranslator = new LazyTranslator(this.handleIntersection, this.config);
 
 		this.nodes = new Nodes(
 			translateCallback,
@@ -43,48 +41,18 @@ export class NodesTranslator {
 	}
 
 	private lazyTranslationHander(node: Node) {
-		// Handle text nodes and attributes
-
-		// Lazy translate when own element intersect viewport
-		// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
-
-		if (this.config.lazyTranslate) {
-			const isAttachedToDOM = node.getRootNode() !== node;
-			const observableNode =
-				node instanceof Attr ? node.ownerElement : node.parentElement;
-
-			// Ignore lazy translation for not intersectable nodes and translate it immediately
-			if (
-				isAttachedToDOM &&
-				observableNode !== null &&
-				this.intersectionWatcher.isIntersectableNode(observableNode)
-			) {
-				this.intersectionWatcher.handleElementByIntersectViewport(observableNode);
-				return;
-			}
-		}
-
-		// Add to storage
-		this.nodes.handleNode(node);
+		this.LazyTranslator.lazyTranslationHandler(node);
 	}
 
-	private handleIntersection(node: Element) {
-		// Translate child text nodes and attributes of target node
-		// WARNING: we shall not touch inner nodes, because its may still not intersected
-		node.childNodes.forEach((node) => {
-			if (node instanceof Element || !this.config.isTranslatableNode(node)) {
-				return;
-			}
-
-			this.nodes.handleNode(node);
-		});
+	private handleIntersection(node: Node) {
+		this.nodes.handleNode(node);
 	}
 
 	private deleteNode(node: Node, onlyTarget?: boolean) {
 		this.nodes.deleteNode(node, onlyTarget);
 
 		if (node instanceof Element) {
-			this.intersectionWatcher.unobserve(node);
+			this.LazyTranslator.stopLazyTranslation(node);
 		}
 	}
 
