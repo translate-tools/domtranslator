@@ -1,4 +1,3 @@
-import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { Nodes } from './NodePrimitive';
 import { Config, InnerConfig, TranslatorInterface } from './types';
@@ -11,18 +10,17 @@ import { configureTranslatableNodePredicate } from './utils/nodes';
 /**
  * Module for dynamic translate a DOM nodes
  */
+/**
+ * Module for dynamic translate a DOM nodes
+ */
 export class NodesTranslator {
-	// private readonly translateCallback: TranslatorInterface;
 	private readonly config: InnerConfig;
-
-	private LazyTranslator: LazyTranslator;
 
 	private nodes: Nodes;
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 
 	constructor(translateCallback: TranslatorInterface, config?: Config) {
-		// this.translateCallback = translateCallback;
 		this.config = {
 			...config,
 			isTranslatableNode:
@@ -31,29 +29,7 @@ export class NodesTranslator {
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
 
-		this.LazyTranslator = new LazyTranslator(this.handleIntersection, this.config);
-
-		this.nodes = new Nodes(
-			translateCallback,
-			this.config,
-			this.lazyTranslationHander.bind(this),
-		);
-	}
-
-	private lazyTranslationHander(node: Node) {
-		this.LazyTranslator.lazyTranslationHandler(node);
-	}
-
-	private handleIntersection(node: Node) {
-		this.nodes.handleNode(node);
-	}
-
-	private deleteNode(node: Node, onlyTarget?: boolean) {
-		this.nodes.deleteNode(node, onlyTarget);
-
-		if (node instanceof Element) {
-			this.LazyTranslator.stopLazyTranslation(node);
-		}
+		this.nodes = new Nodes(translateCallback, this.config);
 	}
 
 	public observe(node: Element) {
@@ -66,7 +42,9 @@ export class NodesTranslator {
 		this.observedNodesStorage.set(node, observer);
 
 		observer.addHandler('elementAdded', ({ target }) => this.nodes.addNode(target));
-		observer.addHandler('elementRemoved', ({ target }) => this.deleteNode(target));
+		observer.addHandler('elementRemoved', ({ target }) =>
+			this.nodes.deleteNode(target),
+		);
 		observer.addHandler('characterData', ({ target }) => {
 			this.nodes.updateNode(target);
 		});
@@ -95,7 +73,7 @@ export class NodesTranslator {
 			throw new Error('Node is not under observe');
 		}
 
-		this.deleteNode(node);
+		this.nodes.deleteNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
 	}

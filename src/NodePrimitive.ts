@@ -1,3 +1,4 @@
+import { LazyTranslator } from './LazyTranslator';
 import { InnerConfig, TranslatorInterface } from './types';
 import { isInViewport } from './utils/isInViewport';
 import { nodeExplore } from './utils/nodeExplore';
@@ -30,43 +31,24 @@ interface NodeData {
 	priority: number;
 }
 
-//TODO: violanse ISP princeple
-//TODO: violanse SRP prisiple. The add method should not have lazy translate
-export interface NodeStorageInterface {
-	addNode: (node: Node) => void;
-
-	deleteNode: (node: Node, onlyTarget?: boolean) => void;
-
-	updateNode: (node: Node) => void;
-
-	handleNode: (node: Node) => void;
-
-	isNodeStorageHas: (attribute: Attr) => boolean;
-
-	getNodeData: (node: Node) => {
-		originalText: string | null;
-	} | null;
-}
-
-type LazyTranslationHander = (node: Node) => void;
-
-export class Nodes implements NodeStorageInterface {
+/**
+ * Class for storage DOM element and managed translation elements (revert translate, translate only translateble node)
+ */
+export class Nodes {
 	private readonly translateCallback: TranslatorInterface;
-	private readonly lazyTranslationHander: LazyTranslationHander;
-
 	private readonly config: InnerConfig;
+
+	private readonly lazyTranslator: LazyTranslator;
 
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 
-	constructor(
-		translateCallback: TranslatorInterface,
-		config: InnerConfig,
-		lazyTranslate: LazyTranslationHander,
-	) {
+	constructor(translateCallback: TranslatorInterface, config: InnerConfig) {
 		this.translateCallback = translateCallback;
+
 		this.config = config;
-		this.lazyTranslationHander = lazyTranslate;
+
+		this.lazyTranslator = new LazyTranslator(this.handleNode, this.config);
 	}
 
 	public getNodeData(node: Node) {
@@ -79,6 +61,10 @@ export class Nodes implements NodeStorageInterface {
 
 	public isNodeStorageHas(attribute: Attr) {
 		return this.nodeStorage.has(attribute);
+	}
+
+	private isTranslatableNode(targetNode: Node) {
+		return this.config.isTranslatableNode(targetNode);
 	}
 
 	public handleNode = (node: Node) => {
@@ -117,7 +103,13 @@ export class Nodes implements NodeStorageInterface {
 			return;
 		}
 
-		this.lazyTranslationHander(node);
+		// Handle text nodes and attributes
+
+		this.lazyTranslator.lazyTranslationHandler(node);
+
+		// Add to storage
+		// this.handleNode(node);
+		// console.log('call handle');
 	}
 
 	public deleteNode(node: Node, onlyTarget = false) {
@@ -128,6 +120,8 @@ export class Nodes implements NodeStorageInterface {
 					this.deleteNode(node, true);
 				});
 			}
+
+			this.lazyTranslator.stopLazyTranslation(node);
 		}
 
 		const nodeData = this.nodeStorage.get(node);
@@ -152,7 +146,7 @@ export class Nodes implements NodeStorageInterface {
 	/**
 	 * Call only for new and updated nodes
 	 */
-	public translateNode(node: Node) {
+	private translateNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
 		if (nodeData === undefined) {
 			throw new Error('Node is not register');
@@ -182,10 +176,6 @@ export class Nodes implements NodeStorageInterface {
 			node.nodeValue = text;
 			return node;
 		});
-	}
-
-	private isTranslatableNode(targetNode: Node) {
-		return this.config.isTranslatableNode(targetNode);
 	}
 
 	/**
