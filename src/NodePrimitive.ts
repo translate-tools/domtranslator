@@ -34,6 +34,8 @@ interface NodeData {
 /**
  * Class for storage DOM element and managed translation elements (revert translate, translate only translateble node)
  */
+
+//ths calss managed DOM nodes (add, delete, update, getNodeData)
 export class Nodes {
 	private readonly translateCallback: TranslatorInterface;
 	private readonly config: InnerConfig;
@@ -105,11 +107,15 @@ export class Nodes {
 
 		// Handle text nodes and attributes
 
-		this.lazyTranslator.lazyTranslationHandler(node);
+		// If the node is not translated, it needs to be handle
 
-		// Add to storage
-		// this.handleNode(node);
-		// console.log('call handle');
+		const shouldHandleNode = this.lazyTranslator.lazyTranslationHandler(node);
+
+		if (shouldHandleNode) {
+			// Add to storage
+
+			this.handleNode(node);
+		}
 	}
 
 	public deleteNode(node: Node, onlyTarget = false) {

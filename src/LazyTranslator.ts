@@ -48,6 +48,9 @@ export class LazyTranslator {
 		});
 	}
 
+	/**
+	 * 	The lazyTranslationHandler method decides whether the node should be processed immediately or later
+	 */
 	public lazyTranslationHandler(node: Node) {
 		// Lazy translate when own element intersect viewport
 		// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
@@ -65,12 +68,10 @@ export class LazyTranslator {
 			) {
 				this.handleElementByIntersectViewport(observableNode);
 
-				return;
+				return false;
 			}
 		}
-
-		// Add to storage
-		this.handleNode(node);
+		return true;
 	}
 
 	private handleElementByIntersectViewport(node: Element) {
