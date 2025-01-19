@@ -3,6 +3,12 @@ import { isIntersectableNode } from './utils/isIntersectableNode';
 
 type HandlerIntersectNode = (node: Node) => void;
 
+type IntersectionConfig = {
+	root?: null | Element;
+	rootMargin?: string;
+	threshold?: number;
+};
+
 /**
  * The class provides a way to translate only those elements that intersect with an ancestor element,
  * by default, the top-level document's viewport.
@@ -19,7 +25,11 @@ export class LazyTranslator {
 	constructor(
 		handleNode: HandlerIntersectNode,
 		config: InnerConfig,
-		intersectionConfig = { root: null, rootMargin: '0px', threshold: 0 },
+		intersectionConfig: IntersectionConfig = {
+			root: null,
+			rootMargin: '0px',
+			threshold: 0,
+		},
 	) {
 		this.handleNode = handleNode;
 		this.config = config;
