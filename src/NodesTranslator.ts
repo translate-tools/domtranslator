@@ -11,9 +11,6 @@ import { configureTranslatableNodePredicate } from './utils/nodes';
 /**
  * Module for dynamic translate a DOM nodes
  */
-/**
- * Module for dynamic translate a DOM nodes
- */
 export class NodesTranslator {
 	private readonly config: InnerConfig;
 
