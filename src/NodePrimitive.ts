@@ -35,7 +35,6 @@ interface NodeData {
  * Class for storage DOM element and managed translation elements (revert translate, translate only translateble node)
  */
 
-//ths calss managed DOM nodes (add, delete, update, getNodeData)
 export class Nodes {
 	private readonly translateCallback: TranslatorInterface;
 	private readonly config: InnerConfig;
@@ -45,12 +44,16 @@ export class Nodes {
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 
-	constructor(translateCallback: TranslatorInterface, config: InnerConfig) {
+	constructor(
+		translateCallback: TranslatorInterface,
+		config: InnerConfig,
+		lazyTranslator: LazyTranslator,
+	) {
 		this.translateCallback = translateCallback;
 
 		this.config = config;
 
-		this.lazyTranslator = new LazyTranslator(this.handleNode, this.config);
+		this.lazyTranslator = lazyTranslator;
 	}
 
 	public getNodeData(node: Node) {

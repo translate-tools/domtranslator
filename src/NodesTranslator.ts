@@ -1,3 +1,4 @@
+import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { Nodes } from './NodePrimitive';
 import { Config, InnerConfig, TranslatorInterface } from './types';
@@ -29,7 +30,13 @@ export class NodesTranslator {
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
 
-		this.nodes = new Nodes(translateCallback, this.config);
+		this.nodes = new Nodes(
+			translateCallback,
+			this.config,
+			new LazyTranslator((node: Node) => {
+				this.nodes.handleNode(node);
+			}, this.config),
+		);
 	}
 
 	public observe(node: Element) {
