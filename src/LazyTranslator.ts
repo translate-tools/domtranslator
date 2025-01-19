@@ -4,7 +4,8 @@ import { isIntersectableNode } from './utils/isIntersectableNode';
 type HandlerIntersectNode = (node: Node) => void;
 
 /**
- * The class provides a way to translate only those elements that intersect the viewport
+ * The class provides a way to translate only those elements that intersect with an ancestor element,
+ * by default, the top-level document's viewport.
  */
 export class LazyTranslator {
 	private readonly handleNode: HandlerIntersectNode;
@@ -15,25 +16,26 @@ export class LazyTranslator {
 
 	private readonly config: InnerConfig;
 
-	constructor(handleNode: HandlerIntersectNode, config: InnerConfig) {
+	constructor(
+		handleNode: HandlerIntersectNode,
+		config: InnerConfig,
+		intersectionConfig = { root: null, rootMargin: '0px', threshold: 0 },
+	) {
 		this.handleNode = handleNode;
 		this.config = config;
 
-		this.intersectionObserver = new IntersectionObserver(
-			(entries, observer) => {
-				entries.forEach((entry) => {
-					const node = entry.target;
+		this.intersectionObserver = new IntersectionObserver((entries, observer) => {
+			entries.forEach((entry) => {
+				const node = entry.target;
 
-					if (!this.itersectStorage.has(node) || !entry.isIntersecting) return;
+				if (!this.itersectStorage.has(node) || !entry.isIntersecting) return;
 
-					this.itersectStorage.delete(node);
-					observer.unobserve(node);
+				this.itersectStorage.delete(node);
+				observer.unobserve(node);
 
-					this.handlerIntersectNode(node);
-				});
-			},
-			{ root: null, rootMargin: '0px', threshold: 0 },
-		);
+				this.handlerIntersectNode(node);
+			});
+		}, intersectionConfig);
 	}
 
 	private handlerIntersectNode(node: Node) {
