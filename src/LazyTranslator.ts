@@ -1,7 +1,7 @@
 import { InnerConfig } from './types';
 import { isIntersectableNode } from './utils/isIntersectableNode';
 
-type HandlerIntersectNode = (node: Node) => void;
+type Translator = (node: Node) => void;
 
 type IntersectionConfig = {
 	root?: null | Element;
@@ -14,7 +14,7 @@ type IntersectionConfig = {
  * by default, the top-level document's viewport.
  */
 export class LazyTranslator {
-	private readonly handleNode: HandlerIntersectNode;
+	private readonly translate: Translator;
 
 	private readonly itersectStorage = new WeakSet<Node>();
 
@@ -23,7 +23,7 @@ export class LazyTranslator {
 	private readonly config: InnerConfig;
 
 	constructor(
-		handleNode: HandlerIntersectNode,
+		handleNode: Translator,
 		config: InnerConfig,
 		intersectionConfig: IntersectionConfig = {
 			root: null,
@@ -31,7 +31,7 @@ export class LazyTranslator {
 			threshold: 0,
 		},
 	) {
-		this.handleNode = handleNode;
+		this.translate = handleNode;
 		this.config = config;
 
 		this.intersectionObserver = new IntersectionObserver((entries, observer) => {
@@ -56,13 +56,14 @@ export class LazyTranslator {
 				return;
 			}
 
-			this.handleNode(node);
+			this.translate(node);
 		});
 	}
 
 	/**
 	 * 	The lazyTranslationHandler method decides whether the node should be processed immediately or later
 	 */
+	//
 	public lazyTranslationHandler(node: Node) {
 		// Lazy translate when own element intersect viewport
 		// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
