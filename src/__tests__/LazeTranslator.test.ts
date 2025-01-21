@@ -7,7 +7,16 @@ require('intersection-observer');
 const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 const wait = () => delay(120);
 
-const handelNode = vi.fn();
+const TRANSLATION_SYMBOL = '***TRANSLATED***';
+const translator = vi.fn().mockImplementation(async (node: Text) => {
+	const data = node.textContent;
+	return (node.textContent = TRANSLATION_SYMBOL + data);
+});
+
+const isTranslatableNode = (node: Node) => node instanceof Text;
+
+const escapeRegexString = (input: string) => input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const containsRegex = (input: string) => new RegExp(`${escapeRegexString(input)}`);
 
 const divElement = document.createElement('div');
 const textNode = document.createTextNode('Hello, World!');
@@ -15,55 +24,68 @@ const textNode = document.createTextNode('Hello, World!');
 divElement.appendChild(textNode);
 document.body.appendChild(divElement);
 
-test('handle element when it intersects the viewport', async () => {
-	const lazyTraslator = new LazyTranslator(handelNode, {
+beforeEach(() => {
+	vi.clearAllMocks();
+});
+
+test('translate element at intersection', async () => {
+	const divElement = document.createElement('div');
+	const textNode = document.createTextNode('Hello, World!');
+
+	divElement.appendChild(textNode);
+	document.body.appendChild(divElement);
+
+	const lazyTraslator = new LazyTranslator(translator, {
 		lazyTranslate: true,
-		isTranslatableNode: (node: Node) => node instanceof Text,
+		isTranslatableNode,
 	});
 
-	const isLazyTranslate = lazyTraslator.lazyTranslationHandler(textNode);
+	const shouldHandleNode = lazyTraslator.lazyTranslationHandler(textNode);
 
 	await wait();
 
 	// The mock function was called ones
-	expect(handelNode.mock.calls).toHaveLength(1);
-	expect(handelNode).toHaveBeenCalledWith(textNode);
+	expect(translator.mock.calls).toHaveLength(1);
+	expect(translator).toHaveBeenCalledWith(textNode);
 
-	expect(isLazyTranslate).toBe(false);
+	// the node translate lazy
+	expect(shouldHandleNode).toBe(false);
+	expect(textNode.textContent).toMatchObject(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('not handle element when it does not intersect the viewport', async () => {
-	const textNode = document.createTextNode('Hello, World!');
+test('not translate nodes that not intersected', async () => {
+	const textNode = document.createTextNode('Hello World!');
 
-	const lazyTraslator = new LazyTranslator(handelNode, {
+	const lazyTraslator = new LazyTranslator(translator, {
 		lazyTranslate: true,
-		isTranslatableNode: (node: Node) => node instanceof Text,
+		isTranslatableNode,
 	});
 
-	const isLazyTranslate = lazyTraslator.lazyTranslationHandler(textNode);
+	const shouldHandleNode = lazyTraslator.lazyTranslationHandler(textNode);
 
 	await wait();
 
 	// The mock function was not called
-	expect(handelNode.mock.calls).toHaveLength(1);
-	expect(handelNode).toHaveBeenCalledWith(textNode);
+	expect(translator.mock.calls).toHaveLength(0);
 
-	expect(isLazyTranslate).toBe(true);
+	expect(shouldHandleNode).toBe(true);
 });
 
-test('not handle node when lazyTranslate is false', async () => {
-	const lazyTraslator = new LazyTranslator(handelNode, {
+test('not translate nodes with lazyTranslate off', async () => {
+	const lazyTraslator = new LazyTranslator(translator, {
 		lazyTranslate: false,
-		isTranslatableNode: (node: Node) => node instanceof Text,
+		isTranslatableNode,
 	});
-	const isLazyTranslate = lazyTraslator.lazyTranslationHandler(textNode);
+	const shouldHandleNode = lazyTraslator.lazyTranslationHandler(textNode);
 
 	await wait();
 
-	expect(isLazyTranslate).toBe(true);
+	expect(translator.mock.calls).toHaveLength(0);
+
+	expect(shouldHandleNode).toBe(true);
 });
 
-test('not handel node when it does not intersect the custom ancestor element', async () => {
+test('not translate node that not intersect the custom ancestor', async () => {
 	const divElement = document.createElement('div');
 	const textNode = document.createTextNode('Hello, World!');
 
@@ -71,10 +93,10 @@ test('not handel node when it does not intersect the custom ancestor element', a
 	document.body.appendChild(divElement);
 
 	const lazyTraslator = new LazyTranslator(
-		handelNode,
+		translator,
 		{
 			lazyTranslate: false,
-			isTranslatableNode: (node: Node) => node instanceof Text,
+			isTranslatableNode,
 		},
 		{ root: divElement },
 	);
@@ -83,4 +105,60 @@ test('not handel node when it does not intersect the custom ancestor element', a
 	await wait();
 
 	expect(isLazyTranslate).toBe(true);
+});
+
+test('translate node that intersect the custom ancestor', async () => {
+	const divElement = document.createElement('div');
+	const textNode = document.createTextNode('Hello, World!');
+
+	divElement.appendChild(textNode);
+	document.body.appendChild(divElement);
+
+	const lazyTraslator = new LazyTranslator(
+		translator,
+		{
+			lazyTranslate: true,
+			isTranslatableNode,
+		},
+		{ root: divElement },
+	);
+	const shouldHandleNode = lazyTraslator.lazyTranslationHandler(textNode);
+
+	await wait();
+
+	// The mock function was called ones
+	expect(translator.mock.calls).toHaveLength(1);
+	expect(translator).toHaveBeenCalledWith(textNode);
+
+	// the node translate lazy
+	expect(shouldHandleNode).toBe(false);
+	expect(textNode.textContent).toMatchObject(containsRegex(TRANSLATION_SYMBOL));
+});
+
+test('translate node when it becomes visible', async () => {
+	const divElement = document.createElement('div');
+	const textNode = document.createTextNode('Hello, World!');
+
+	divElement.setAttribute('disabled', 'disabled');
+
+	divElement.appendChild(textNode);
+	document.body.appendChild(divElement);
+
+	const lazyTranslator = new LazyTranslator(translator, {
+		lazyTranslate: true,
+		isTranslatableNode,
+	});
+
+	const shouldHandleNode = lazyTranslator.lazyTranslationHandler(divElement);
+
+	await wait();
+
+	// Node not translated because it is disabled
+
+	expect(shouldHandleNode).toBe(false);
+	expect(textNode.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+
+	// Node should be translated
+	divElement.removeAttribute('disabled');
+	expect(textNode.textContent).toMatchObject(containsRegex(TRANSLATION_SYMBOL));
 });

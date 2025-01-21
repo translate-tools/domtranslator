@@ -74,27 +74,6 @@ describe('AddNode and deleteNode', () => {
 		test(testName, async () => {
 			fillDocument(sample);
 
-			const nodesStorageTranslator = new Nodes(
-				translator,
-				config,
-				new LazyTranslator(handelNode, config),
-			);
-
-			nodesStorageTranslator.addNode(document.documentElement);
-
-			await awaitTranslation();
-
-			expect(document.documentElement.outerHTML).toMatchSnapshot();
-		});
-
-		const testNameDeleteNode = composeName(
-			'deleteNode reverses the translation',
-			lazyTranslate && 'with lazyTranslate',
-		);
-
-		test(testNameDeleteNode, async () => {
-			fillDocument(sample);
-
 			const parsedHTML = document.documentElement.outerHTML;
 
 			const nodesStorageTranslator = new Nodes(
@@ -103,12 +82,13 @@ describe('AddNode and deleteNode', () => {
 				new LazyTranslator(handelNode, config),
 			);
 
+			// translate document
 			nodesStorageTranslator.addNode(document.documentElement);
-
 			await awaitTranslation();
+			expect(document.documentElement.outerHTML).toMatchSnapshot();
 
+			// disable translation
 			nodesStorageTranslator.deleteNode(document.documentElement);
-
 			expect(document.documentElement.outerHTML).toBe(parsedHTML);
 		});
 	});
