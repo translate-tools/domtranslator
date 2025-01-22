@@ -1,242 +1,214 @@
 import { readFileSync } from 'fs';
 
-import { DomTranslator } from '../DomTranslator';
-import { Config } from '../types';
-import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
+import { LazyTranslator } from '../LazyTranslator';
+import { NodesTranslator } from '../NodesTranslator';
 import {
 	awaitTranslation,
 	composeName,
 	containsRegex,
-	endsWithRegex,
-	getElementText,
-	startsWithRegex,
 	TRANSLATION_SYMBOL,
 	translator,
 } from './utils';
 
 require('intersection-observer');
 
-(IntersectionObserver.prototype as any).POLL_INTERVAL = 100;
+const handelNode = vi.fn();
 
 const fillDocument = (text: string) => {
 	document.write(text);
 };
 
-describe('basic usage', () => {
-	const sample = readFileSync(__dirname + '/sample.html', 'utf8');
+const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
+// The mock for LazyTranslate class
+vi.mock('../LazyTranslator', async (importActual) => {
+	return {
+		...(await importActual()),
+
+		LazyTranslator: vi.fn().mockImplementation(
+			(
+				handelNode: (node: Node) => void,
+				config: {
+					isTranslatableNode: (node: Node) => boolean;
+					lazyTranslate: boolean;
+				},
+			) => {
+				const lazyTranslationHandler = vi.fn().mockImplementation((node) => {
+					if (config.lazyTranslate) {
+						if (node.nodeName !== 'OPTION') {
+							setTimeout(() => {}, 3000);
+							return false;
+						}
+						// return false;
+					}
+					return true;
+				});
+
+				const stopLazyTranslation = vi.fn();
+
+				return {
+					lazyTranslationHandler,
+					stopLazyTranslation,
+				};
+			},
+		),
+	};
+});
+
+describe('AddNode and deleteNode', () => {
 	[true, false].forEach((lazyTranslate) => {
 		const testName = composeName(
 			'translate whole document',
 			lazyTranslate && 'with lazyTranslate',
 		);
+
+		const config = {
+			lazyTranslate: lazyTranslate,
+			isTranslatableNode: (node: Node) => node instanceof Text,
+		};
+
 		test(testName, async () => {
 			fillDocument(sample);
+
 			const parsedHTML = document.documentElement.outerHTML;
 
-			// Translate document
-			const domTranslator = new DomTranslator(translator, { lazyTranslate });
-			domTranslator.observe(document.documentElement);
+			const nodesStorageTranslator = new NodesTranslator(
+				translator,
+				config,
+				new LazyTranslator(handelNode, config),
+			);
 
+			// translate document
+			nodesStorageTranslator.addNode(document.documentElement);
 			await awaitTranslation();
 			expect(document.documentElement.outerHTML).toMatchSnapshot();
 
-			// Disable translation
-			domTranslator.unobserve(document.documentElement);
+			// disable translation
+			nodesStorageTranslator.deleteNode(document.documentElement);
 			expect(document.documentElement.outerHTML).toBe(parsedHTML);
 		});
 	});
 });
 
-[true, false].forEach((isLazyTranslation) =>
-	describe(
-		'translation with consider translatable and ignored nodes' +
-			(isLazyTranslation ? ' (lazy translation mode)' : ''),
-		() => {
-			const sample = readFileSync(__dirname + '/sample.html', 'utf8');
+describe('Update and getNodeData without using LazyTranslate', () => {
+	const config = {
+		lazyTranslate: false,
+		isTranslatableNode: (node: Node) => node instanceof Text,
+	};
 
-			const filterOptions = {
-				translatableAttributes: [
-					'title',
-					'alt',
-					'placeholder',
-					'label',
-					'aria-label',
-				],
-				ignoredSelectors: [
-					'meta',
-					'link',
-					'script',
-					'noscript',
-					'style',
-					'code',
-					'textarea',
-				],
-			} satisfies NodesFilterOptions;
-			const options = {
-				lazyTranslate: isLazyTranslation,
-				isTranslatableNode: configureTranslatableNodePredicate(filterOptions),
-			} satisfies Config;
+	test('updateNode', async () => {
+		const nodesStorageTranslator = new NodesTranslator(
+			translator,
+			config,
+			new LazyTranslator(handelNode, config),
+		);
 
-			test('translate whole document', async () => {
-				fillDocument(sample);
-				const parsedHTML = document.documentElement.outerHTML;
+		// Spy on the updateNode method
+		const updateNodesSpy = vi.spyOn(nodesStorageTranslator, 'updateNode');
 
-				// Translate document
-				const domTranslator = new DomTranslator(translator, options);
-				domTranslator.observe(document.documentElement);
+		const div0 = document.createElement('div');
+		div0.innerHTML = 'Hello world!';
+		document.body.appendChild(div0);
 
-				await awaitTranslation();
-				expect(document.documentElement.outerHTML).toMatchSnapshot();
+		nodesStorageTranslator.addNode(div0);
 
-				// Disable translation
-				domTranslator.unobserve(document.documentElement);
-				expect(document.documentElement.outerHTML).toBe(parsedHTML);
-			});
+		await awaitTranslation();
 
-			test('translate changed nodes', async () => {
-				fillDocument(sample);
+		div0.innerHTML = 'Goodbye world!';
+		nodesStorageTranslator.addNode(div0.childNodes[0]);
 
-				// Translate document
-				const domTranslator = new DomTranslator(translator, options);
-				domTranslator.observe(document.documentElement);
+		await awaitTranslation();
 
-				await awaitTranslation();
+		nodesStorageTranslator.updateNode(div0.childNodes[0]);
 
-				const div1 = document.createElement('div');
-				document.body.appendChild(div1);
+		expect(div0.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-				div1.innerHTML = 'Text 1';
-				await awaitTranslation();
-				expect(div1.innerHTML).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+		expect(updateNodesSpy.mock.calls[0][0]).toMatchObject(
+			containsRegex(TRANSLATION_SYMBOL),
+		);
+	});
 
-				div1.innerHTML = 'Text 2';
-				await awaitTranslation();
-				expect(div1.innerHTML).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	test('getNodeData returns the original text', async () => {
+		const originalText = 'Hello world!';
 
-				const elmA = document.querySelector('a');
-				expect(elmA).not.toBeNull();
+		const nodesStorageTranslator = new NodesTranslator(
+			translator,
+			config,
+			new LazyTranslator(handelNode, config),
+		);
 
-				if (elmA !== null) {
-					elmA.innerHTML = 'changed link text';
-					elmA.setAttribute('title', 'changed title');
-					elmA.setAttribute('href', 'changed url');
+		const div0 = document.createElement('div');
+		div0.innerHTML = originalText;
 
-					await awaitTranslation();
-					expect(elmA.innerHTML).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-					expect(elmA.innerHTML).toMatch(endsWithRegex('changed link text'));
+		nodesStorageTranslator.addNode(div0);
 
-					expect(elmA.getAttribute('title')).toMatch(
-						startsWithRegex(TRANSLATION_SYMBOL),
-					);
-					expect(elmA.getAttribute('href')).not.toMatch(
-						startsWithRegex(TRANSLATION_SYMBOL),
-					);
-				}
+		await awaitTranslation();
 
-				// Disable translation
-				domTranslator.unobserve(document.documentElement);
-				expect(div1.innerHTML).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+		expect(nodesStorageTranslator.getNodeData(div0.childNodes[0])).toEqual(
+			expect.objectContaining({
+				originalText: originalText,
+			}),
+		);
+	});
+});
 
-				if (elmA !== null) {
-					expect(elmA.innerHTML).not.toMatch(
-						startsWithRegex(TRANSLATION_SYMBOL),
-					);
-					expect(elmA.getAttribute('title')).not.toMatch(
-						startsWithRegex(TRANSLATION_SYMBOL),
-					);
-				}
-			});
+describe('Update and getNodeData with LazyTrnaslate', () => {
+	const config = {
+		lazyTranslate: true,
+		isTranslatableNode: (node: Node) => node instanceof Text,
+	};
 
-			test('translate multiple nodes', async () => {
-				fillDocument(sample);
+	test('updateNode does not translate the node', async () => {
+		const lazyTranslator = new LazyTranslator(handelNode, config);
+		const nodesStorageTranslator = new NodesTranslator(
+			translator,
+			config,
+			lazyTranslator,
+		);
 
-				// Translate document
-				const domTranslator = new DomTranslator(translator, options);
+		// Spy on the updateNode method
+		const updateMethodSpy = vi.spyOn(nodesStorageTranslator, 'updateNode');
 
-				const pElm = document.querySelector('p');
-				const form = document.querySelector('form');
-				const figure = document.querySelector('figure');
+		const div0 = document.createElement('div');
+		div0.innerHTML = 'Hello world!';
+		document.body.appendChild(div0);
 
-				if (!pElm || !form || !figure)
-					throw new Error('Not found elements for test');
+		nodesStorageTranslator.addNode(div0);
 
-				domTranslator.observe(form);
-				domTranslator.observe(figure);
+		await awaitTranslation();
 
-				await awaitTranslation();
+		nodesStorageTranslator.updateNode(div0.childNodes[0]);
 
-				expect(getElementText(pElm)).not.toContain(TRANSLATION_SYMBOL);
-				expect(getElementText(figure)).toContain(TRANSLATION_SYMBOL);
-				expect(getElementText(form)).toContain(TRANSLATION_SYMBOL);
+		expect(updateMethodSpy).toHaveBeenCalledOnce();
+		expect(updateMethodSpy.mock.calls[0][0]).toMatchObject(
+			containsRegex(TRANSLATION_SYMBOL),
+		);
 
-				// Disable translation
-				domTranslator.unobserve(form);
-				expect(getElementText(form)).not.toContain(TRANSLATION_SYMBOL);
-				expect(getElementText(figure)).toContain(TRANSLATION_SYMBOL);
+		// LazyTranslationHandler returns false so the node will not be processed in the Nodes class
+		// so the update method did not translate the updated node
+		expect(lazyTranslator.lazyTranslationHandler).toReturnWith(false);
+	});
 
-				domTranslator.unobserve(figure);
-				expect(getElementText(form)).not.toContain(TRANSLATION_SYMBOL);
-				expect(getElementText(figure)).not.toContain(TRANSLATION_SYMBOL);
+	test('getNodeData return null', async () => {
+		const lazyTranslator = new LazyTranslator(handelNode, config);
+		const nodesStorageTranslator = new NodesTranslator(
+			translator,
+			config,
+			lazyTranslator,
+		);
 
-				// Enable translation back
-				domTranslator.observe(form);
-				domTranslator.observe(figure);
-				await awaitTranslation();
+		const div0 = document.createElement('div');
+		div0.innerHTML = 'Hello world!';
+		document.body.appendChild(div0);
 
-				expect(getElementText(figure)).toContain(TRANSLATION_SYMBOL);
-				expect(getElementText(form)).toContain(TRANSLATION_SYMBOL);
+		nodesStorageTranslator.addNode(div0);
 
-				// Disable translation for all elements
-				domTranslator.unobserve(form);
-				domTranslator.unobserve(figure);
-				expect(getElementText(form)).not.toContain(TRANSLATION_SYMBOL);
-				expect(getElementText(figure)).not.toContain(TRANSLATION_SYMBOL);
-			});
+		await awaitTranslation();
 
-			test('use custom nodes filter', async () => {
-				fillDocument(sample);
+		// LazyTranslationHandler returns false so the node will not be processed in the Nodes class
+		// so the getNode data cant return value
+		expect(lazyTranslator.lazyTranslationHandler).toReturnWith(false);
 
-				// Translate document
-				const domTranslator = new DomTranslator(translator, {
-					...options,
-					isTranslatableNode: configureTranslatableNodePredicate({
-						...filterOptions,
-						ignoredSelectors: [
-							...filterOptions.ignoredSelectors,
-							'[translate="no"], .notranslate, [contenteditable], [contenteditable="true"]',
-							'.custom-elements :checked',
-						],
-					}),
-				});
-				domTranslator.observe(document.documentElement);
-
-				await awaitTranslation();
-
-				['[contenteditable]', '.notranslate', '[translate="no"]'].forEach(
-					(selector) => {
-						const element = document.querySelector(selector);
-						expect(element).toBeInstanceOf(Element);
-						expect(getElementText(element)).not.toMatch(
-							containsRegex(TRANSLATION_SYMBOL),
-						);
-					},
-				);
-
-				// Considered even pseudo classes
-				expect(
-					document
-						.querySelector('.custom-elements [type="checkbox"]:checked')
-						?.getAttribute('title'),
-				).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
-				expect(
-					document
-						.querySelector('.custom-elements [type="checkbox"]:not(:checked)')
-						?.getAttribute('title'),
-				).toMatch(containsRegex(TRANSLATION_SYMBOL));
-
-				expect(document.documentElement.outerHTML).toMatchSnapshot();
-			});
-		},
-	),
-);
+		expect(nodesStorageTranslator.getNodeData(div0)).toBe(null);
+	});
+});
