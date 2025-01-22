@@ -3,7 +3,7 @@ require('intersection-observer');
 import { readFileSync } from 'fs';
 
 import { LazyTranslator } from '../LazyTranslator';
-import { Nodes } from '../NodePrimitive';
+import { NodesTranslator } from '../NodesTranslator';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
 import {
 	awaitTranslation,
@@ -33,7 +33,7 @@ describe('basic usage', () => {
 
 			const parsedHTML = document.documentElement.outerHTML;
 
-			const nodes = new Nodes(
+			const nodes = new NodesTranslator(
 				translator,
 				config,
 				new LazyTranslator((node: Node) => {
@@ -94,7 +94,7 @@ describe('usage considering the translated nodes', () => {
 
 			const parsedHTML = document.documentElement.outerHTML;
 
-			const nodes = new Nodes(
+			const nodes = new NodesTranslator(
 				translator,
 				config,
 				new LazyTranslator((node: Node) => {
@@ -114,7 +114,7 @@ describe('usage considering the translated nodes', () => {
 		});
 
 		test('get original node data', async () => {
-			const nodes = new Nodes(
+			const nodes = new NodesTranslator(
 				translator,
 				config,
 				new LazyTranslator((node: Node) => {

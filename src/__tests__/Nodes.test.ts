@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 
 import { LazyTranslator } from '../LazyTranslator';
-import { Nodes } from '../NodePrimitive';
+import { NodesTranslator } from '../NodesTranslator';
 import {
 	awaitTranslation,
 	composeName,
@@ -72,7 +72,7 @@ describe('AddNode and deleteNode', () => {
 
 			const parsedHTML = document.documentElement.outerHTML;
 
-			const nodesStorageTranslator = new Nodes(
+			const nodesStorageTranslator = new NodesTranslator(
 				translator,
 				config,
 				new LazyTranslator(handelNode, config),
@@ -97,7 +97,7 @@ describe('Update and getNodeData without using LazyTranslate', () => {
 	};
 
 	test('updateNode', async () => {
-		const nodesStorageTranslator = new Nodes(
+		const nodesStorageTranslator = new NodesTranslator(
 			translator,
 			config,
 			new LazyTranslator(handelNode, config),
@@ -131,7 +131,7 @@ describe('Update and getNodeData without using LazyTranslate', () => {
 	test('getNodeData returns the original text', async () => {
 		const originalText = 'Hello world!';
 
-		const nodesStorageTranslator = new Nodes(
+		const nodesStorageTranslator = new NodesTranslator(
 			translator,
 			config,
 			new LazyTranslator(handelNode, config),
@@ -160,7 +160,11 @@ describe('Update and getNodeData with LazyTrnaslate', () => {
 
 	test('updateNode does not translate the node', async () => {
 		const lazyTranslator = new LazyTranslator(handelNode, config);
-		const nodesStorageTranslator = new Nodes(translator, config, lazyTranslator);
+		const nodesStorageTranslator = new NodesTranslator(
+			translator,
+			config,
+			lazyTranslator,
+		);
 
 		// Spy on the updateNode method
 		const updateMethodSpy = vi.spyOn(nodesStorageTranslator, 'updateNode');
@@ -187,7 +191,11 @@ describe('Update and getNodeData with LazyTrnaslate', () => {
 
 	test('getNodeData return null', async () => {
 		const lazyTranslator = new LazyTranslator(handelNode, config);
-		const nodesStorageTranslator = new Nodes(translator, config, lazyTranslator);
+		const nodesStorageTranslator = new NodesTranslator(
+			translator,
+			config,
+			lazyTranslator,
+		);
 
 		const div0 = document.createElement('div');
 		div0.innerHTML = 'Hello world!';

@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 
-import { NodesTranslator } from '../NodesTranslator';
+import { DomTranslator } from '../DomTranslator';
 import { Config } from '../types';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
 import {
@@ -35,7 +35,7 @@ describe('basic usage', () => {
 			const parsedHTML = document.documentElement.outerHTML;
 
 			// Translate document
-			const domTranslator = new NodesTranslator(translator, { lazyTranslate });
+			const domTranslator = new DomTranslator(translator, { lazyTranslate });
 			domTranslator.observe(document.documentElement);
 
 			await awaitTranslation();
@@ -83,7 +83,7 @@ describe('basic usage', () => {
 				const parsedHTML = document.documentElement.outerHTML;
 
 				// Translate document
-				const domTranslator = new NodesTranslator(translator, options);
+				const domTranslator = new DomTranslator(translator, options);
 				domTranslator.observe(document.documentElement);
 
 				await awaitTranslation();
@@ -98,7 +98,7 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new NodesTranslator(translator, options);
+				const domTranslator = new DomTranslator(translator, options);
 				domTranslator.observe(document.documentElement);
 
 				await awaitTranslation();
@@ -152,7 +152,7 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new NodesTranslator(translator, options);
+				const domTranslator = new DomTranslator(translator, options);
 
 				const pElm = document.querySelector('p');
 				const form = document.querySelector('form');
@@ -198,7 +198,7 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new NodesTranslator(translator, {
+				const domTranslator = new DomTranslator(translator, {
 					...options,
 					isTranslatableNode: configureTranslatableNodePredicate({
 						...filterOptions,

@@ -1,1 +1,1 @@
-export * from './NodesTranslator';
+export * from './DomTranslator';
