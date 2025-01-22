@@ -132,7 +132,6 @@ describe('usage considering the translated nodes', () => {
 			nodes.addNode(document.documentElement);
 			await awaitTranslation();
 
-			console.log(div1.getAttribute('title'));
 			expect(div1.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 			// get original attribute text
@@ -143,6 +142,61 @@ describe('usage considering the translated nodes', () => {
 			expect(nodes.getNodeData(attr)).toMatchObject({
 				originalText: originalAttributeText,
 			});
+		});
+
+		test('update nodes', async () => {
+			fillDocument(sample);
+
+			// emulate the mutation observer
+			const nodes = new NodesTranslator(
+				translator,
+				config,
+				new LazyTranslator((node: Node) => {
+					nodes.handleNode(node);
+				}, config),
+			);
+
+			// Spy on the updateNode method
+			const updateNodesSpy = vi.spyOn(nodes, 'updateNode');
+
+			// initial translation
+			nodes.addNode(document.documentElement);
+			await awaitTranslation();
+
+			// update
+			const div1 = document.createElement('div');
+			div1.innerHTML = 'Text 1';
+			document.body.appendChild(div1);
+
+			nodes.addNode(div1);
+			nodes.updateNode(div1.childNodes[0]);
+
+			await awaitTranslation();
+			expect(div1.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
+			expect(updateNodesSpy).toBeCalledTimes(1);
+
+			// update
+			div1.innerHTML = 'Text 2';
+
+			nodes.addNode(div1);
+			nodes.updateNode(div1.childNodes[0]);
+
+			await awaitTranslation();
+			expect(div1.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
+			expect(updateNodesSpy).toBeCalledTimes(2);
+
+			//update
+			div1.setAttribute('alt', 'alt text');
+			const alt = div1.getAttributeNode('alt');
+			if (!alt) {
+				throw new Error('Not found elements for test');
+			}
+			nodes.addNode(alt);
+			nodes.updateNode(alt);
+
+			await awaitTranslation();
+			expect(div1.getAttribute('alt')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+			expect(updateNodesSpy).toBeCalledTimes(3);
 		});
 	});
 });
