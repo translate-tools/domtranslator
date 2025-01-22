@@ -145,6 +145,10 @@ describe('usage considering the translated nodes', () => {
 		});
 
 		test('update nodes', async () => {
+			// when DOM node update with changed innerHTML it generates events childList for MutationObserver
+			// then it call the removeNode and addNode handlers
+			// this test does not use MutationObserver, so handlers for these events are called manually
+
 			fillDocument(sample);
 
 			// emulate the mutation observer
