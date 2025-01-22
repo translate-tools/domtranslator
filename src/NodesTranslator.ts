@@ -145,11 +145,8 @@ export class NodesTranslator {
 
 	// Updates never be lazy
 	public updateNode(node: Node) {
-		console.log('update', node.nodeValue);
-
 		const nodeData = this.nodeStorage.get(node);
 		if (nodeData !== undefined) {
-			console.log('update 3', node.nodeValue);
 			nodeData.updateId++;
 			this.translateNode(node);
 		}
