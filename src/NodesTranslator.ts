@@ -32,7 +32,7 @@ interface NodeData {
 }
 
 /**
- * Class for storage DOM element and managed translation elements (revert translate, translate only translateble node)
+ * Сlass NodesTranslator managed the translation of DOM nodes
  */
 
 export class NodesTranslator {
@@ -145,8 +145,11 @@ export class NodesTranslator {
 
 	// Updates never be lazy
 	public updateNode(node: Node) {
+		console.log('update', node.nodeValue);
+
 		const nodeData = this.nodeStorage.get(node);
 		if (nodeData !== undefined) {
+			console.log('update 3', node.nodeValue);
 			nodeData.updateId++;
 			this.translateNode(node);
 		}
