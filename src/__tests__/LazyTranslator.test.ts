@@ -1,22 +1,16 @@
 import { vi } from 'vitest';
 
 import { LazyTranslator } from '../LazyTranslator';
+import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL } from './utils';
 
 require('intersection-observer');
 
-const delay = (time: number) => new Promise((res) => setTimeout(res, time));
-const wait = () => delay(120);
-
-const TRANSLATION_SYMBOL = '***TRANSLATED***';
 const translator = vi.fn().mockImplementation(async (node: Text) => {
 	const data = node.textContent;
 	return (node.textContent = TRANSLATION_SYMBOL + data);
 });
 
 const isTranslatableNode = (node: Node) => node instanceof Text;
-
-const escapeRegexString = (input: string) => input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const containsRegex = (input: string) => new RegExp(`${escapeRegexString(input)}`);
 
 const divElement = document.createElement('div');
 const textNode = document.createTextNode('Hello, World!');
@@ -42,7 +36,7 @@ test('translate element at intersection', async () => {
 
 	const shouldHandleNode = lazyTraslator.lazyTranslationHandler(textNode);
 
-	await wait();
+	await awaitTranslation();
 
 	// The mock function was called ones
 	expect(translator.mock.calls).toHaveLength(1);
@@ -63,7 +57,7 @@ test('not translate nodes that not intersected', async () => {
 
 	const shouldHandleNode = lazyTraslator.lazyTranslationHandler(textNode);
 
-	await wait();
+	await awaitTranslation();
 
 	// The mock function was not called
 	expect(translator.mock.calls).toHaveLength(0);
@@ -78,7 +72,7 @@ test('not translate nodes with lazyTranslate off', async () => {
 	});
 	const shouldHandleNode = lazyTraslator.lazyTranslationHandler(textNode);
 
-	await wait();
+	await awaitTranslation();
 
 	expect(translator.mock.calls).toHaveLength(0);
 
@@ -102,7 +96,7 @@ test('not translate node that not intersect the custom ancestor', async () => {
 	);
 	const isLazyTranslate = lazyTraslator.lazyTranslationHandler(textNode);
 
-	await wait();
+	await awaitTranslation();
 
 	expect(isLazyTranslate).toBe(true);
 });
@@ -124,7 +118,7 @@ test('translate node that intersect the custom ancestor', async () => {
 	);
 	const shouldHandleNode = lazyTraslator.lazyTranslationHandler(textNode);
 
-	await wait();
+	await awaitTranslation();
 
 	// The mock function was called ones
 	expect(translator.mock.calls).toHaveLength(1);
@@ -151,7 +145,7 @@ test('translate node when it becomes visible', async () => {
 
 	const shouldHandleNode = lazyTranslator.lazyTranslationHandler(divElement);
 
-	await wait();
+	await awaitTranslation();
 
 	// Node not translated because it is disabled
 
