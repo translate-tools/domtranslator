@@ -104,7 +104,7 @@ describe('Update and getNodeData without using LazyTranslate', () => {
 		);
 
 		// Spy on the updateNode method
-		const updateNameSpy = vi.spyOn(nodesStorageTranslator, 'updateNode');
+		const updateNodesSpy = vi.spyOn(nodesStorageTranslator, 'updateNode');
 
 		const div0 = document.createElement('div');
 		div0.innerHTML = 'Hello world!';
@@ -123,7 +123,7 @@ describe('Update and getNodeData without using LazyTranslate', () => {
 
 		expect(div0.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-		expect(updateNameSpy.mock.calls[0][0]).toMatchObject(
+		expect(updateNodesSpy.mock.calls[0][0]).toMatchObject(
 			containsRegex(TRANSLATION_SYMBOL),
 		);
 	});
