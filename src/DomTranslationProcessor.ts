@@ -1,5 +1,7 @@
 import { LazyTranslator } from './LazyTranslator';
-import { InnerConfig, isInViewport, TranslatorInterface } from './NodesTranslator';
+import { InnerConfig, TranslatorInterface } from './NodesTranslator';
+import { isInViewport } from './utils/isInViewport';
+import { nodeExplore } from './utils/nodeExplore';
 
 interface NodeData {
 	/**
@@ -28,25 +30,6 @@ interface NodeData {
 	 */
 	priority: number;
 }
-
-/**
- * @param handler if return `false`, loop will stop
- */
-const nodeExplore = (
-	inputNode: Node,
-	nodeFilter: number,
-	includeSelf: boolean,
-	handler: (value: Node) => void | boolean,
-) => {
-	const walk = document.createTreeWalker(inputNode, nodeFilter, null);
-	let node = includeSelf ? walk.currentNode : walk.nextNode();
-	while (node) {
-		if (handler(node) === false) {
-			return;
-		}
-		node = walk.nextNode();
-	}
-};
 
 export class DomTranslationProcessor {
 	private readonly config: InnerConfig;
