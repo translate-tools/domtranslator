@@ -1,3 +1,4 @@
+import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { configureTranslatableNodePredicate } from './utils/nodes';
 
@@ -71,7 +72,7 @@ export function isInViewport(element: Element, threshold = 0) {
 
 type TranslatorInterface = (text: string, priority: number) => Promise<string>;
 
-interface InnerConfig {
+export interface InnerConfig {
 	isTranslatableNode: (node: Node) => boolean;
 	lazyTranslate: boolean;
 }
@@ -91,6 +92,7 @@ export interface Config {
 export class NodesTranslator {
 	private readonly translateCallback: TranslatorInterface;
 	private readonly config: InnerConfig;
+	private lazyTranslator: LazyTranslator;
 
 	constructor(translateCallback: TranslatorInterface, config?: Config) {
 		this.translateCallback = translateCallback;
@@ -101,6 +103,8 @@ export class NodesTranslator {
 			lazyTranslate:
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
+
+		this.lazyTranslator = new LazyTranslator(this.handleNode, this.config);
 	}
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
@@ -156,36 +160,6 @@ export class NodesTranslator {
 		return { originalText };
 	}
 
-	private readonly itersectStorage = new WeakSet<Node>();
-	private readonly itersectObserver = new IntersectionObserver(
-		(entries, observer) => {
-			entries.forEach((entry) => {
-				const node = entry.target;
-				if (!this.itersectStorage.has(node) || !entry.isIntersecting) return;
-
-				this.itersectStorage.delete(node);
-				observer.unobserve(node);
-				this.intersectNode(node);
-			});
-		},
-		{ root: null, rootMargin: '0px', threshold: 0 },
-	);
-
-	private intersectNode = (node: Element) => {
-		// Translate child text nodes and attributes of target node
-		// WARNING: we shall not touch inner nodes, because its may still not intersected
-		node.childNodes.forEach((node) => {
-			if (node instanceof Element || !this.isTranslatableNode(node)) return;
-			this.handleNode(node);
-		});
-	};
-
-	private handleElementByIntersectViewport(node: Element) {
-		if (this.itersectStorage.has(node)) return;
-		this.itersectStorage.add(node);
-		this.itersectObserver.observe(node);
-	}
-
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 	private handleNode = (node: Node) => {
@@ -226,22 +200,8 @@ export class NodesTranslator {
 
 		// Handle text nodes and attributes
 
-		// Lazy translate when own element intersect viewport
-		// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
-		if (this.config.lazyTranslate) {
-			const isAttachedToDOM = node.getRootNode() !== node;
-			const observableNode =
-				node instanceof Attr ? node.ownerElement : node.parentElement;
-
-			// Ignore lazy translation for not intersectable nodes and translate it immediately
-			if (
-				isAttachedToDOM &&
-				observableNode !== null &&
-				this.isIntersectableNode(observableNode)
-			) {
-				this.handleElementByIntersectViewport(observableNode);
-				return;
-			}
+		if (this.lazyTranslator.process(node)) {
+			return;
 		}
 
 		// Add to storage
@@ -258,8 +218,7 @@ export class NodesTranslator {
 			}
 
 			// Unobserve
-			this.itersectStorage.delete(node);
-			this.itersectObserver.unobserve(node);
+			this.lazyTranslator.disable(node);
 		}
 
 		const nodeData = this.nodeStorage.get(node);
