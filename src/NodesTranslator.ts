@@ -1,53 +1,7 @@
+import { DomTranslationProcessor } from './DomTranslationProcessor';
 import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { configureTranslatableNodePredicate } from './utils/nodes';
-
-interface NodeData {
-	/**
-	 * Unique node identifier
-	 */
-	id: number;
-
-	/**
-	 * Each node update should increase the value
-	 */
-	updateId: number;
-
-	/**
-	 * Contains `updateId` value at time when start node translation
-	 */
-	translateContext: number;
-
-	/**
-	 * Original node text, before start translation
-	 * Contains `null` for node that not been translated yet
-	 */
-	originalText: null | string;
-
-	/**
-	 * Priority to translate node. The bigger the faster will translate
-	 */
-	priority: number;
-}
-
-/**
- * @param handler if return `false`, loop will stop
- */
-const nodeExplore = (
-	inputNode: Node,
-	nodeFilter: number,
-	includeSelf: boolean,
-	handler: (value: Node) => void | boolean,
-) => {
-	const walk = document.createTreeWalker(inputNode, nodeFilter, null);
-	let node = includeSelf ? walk.currentNode : walk.nextNode();
-	while (node) {
-		if (handler(node) === false) {
-			return;
-		}
-		node = walk.nextNode();
-	}
-};
 
 /**
  * Check visibility of element in viewport
@@ -70,8 +24,6 @@ export function isInViewport(element: Element, threshold = 0) {
 	return true;
 }
 
-type TranslatorInterface = (text: string, priority: number) => Promise<string>;
-
 export interface InnerConfig {
 	isTranslatableNode: (node: Node) => boolean;
 	lazyTranslate: boolean;
@@ -82,6 +34,8 @@ export interface Config {
 	lazyTranslate?: boolean;
 }
 
+export type TranslatorInterface = (text: string, priority: number) => Promise<string>;
+
 // TODO: consider local language definitions (and implement `from`, `to` parameters for translator to specify default or locale languages)
 // TODO: scan nodes lazy - defer scan to `requestIdleCallback` instead of instant scan
 // TODO: describe nodes life cycle
@@ -90,12 +44,10 @@ export interface Config {
  * Module for dynamic translate a DOM nodes
  */
 export class NodesTranslator {
-	private readonly translateCallback: TranslatorInterface;
 	private readonly config: InnerConfig;
-	private lazyTranslator: LazyTranslator;
+	private domTranslationProcessor: DomTranslationProcessor;
 
 	constructor(translateCallback: TranslatorInterface, config?: Config) {
-		this.translateCallback = translateCallback;
 		this.config = {
 			...config,
 			isTranslatableNode:
@@ -104,7 +56,13 @@ export class NodesTranslator {
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
 
-		this.lazyTranslator = new LazyTranslator(this.handleNode, this.config);
+		this.domTranslationProcessor = new DomTranslationProcessor(
+			this.config,
+			new LazyTranslator((node: Node) => {
+				this.domTranslationProcessor.handleNode(node);
+			}, this.config),
+			translateCallback,
+		);
 	}
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
@@ -117,10 +75,14 @@ export class NodesTranslator {
 		const observer = new XMutationObserver();
 		this.observedNodesStorage.set(node, observer);
 
-		observer.addHandler('elementAdded', ({ target }) => this.addNode(target));
-		observer.addHandler('elementRemoved', ({ target }) => this.deleteNode(target));
+		observer.addHandler('elementAdded', ({ target }) =>
+			this.domTranslationProcessor.addNode(target),
+		);
+		observer.addHandler('elementRemoved', ({ target }) =>
+			this.domTranslationProcessor.deleteNode(target),
+		);
 		observer.addHandler('characterData', ({ target }) => {
-			this.updateNode(target);
+			this.domTranslationProcessor.updateNode(target);
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
 			if (attributeName === undefined || attributeName === null) return;
@@ -131,15 +93,15 @@ export class NodesTranslator {
 			if (attribute === null) return;
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
-			if (!this.nodeStorage.has(attribute)) {
-				this.addNode(attribute);
+			if (!this.domTranslationProcessor.isNodeStorageHas(attribute)) {
+				this.domTranslationProcessor.addNode(attribute);
 			} else {
-				this.updateNode(attribute);
+				this.domTranslationProcessor.updateNode(attribute);
 			}
 		});
 
 		observer.observe(node);
-		this.addNode(node);
+		this.domTranslationProcessor.addNode(node);
 	}
 
 	public unobserve(node: Element) {
@@ -147,190 +109,12 @@ export class NodesTranslator {
 			throw new Error('Node is not under observe');
 		}
 
-		this.deleteNode(node);
+		this.domTranslationProcessor.deleteNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
 	}
 
 	public getNodeData(node: Node) {
-		const nodeData = this.nodeStorage.get(node);
-		if (nodeData === undefined) return null;
-
-		const { originalText } = nodeData;
-		return { originalText };
-	}
-
-	private idCounter = 0;
-	private nodeStorage = new WeakMap<Node, NodeData>();
-	private handleNode = (node: Node) => {
-		if (this.nodeStorage.has(node)) return;
-
-		// Skip empthy text
-		if (node.nodeValue === null || node.nodeValue.trim().length == 0) return;
-
-		// Skip not translatable nodes
-		if (!this.isTranslatableNode(node)) return;
-
-		const priority = this.getNodeScore(node);
-
-		this.nodeStorage.set(node, {
-			id: this.idCounter++,
-			updateId: 1,
-			translateContext: 0,
-			originalText: null,
-			priority,
-		});
-
-		this.translateNode(node);
-	};
-
-	private addNode(node: Node) {
-		// Add all nodes which element contains (text nodes and attributes of current and inner elements)
-		if (node instanceof Element) {
-			this.handleTree(node, (node) => {
-				if (node instanceof Element) return;
-
-				if (this.isTranslatableNode(node)) {
-					this.addNode(node);
-				}
-			});
-
-			return;
-		}
-
-		// Handle text nodes and attributes
-
-		if (this.lazyTranslator.process(node)) {
-			return;
-		}
-
-		// Add to storage
-		this.handleNode(node);
-	}
-
-	private deleteNode(node: Node, onlyTarget = false) {
-		if (node instanceof Element) {
-			// Delete all attributes and inner nodes
-			if (!onlyTarget) {
-				this.handleTree(node, (node) => {
-					this.deleteNode(node, true);
-				});
-			}
-
-			// Unobserve
-			this.lazyTranslator.disable(node);
-		}
-
-		const nodeData = this.nodeStorage.get(node);
-		if (nodeData !== undefined) {
-			// Restore original text if text been replaced
-			if (nodeData.originalText !== null) {
-				node.nodeValue = nodeData.originalText;
-			}
-			this.nodeStorage.delete(node);
-		}
-	}
-
-	// Updates never be lazy
-	private updateNode(node: Node) {
-		const nodeData = this.nodeStorage.get(node);
-		if (nodeData !== undefined) {
-			nodeData.updateId++;
-			this.translateNode(node);
-		}
-	}
-
-	/**
-	 * Call only for new and updated nodes
-	 */
-	private translateNode(node: Node) {
-		const nodeData = this.nodeStorage.get(node);
-		if (nodeData === undefined) {
-			throw new Error('Node is not register');
-		}
-
-		if (node.nodeValue === null) return;
-
-		// Recursion prevention
-		if (nodeData.updateId <= nodeData.translateContext) {
-			return;
-		}
-
-		const nodeId = nodeData.id;
-		const nodeContext = nodeData.updateId;
-		return this.translateCallback(node.nodeValue, nodeData.priority).then((text) => {
-			const actualNodeData = this.nodeStorage.get(node);
-			if (actualNodeData === undefined || nodeId !== actualNodeData.id) {
-				return;
-			}
-			if (nodeContext !== actualNodeData.updateId) {
-				return;
-			}
-
-			// actualNodeData.translateData = text;
-			actualNodeData.originalText = node.nodeValue !== null ? node.nodeValue : '';
-			actualNodeData.translateContext = actualNodeData.updateId + 1;
-			node.nodeValue = text;
-			return node;
-		});
-	}
-
-	private isTranslatableNode(targetNode: Node) {
-		return this.config.isTranslatableNode(targetNode);
-	}
-
-	private isIntersectableNode = (node: Element) => {
-		if (node.nodeName === 'OPTION') return false;
-
-		return document.body.contains(node);
-	};
-
-	/**
-	 * Calculate node priority for translate, the bigger number the importance text
-	 */
-	private getNodeScore = (node: Node) => {
-		let score = 0;
-
-		if (node instanceof Attr) {
-			score += 1;
-			const parent = node.ownerElement;
-			if (parent && isInViewport(parent)) {
-				// Attribute of visible element is important than text of non-visible element
-				score += 2;
-			}
-		} else if (node instanceof Text) {
-			score += 2;
-			const parent = node.parentElement;
-			if (parent && isInViewport(parent)) {
-				// Text of visible element is most important node for translation
-				score += 2;
-			}
-		}
-
-		return score;
-	};
-
-	/**
-	 * Handle all translatable nodes from element
-	 * Element, Attr, Text
-	 */
-	private handleTree(node: Element, callback: (node: Node) => void) {
-		nodeExplore(node, NodeFilter.SHOW_ALL, true, (node) => {
-			callback(node);
-
-			if (node instanceof Element) {
-				// Handle nodes from opened shadow DOM
-				if (node.shadowRoot !== null) {
-					for (const child of Array.from(node.shadowRoot.children)) {
-						this.handleTree(child, callback);
-					}
-				}
-
-				// Handle attributes of element
-				for (const attribute of Object.values(node.attributes)) {
-					callback(attribute);
-				}
-			}
-		});
+		return this.domTranslationProcessor.getNodeData(node);
 	}
 }
