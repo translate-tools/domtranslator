@@ -1,0 +1,155 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`base usage > translate whole document and disable translation 1`] = `
+"<html lang="en"><head>
+	<meta charset="UTF-8">
+	<title>***TRANSLATED***Demo page with challenges for DOM translator</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" data-rh="true">
+	<link rel="search" type="application/opensearchdescription+xml" title="Opensearch" href="/opensearch.xml">
+	<link rel="preload" href="#file.js" as="script">
+	<script>***TRANSLATED***console.log('console log: page start')</script>
+</head>
+
+<body>***TRANSLATED***
+	Text with no container
+	<div id="rootElement" class="main container">***TRANSLATED***
+		Text in div<br>
+		<p>***TRANSLATED***Text inside container <a href="#url" title="link title">***TRANSLATED***link text</a></p>
+
+		<img title="image" alt="image alt text" data-text="data attribute that must not be translated">
+		<pre>***TRANSLATED***Text with preserved formatting</pre>***TRANSLATED***
+
+		Some code:
+		<pre>			<code lang="javascript">***TRANSLATED***
+				const name = "Jeff";
+				console.log("Your name is " + name);
+			</code>
+		</pre>
+
+		<figure>
+			<blockquote cite="https://www.huxley.net/bnw/four.html">
+				<p>***TRANSLATED***Words can be like X-rays, if you use them properly—they’ll go through anything. You read and you’re pierced.</p>
+			</blockquote>
+			<figcaption>***TRANSLATED***—Aldous Huxley, <cite>***TRANSLATED***Brave New World</cite></figcaption>
+		</figure>
+
+		<form method="post" style="display: flex; flex-flow: column;">
+			<input type="text" name="text" value="text">
+			<input type="password" name="text" value="password">
+			<textarea>***TRANSLATED***long text in textarea</textarea>
+
+			<label><input type="checkbox">***TRANSLATED*** checkbox <i>***TRANSLATED***foo</i></label>
+			<label><input type="checkbox">***TRANSLATED*** checkbox <b>***TRANSLATED***bar</b></label>
+			
+			<label><input type="radio" name="radioGroup">***TRANSLATED*** radio <i>***TRANSLATED***foo</i></label>
+			<label><input type="radio" name="radioGroup">***TRANSLATED*** radio <b>***TRANSLATED***bar</b></label>
+
+			<select>
+				<optgroup label="Numbers">
+					<option value="1">***TRANSLATED***1</option>
+					<option value="2">***TRANSLATED***2</option>
+				</optgroup>
+				<option value="foo">***TRANSLATED***foo</option>
+				<option value="bar">***TRANSLATED***bar</option>
+			</select>
+		</form>
+
+		<div class="custom-elements">
+			<div class="notranslate">***TRANSLATED***This text must not be translated <span>***TRANSLATED***this and <b>***TRANSLATED***this</b>***TRANSLATED*** text too</span>***TRANSLATED***.</div>
+			<div contenteditable="true">***TRANSLATED***This text must not be translated, since it is editable</div>
+
+			<pre>***TRANSLATED***Text with preserved formatting</pre>
+
+			<div translate="no">
+				<div>***TRANSLATED***Items must not be translated:</div>
+				<div>***TRANSLATED***Foo</div>
+				<div>***TRANSLATED***Bar <span title="baz title">***TRANSLATED***baz</span></div>
+			</div>
+
+			<label><input type="checkbox" title="Item title" checked="">***TRANSLATED*** Checked item</label>
+			<label><input type="checkbox" title="Item title">***TRANSLATED*** Unchecked item</label>
+		</div>
+	</div>
+	<script>***TRANSLATED***console.log('console log: page end')</script>
+
+
+
+</body></html>"
+`;
+
+exports[`base usage > translate whole document and disable translation with lazyTranslate 1`] = `
+"<html lang="en"><head>
+	<meta charset="UTF-8">
+	<title>***TRANSLATED***Demo page with challenges for DOM translator</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" data-rh="true">
+	<link rel="search" type="application/opensearchdescription+xml" title="Opensearch" href="/opensearch.xml">
+	<link rel="preload" href="#file.js" as="script">
+	<script>***TRANSLATED***console.log('console log: page start')</script>
+</head>
+
+<body>***TRANSLATED***
+	Text with no container
+	<div id="rootElement" class="main container">***TRANSLATED***
+		Text in div<br>
+		<p>***TRANSLATED***Text inside container <a href="#url" title="link title">***TRANSLATED***link text</a></p>
+
+		<img title="image" alt="image alt text" data-text="data attribute that must not be translated">
+		<pre>***TRANSLATED***Text with preserved formatting</pre>***TRANSLATED***
+
+		Some code:
+		<pre>			<code lang="javascript">***TRANSLATED***
+				const name = "Jeff";
+				console.log("Your name is " + name);
+			</code>
+		</pre>
+
+		<figure>
+			<blockquote cite="https://www.huxley.net/bnw/four.html">
+				<p>***TRANSLATED***Words can be like X-rays, if you use them properly—they’ll go through anything. You read and you’re pierced.</p>
+			</blockquote>
+			<figcaption>***TRANSLATED***—Aldous Huxley, <cite>***TRANSLATED***Brave New World</cite></figcaption>
+		</figure>
+
+		<form method="post" style="display: flex; flex-flow: column;">
+			<input type="text" name="text" value="text">
+			<input type="password" name="text" value="password">
+			<textarea>***TRANSLATED***long text in textarea</textarea>
+
+			<label><input type="checkbox">***TRANSLATED*** checkbox <i>***TRANSLATED***foo</i></label>
+			<label><input type="checkbox">***TRANSLATED*** checkbox <b>***TRANSLATED***bar</b></label>
+			
+			<label><input type="radio" name="radioGroup">***TRANSLATED*** radio <i>***TRANSLATED***foo</i></label>
+			<label><input type="radio" name="radioGroup">***TRANSLATED*** radio <b>***TRANSLATED***bar</b></label>
+
+			<select>
+				<optgroup label="Numbers">
+					<option value="1">***TRANSLATED***1</option>
+					<option value="2">***TRANSLATED***2</option>
+				</optgroup>
+				<option value="foo">***TRANSLATED***foo</option>
+				<option value="bar">***TRANSLATED***bar</option>
+			</select>
+		</form>
+
+		<div class="custom-elements">
+			<div class="notranslate">***TRANSLATED***This text must not be translated <span>***TRANSLATED***this and <b>***TRANSLATED***this</b>***TRANSLATED*** text too</span>***TRANSLATED***.</div>
+			<div contenteditable="true">***TRANSLATED***This text must not be translated, since it is editable</div>
+
+			<pre>***TRANSLATED***Text with preserved formatting</pre>
+
+			<div translate="no">
+				<div>***TRANSLATED***Items must not be translated:</div>
+				<div>***TRANSLATED***Foo</div>
+				<div>***TRANSLATED***Bar <span title="baz title">***TRANSLATED***baz</span></div>
+			</div>
+
+			<label><input type="checkbox" title="Item title" checked="">***TRANSLATED*** Checked item</label>
+			<label><input type="checkbox" title="Item title">***TRANSLATED*** Unchecked item</label>
+		</div>
+	</div>
+	<script>***TRANSLATED***console.log('console log: page end')</script>
+
+
+
+</body></html>"
+`;
