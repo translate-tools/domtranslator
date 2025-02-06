@@ -1,17 +1,9 @@
 import { vi } from 'vitest';
 
 import { LazyTranslator } from '../LazyTranslator';
+import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL } from './utils';
 
 require('intersection-observer');
-
-const delay = (time: number) => new Promise((res) => setTimeout(res, time));
-const awaitTranslation = () => delay(120);
-
-const TRANSLATION_SYMBOL = '***TRANSLATED***';
-
-const escapeRegexString = (input: string) => input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-const containsRegex = (input: string) => new RegExp(`${escapeRegexString(input)}`);
 
 const translator = vi.fn().mockImplementation(async (node: Text) => {
 	return (node.textContent = TRANSLATION_SYMBOL + node.textContent);

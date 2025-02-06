@@ -2,30 +2,22 @@ import { readFileSync } from 'fs';
 
 import { DomTranslationProcessor } from '../DomTranslationProcessor';
 import { LazyTranslator } from '../LazyTranslator';
+import {
+	awaitTranslation,
+	composeName,
+	containsRegex,
+	fillDocument,
+	TRANSLATION_SYMBOL,
+	translator,
+} from './utils';
 
 require('intersection-observer');
 
 (IntersectionObserver.prototype as any).POLL_INTERVAL = 100;
 
-const delay = (time: number) => new Promise((res) => setTimeout(res, time));
-const awaitTranslation = () => delay(120);
-
-const composeName = (...args: (string | boolean)[]) => args.filter(Boolean).join(' ');
-
-const TRANSLATION_SYMBOL = '***TRANSLATED***';
-const translator = async (text: string) => TRANSLATION_SYMBOL + text;
-
-const escapeRegexString = (input: string) => input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-const containsRegex = (input: string) => new RegExp(`${escapeRegexString(input)}`);
+const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
 const handelNode = vi.fn();
-
-const fillDocument = (text: string) => {
-	document.write(text);
-};
-
-const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
 // The mock for LazyTranslate class
 vi.mock('../LazyTranslator', async (importActual) => {
