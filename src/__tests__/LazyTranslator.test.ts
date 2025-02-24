@@ -23,10 +23,11 @@ describe('base usage', () => {
 	});
 
 	test('translate element at intersection', async () => {
-		const lazyTraslator = new LazyTranslator(translator, {
+		const lazyTraslator = new LazyTranslator({
 			lazyTranslate: true,
 			isTranslatableNode,
 		});
+		lazyTraslator.setTranslator(translator);
 
 		const isLazyTranslate = lazyTraslator.process(textNode);
 
@@ -43,13 +44,14 @@ describe('base usage', () => {
 
 	test('translate node that intersect the custom ancestor', async () => {
 		const lazyTraslator = new LazyTranslator(
-			translator,
 			{
 				lazyTranslate: true,
 				isTranslatableNode,
 			},
 			{ root: divElement },
 		);
+		lazyTraslator.setTranslator(translator);
+
 		const isLazyTranslate = lazyTraslator.process(textNode);
 
 		await awaitTranslation();
@@ -66,10 +68,11 @@ describe('base usage', () => {
 	test('not translate nodes that not intersected', async () => {
 		const textNode = document.createTextNode('Hello World!');
 
-		const lazyTraslator = new LazyTranslator(translator, {
+		const lazyTraslator = new LazyTranslator({
 			lazyTranslate: true,
 			isTranslatableNode,
 		});
+		lazyTraslator.setTranslator(translator);
 
 		const isLazyTranslate = lazyTraslator.process(textNode);
 
@@ -82,10 +85,12 @@ describe('base usage', () => {
 	});
 
 	test('not translate nodes with lazyTranslate off', async () => {
-		const lazyTraslator = new LazyTranslator(translator, {
+		const lazyTraslator = new LazyTranslator({
 			lazyTranslate: false,
 			isTranslatableNode,
 		});
+		lazyTraslator.setTranslator(translator);
+
 		const isLazyTranslate = lazyTraslator.process(textNode);
 
 		await awaitTranslation();
@@ -97,13 +102,14 @@ describe('base usage', () => {
 
 	test('not translate node that not intersect the custom ancestor', async () => {
 		const lazyTraslator = new LazyTranslator(
-			translator,
 			{
 				lazyTranslate: false,
 				isTranslatableNode,
 			},
 			{ root: divElement },
 		);
+		lazyTraslator.setTranslator(translator);
+
 		const isLazyTranslate = lazyTraslator.process(textNode);
 
 		await awaitTranslation();

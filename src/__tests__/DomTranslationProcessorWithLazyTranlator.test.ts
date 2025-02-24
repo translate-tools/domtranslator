@@ -19,6 +19,29 @@ const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
 describe('base usage', () => {
 	[true, false].forEach((lazyTranslate) => {
+		let domTranslationProcessor: DomTranslationProcessor | null;
+
+		beforeEach(() => {
+			const config = {
+				lazyTranslate: lazyTranslate,
+				isTranslatableNode: (node: Node) => node instanceof Text,
+			};
+
+			const lazyTranslator = new (vi.mocked(LazyTranslator)!)(config);
+
+			domTranslationProcessor = new DomTranslationProcessor(
+				config,
+				lazyTranslator,
+				translator,
+			);
+
+			lazyTranslator.setTranslator(domTranslationProcessor.handleNode);
+		});
+
+		afterEach(() => {
+			domTranslationProcessor = null;
+		});
+
 		const testName = composeName(
 			'translate whole document and disable translation',
 			lazyTranslate && 'with lazyTranslate',
@@ -34,22 +57,13 @@ describe('base usage', () => {
 
 			const parsedHTML = document.documentElement.outerHTML;
 
-			const domTranslationProcessor = new DomTranslationProcessor(
-				config,
-				new LazyTranslator(
-					(node: Node) => domTranslationProcessor.handleNode(node),
-					config,
-				),
-				translator,
-			);
-
 			// translate document
-			domTranslationProcessor.addNode(document.documentElement);
+			domTranslationProcessor?.addNode(document.documentElement);
 			await awaitTranslation();
 			expect(document.documentElement.outerHTML).toMatchSnapshot();
 
 			// disable translation
-			domTranslationProcessor.deleteNode(document.documentElement);
+			domTranslationProcessor?.deleteNode(document.documentElement);
 			expect(document.documentElement.outerHTML).toBe(parsedHTML);
 		});
 
@@ -64,20 +78,11 @@ describe('base usage', () => {
 			const div0 = document.createElement('div');
 			div0.innerHTML = originalText;
 
-			const domTranslationProcessor = new DomTranslationProcessor(
-				config,
-				new LazyTranslator(
-					(node: Node) => domTranslationProcessor.handleNode(node),
-					config,
-				),
-				translator,
-			);
-
-			domTranslationProcessor.addNode(div0);
+			domTranslationProcessor?.addNode(div0);
 
 			await awaitTranslation();
 
-			expect(domTranslationProcessor.getNodeData(div0.childNodes[0])).toEqual(
+			expect(domTranslationProcessor?.getNodeData(div0.childNodes[0])).toEqual(
 				expect.objectContaining({
 					originalText: originalText,
 				}),
@@ -94,27 +99,22 @@ describe('base usage', () => {
 			div0.innerHTML = 'Hello world!';
 			document.body.appendChild(div0);
 
-			const domTranslationProcessor = new DomTranslationProcessor(
-				config,
-				new LazyTranslator(
-					(node: Node) => domTranslationProcessor.handleNode(node),
-					config,
-				),
-				translator,
-			);
 			// Spy on the updateNode method
-			const updateNodesSpy = vi.spyOn(domTranslationProcessor, 'updateNode');
+			const updateNodesSpy = vi.spyOn(
+				domTranslationProcessor as DomTranslationProcessor,
+				'updateNode',
+			);
 
-			domTranslationProcessor.addNode(div0);
+			domTranslationProcessor?.addNode(div0);
 			await awaitTranslation();
 
 			// update element
 			const newText = 'Goodbye world!';
 			div0.innerHTML = newText;
-			domTranslationProcessor.addNode(div0.childNodes[0]);
+			domTranslationProcessor?.addNode(div0.childNodes[0]);
 			await awaitTranslation();
 
-			domTranslationProcessor.updateNode(div0.childNodes[0]);
+			domTranslationProcessor?.updateNode(div0.childNodes[0]);
 			await awaitTranslation();
 
 			expect(updateNodesSpy).toBeCalledTimes(1);

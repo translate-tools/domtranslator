@@ -25,6 +25,7 @@ export type TranslatorInterface = (text: string, priority: number) => Promise<st
 export class NodesTranslator {
 	private readonly config: InnerConfig;
 	private domTranslationProcessor: DomTranslationProcessor;
+	private lazyTranslator: LazyTranslator;
 
 	constructor(translateCallback: TranslatorInterface, config?: Config) {
 		this.config = {
@@ -34,14 +35,15 @@ export class NodesTranslator {
 			lazyTranslate:
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
+		this.lazyTranslator = new LazyTranslator(this.config);
 
 		this.domTranslationProcessor = new DomTranslationProcessor(
 			this.config,
-			new LazyTranslator((node: Node) => {
-				this.domTranslationProcessor.handleNode(node);
-			}, this.config),
+			this.lazyTranslator,
 			translateCallback,
 		);
+
+		this.lazyTranslator.setTranslator(this.domTranslationProcessor.handleNode);
 	}
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();

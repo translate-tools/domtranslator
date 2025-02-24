@@ -20,7 +20,7 @@ function isIntersectableNode(node: Element) {
  * by default, the top-level document's viewport.
  */
 export class LazyTranslator {
-	private readonly translator: Translator;
+	private translator?: Translator;
 	private readonly config: InnerConfig;
 
 	private readonly itersectStorage = new WeakSet<Node>();
@@ -28,7 +28,6 @@ export class LazyTranslator {
 	private itersectObserver: IntersectionObserver;
 
 	constructor(
-		translator: Translator,
 		config: InnerConfig,
 		intersectionConfig: IntersectionConfig = {
 			root: null,
@@ -36,7 +35,6 @@ export class LazyTranslator {
 			threshold: 0,
 		},
 	) {
-		this.translator = translator;
 		this.config = config;
 
 		this.itersectObserver = new IntersectionObserver((entries, observer) => {
@@ -53,6 +51,10 @@ export class LazyTranslator {
 		}, intersectionConfig);
 	}
 
+	public setTranslator(callback: (node: Node) => void) {
+		this.translator = callback;
+	}
+
 	private handlerIntersectNode(node: Node) {
 		// Translate child text nodes and attributes of target node
 		// WARNING: we shall not touch inner nodes, because its may still not intersected
@@ -61,6 +63,7 @@ export class LazyTranslator {
 				return;
 			}
 
+			if (!this.translator) throw new Error('expect node handler');
 			this.translator(node);
 		});
 	}
