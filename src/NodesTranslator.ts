@@ -1,6 +1,7 @@
 import { DomTranslationProcessor } from './DomTranslationProcessor';
 import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
+import { NodeStorage } from './NodeStorage';
 import { configureTranslatableNodePredicate } from './utils/nodes';
 
 export interface InnerConfig {
@@ -41,6 +42,7 @@ export class NodesTranslator {
 			this.config,
 			this.lazyTranslator,
 			translateCallback,
+			new NodeStorage(),
 		);
 
 		this.lazyTranslator.setTranslator(this.domTranslationProcessor.handleNode);

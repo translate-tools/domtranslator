@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 
 import { DomTranslationProcessor } from '../DomTranslationProcessor';
 import { LazyTranslator } from '../LazyTranslator';
+import { NodeStorage } from '../NodeStorage';
 import {
 	awaitTranslation,
 	composeName,
@@ -33,6 +34,7 @@ describe('base usage', () => {
 				config,
 				lazyTranslator,
 				translator,
+				new NodeStorage(),
 			);
 
 			lazyTranslator.setTranslator(domTranslationProcessor.handleNode);

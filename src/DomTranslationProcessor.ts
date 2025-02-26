@@ -1,35 +1,8 @@
 import { LazyTranslator } from './LazyTranslator';
+import { NodeStorage } from './NodeStorage';
 import { InnerConfig, TranslatorInterface } from './NodesTranslator';
 import { isInViewport } from './utils/isInViewport';
 import { nodeExplore } from './utils/nodeExplore';
-
-interface NodeData {
-	/**
-	 * Unique node identifier
-	 */
-	id: number;
-
-	/**
-	 * Each node update should increase the value
-	 */
-	updateId: number;
-
-	/**
-	 * Contains `updateId` value at time when start node translation
-	 */
-	translateContext: number;
-
-	/**
-	 * Original node text, before start translation
-	 * Contains `null` for node that not been translated yet
-	 */
-	originalText: null | string;
-
-	/**
-	 * Priority to translate node. The bigger the faster will translate
-	 */
-	priority: number;
-}
 
 export class DomTranslationProcessor {
 	private readonly config: InnerConfig;
@@ -37,17 +10,18 @@ export class DomTranslationProcessor {
 
 	private readonly translateCallback: TranslatorInterface;
 
-	private idCounter = 0;
-	private nodeStorage = new WeakMap<Node, NodeData>();
+	private nodeStorage: NodeStorage;
 
 	constructor(
 		config: InnerConfig,
 		lazyTranslator: LazyTranslator,
 		translateCallback: TranslatorInterface,
+		nodeStorage: NodeStorage,
 	) {
 		this.config = config;
 		this.lazyTranslator = lazyTranslator;
 		this.translateCallback = translateCallback;
+		this.nodeStorage = nodeStorage;
 	}
 
 	public isNodeStorageHas(node: Node) {
@@ -73,13 +47,7 @@ export class DomTranslationProcessor {
 
 		const priority = this.getNodeScore(node);
 
-		this.nodeStorage.set(node, {
-			id: this.idCounter++,
-			updateId: 1,
-			translateContext: 0,
-			originalText: null,
-			priority,
-		});
+		this.nodeStorage.add(node, priority);
 
 		this.translateNode(node);
 	};
@@ -121,21 +89,14 @@ export class DomTranslationProcessor {
 			this.lazyTranslator.disable(node);
 		}
 
-		const nodeData = this.nodeStorage.get(node);
-		if (nodeData !== undefined) {
-			// Restore original text if text been replaced
-			if (nodeData.originalText !== null) {
-				node.nodeValue = nodeData.originalText;
-			}
-			this.nodeStorage.delete(node);
-		}
+		this.nodeStorage.delete(node);
 	}
 
 	// Updates never be lazy
 	public updateNode(node: Node) {
-		const nodeData = this.nodeStorage.get(node);
-		if (nodeData !== undefined) {
-			nodeData.updateId++;
+		if (this.isNodeStorageHas(node)) {
+			this.nodeStorage.update(node);
+
 			this.translateNode(node);
 		}
 	}

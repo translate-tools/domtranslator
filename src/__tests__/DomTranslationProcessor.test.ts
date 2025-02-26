@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 
 import { DomTranslationProcessor } from '../DomTranslationProcessor';
 import { LazyTranslator } from '../LazyTranslator';
+import { NodeStorage } from '../NodeStorage';
 import {
 	awaitTranslation,
 	composeName,
@@ -16,8 +17,6 @@ require('intersection-observer');
 (IntersectionObserver.prototype as any).POLL_INTERVAL = 100;
 
 const sample = readFileSync(__dirname + '/sample.html', 'utf8');
-
-const handelNode = vi.fn();
 
 // The mock for LazyTranslate class
 vi.mock('../LazyTranslator', async (importActual) => {
@@ -69,6 +68,7 @@ describe('base usage', () => {
 				config,
 				lazyTranslator,
 				translator,
+				new NodeStorage(),
 			);
 
 			lazyTranslator.setTranslator(domTranslationProcessor.handleNode);
