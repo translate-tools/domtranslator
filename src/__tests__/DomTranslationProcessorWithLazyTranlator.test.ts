@@ -3,6 +3,7 @@ import { readFileSync } from 'fs';
 import { DomTranslationProcessor } from '../DomTranslationProcessor';
 import { LazyTranslator } from '../LazyTranslator';
 import { NodeStorage } from '../NodeStorage';
+import { Translator } from '../Translator';
 import {
 	awaitTranslation,
 	composeName,
@@ -31,10 +32,10 @@ describe('base usage', () => {
 			const lazyTranslator = new (vi.mocked(LazyTranslator)!)(config);
 
 			domTranslationProcessor = new DomTranslationProcessor(
-				config,
+				config.isTranslatableNode,
 				lazyTranslator,
-				translator,
 				new NodeStorage(),
+				new Translator(translator),
 			);
 
 			lazyTranslator.setTranslator(domTranslationProcessor.handleNode);
@@ -48,11 +49,6 @@ describe('base usage', () => {
 			'translate whole document and disable translation',
 			lazyTranslate && 'with lazyTranslate',
 		);
-
-		const config = {
-			lazyTranslate: lazyTranslate,
-			isTranslatableNode: (node: Node) => node instanceof Text,
-		};
 
 		test(testName, async () => {
 			fillDocument(sample);

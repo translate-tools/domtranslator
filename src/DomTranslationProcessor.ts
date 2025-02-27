@@ -1,26 +1,24 @@
 import { LazyTranslator } from './LazyTranslator';
 import { NodeStorage } from './NodeStorage';
-import { InnerConfig, TranslatorInterface } from './NodesTranslator';
-import { isInViewport } from './utils/isInViewport';
+import { Translator } from './Translator';
 import { nodeExplore } from './utils/nodeExplore';
 
 export class DomTranslationProcessor {
-	private readonly config: InnerConfig;
+	private isTranslatableNode: (node: Node) => boolean;
+
 	private lazyTranslator: LazyTranslator;
-
-	private readonly translateCallback: TranslatorInterface;
-
 	private nodeStorage: NodeStorage;
+	private translator: Translator;
 
 	constructor(
-		config: InnerConfig,
+		isTranslatableNode: (node: Node) => boolean,
 		lazyTranslator: LazyTranslator,
-		translateCallback: TranslatorInterface,
 		nodeStorage: NodeStorage,
+		translator: Translator,
 	) {
-		this.config = config;
+		this.isTranslatableNode = isTranslatableNode;
 		this.lazyTranslator = lazyTranslator;
-		this.translateCallback = translateCallback;
+		this.translator = translator;
 		this.nodeStorage = nodeStorage;
 	}
 
@@ -45,11 +43,15 @@ export class DomTranslationProcessor {
 		// Skip not translatable nodes
 		if (!this.isTranslatableNode(node)) return;
 
-		const priority = this.getNodeScore(node);
+		const priority = this.translator.getNodePriority(node);
 
 		this.nodeStorage.add(node, priority);
 
-		this.translateNode(node);
+		const nodeData = this.nodeStorage.get(node);
+		if (nodeData === undefined) {
+			throw new Error('Node is not register');
+		}
+		this.translator.translateNode(node, nodeData);
 	};
 
 	public addNode(node: Node) {
@@ -94,76 +96,12 @@ export class DomTranslationProcessor {
 
 	// Updates never be lazy
 	public updateNode(node: Node) {
-		if (this.isNodeStorageHas(node)) {
-			this.nodeStorage.update(node);
-
-			this.translateNode(node);
-		}
-	}
-
-	/**
-	 * Call only for new and updated nodes
-	 */
-	private translateNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-		if (nodeData === undefined) {
-			throw new Error('Node is not register');
+		if (nodeData !== undefined) {
+			this.nodeStorage.update(node);
+			this.translator.translateNode(node, nodeData);
 		}
-
-		if (node.nodeValue === null) return;
-
-		// Recursion prevention
-		if (nodeData.updateId <= nodeData.translateContext) {
-			return;
-		}
-
-		const nodeId = nodeData.id;
-		const nodeContext = nodeData.updateId;
-		return this.translateCallback(node.nodeValue, nodeData.priority).then((text) => {
-			const actualNodeData = this.nodeStorage.get(node);
-			if (actualNodeData === undefined || nodeId !== actualNodeData.id) {
-				return;
-			}
-			if (nodeContext !== actualNodeData.updateId) {
-				return;
-			}
-
-			// actualNodeData.translateData = text;
-			actualNodeData.originalText = node.nodeValue !== null ? node.nodeValue : '';
-			actualNodeData.translateContext = actualNodeData.updateId + 1;
-			node.nodeValue = text;
-			return node;
-		});
 	}
-
-	private isTranslatableNode(targetNode: Node) {
-		return this.config.isTranslatableNode(targetNode);
-	}
-
-	/**
-	 * Calculate node priority for translate, the bigger number the importance text
-	 */
-	private getNodeScore = (node: Node) => {
-		let score = 0;
-
-		if (node instanceof Attr) {
-			score += 1;
-			const parent = node.ownerElement;
-			if (parent && isInViewport(parent)) {
-				// Attribute of visible element is important than text of non-visible element
-				score += 2;
-			}
-		} else if (node instanceof Text) {
-			score += 2;
-			const parent = node.parentElement;
-			if (parent && isInViewport(parent)) {
-				// Text of visible element is most important node for translation
-				score += 2;
-			}
-		}
-
-		return score;
-	};
 
 	/**
 	 * Handle all translatable nodes from element
