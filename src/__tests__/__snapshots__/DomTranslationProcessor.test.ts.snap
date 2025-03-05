@@ -147,7 +147,7 @@ exports[`base usage > translate whole document and disable translation with lazy
 			<label><input type="checkbox" title="Item title">***TRANSLATED*** Unchecked item</label>
 		</div>
 	</div>
-	<script>***TRANSLATED***console.log('console log: page end')</script>
+	<script>console.log('console log: page end')</script>
 
 
 

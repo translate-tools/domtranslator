@@ -19,40 +19,6 @@ require('intersection-observer');
 
 const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
-// The mock for LazyTranslate class
-vi.mock('../LazyTranslator', async (importActual) => {
-	return {
-		...(await importActual()),
-		LazyTranslator: vi
-			.fn()
-			.mockImplementation(
-				(config: {
-					isTranslatableNode: (node: Node) => boolean;
-					lazyTranslate: boolean;
-				}) => {
-					let translatorCallback: ((node: Node) => void) | undefined;
-
-					return {
-						setTranslator: vi.fn().mockImplementation((callback) => {
-							translatorCallback = callback;
-						}),
-						process: vi.fn().mockImplementation((node) => {
-							if (config.lazyTranslate) {
-								const isTextNode = node instanceof Text;
-								if (isTextNode && translatorCallback) {
-									translatorCallback(node);
-								}
-								return true;
-							}
-							return false;
-						}),
-						disable: vi.fn(),
-					};
-				},
-			),
-	};
-});
-
 describe('base usage', () => {
 	[true, false].forEach((lazyTranslate) => {
 		let domTranslationProcessor: DomTranslationProcessor | null;
@@ -63,7 +29,7 @@ describe('base usage', () => {
 				isTranslatableNode: (node: Node) => node instanceof Text,
 			};
 
-			const lazyTranslator = new (vi.mocked(LazyTranslator)!)(config);
+			const lazyTranslator = new LazyTranslator(config);
 
 			domTranslationProcessor = new DomTranslationProcessor(
 				config.isTranslatableNode,
