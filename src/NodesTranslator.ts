@@ -37,16 +37,45 @@ export class NodesTranslator {
 			lazyTranslate:
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
-		this.lazyTranslator = new LazyTranslator(this.config);
 
 		this.domTranslationProcessor = new DomTranslationProcessor(
 			this.config.isTranslatableNode,
-			this.lazyTranslator,
 			new NodeStorage(),
 			new Translator(translateCallback),
+			translateCallback,
 		);
 
-		this.lazyTranslator.setTranslator(this.domTranslationProcessor.handleNode);
+		this.lazyTranslator = new LazyTranslator(
+			this.config.isTranslatableNode,
+			this.domTranslationProcessor.handleNode,
+		);
+	}
+
+	private addNode(node: Node) {
+		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
+
+		if (node instanceof Element) {
+			this.domTranslationProcessor.processElementChildNodes(node, (node) => {
+				this.addNode(node);
+			});
+			return;
+		}
+
+		// if an element can't be translated later, translate it immediately
+
+		if (this.config.lazyTranslate && this.lazyTranslator.handleNode(node)) {
+			return;
+		}
+
+		this.domTranslationProcessor.handleNode(node);
+	}
+
+	private deleteNode(node: Node) {
+		this.domTranslationProcessor.deleteNode(node);
+
+		if (node instanceof Element) {
+			this.lazyTranslator.stopHandling(node);
+		}
 	}
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
@@ -59,12 +88,8 @@ export class NodesTranslator {
 		const observer = new XMutationObserver();
 		this.observedNodesStorage.set(node, observer);
 
-		observer.addHandler('elementAdded', ({ target }) =>
-			this.domTranslationProcessor.addNode(target),
-		);
-		observer.addHandler('elementRemoved', ({ target }) =>
-			this.domTranslationProcessor.deleteNode(target),
-		);
+		observer.addHandler('elementAdded', ({ target }) => this.addNode(target));
+		observer.addHandler('elementRemoved', ({ target }) => this.deleteNode(target));
 		observer.addHandler('characterData', ({ target }) => {
 			this.domTranslationProcessor.updateNode(target);
 		});
@@ -78,14 +103,14 @@ export class NodesTranslator {
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
 			if (!this.domTranslationProcessor.isNodeStorageHas(attribute)) {
-				this.domTranslationProcessor.addNode(attribute);
+				this.addNode(attribute);
 			} else {
 				this.domTranslationProcessor.updateNode(attribute);
 			}
 		});
 
 		observer.observe(node);
-		this.domTranslationProcessor.addNode(node);
+		this.addNode(node);
 	}
 
 	public unobserve(node: Element) {
@@ -93,7 +118,7 @@ export class NodesTranslator {
 			throw new Error('Node is not under observe');
 		}
 
-		this.domTranslationProcessor.deleteNode(node);
+		this.deleteNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
 	}

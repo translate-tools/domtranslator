@@ -1,5 +1,3 @@
-import { InnerConfig } from '.';
-
 type Translator = (node: Node) => void;
 
 type IntersectionConfig = {
@@ -21,21 +19,24 @@ function isIntersectableNode(node: Element) {
  */
 export class LazyTranslator {
 	private translator?: Translator;
-	private readonly config: InnerConfig;
+	private readonly isTranslatableNode: (node: Node) => boolean;
 
 	private readonly itersectStorage = new WeakSet<Node>();
 
 	private itersectObserver: IntersectionObserver;
 
 	constructor(
-		config: InnerConfig,
+		isTranslatableNode: (node: Node) => boolean,
+		transaltor: Translator,
 		intersectionConfig: IntersectionConfig = {
 			root: null,
 			rootMargin: '0px',
 			threshold: 0,
 		},
 	) {
-		this.config = config;
+		this.isTranslatableNode = isTranslatableNode;
+
+		this.translator = transaltor;
 
 		this.itersectObserver = new IntersectionObserver((entries, observer) => {
 			entries.forEach((entry) => {
@@ -51,15 +52,11 @@ export class LazyTranslator {
 		}, intersectionConfig);
 	}
 
-	public setTranslator(callback: (node: Node) => void) {
-		this.translator = callback;
-	}
-
 	private handlerIntersectNode(node: Node) {
 		// Translate child text nodes and attributes of target node
 		// WARNING: we shall not touch inner nodes, because its may still not intersected
 		node.childNodes.forEach((node) => {
-			if (node instanceof Element || !this.config.isTranslatableNode(node)) {
+			if (node instanceof Element || !this.isTranslatableNode(node)) {
 				return;
 			}
 
@@ -76,33 +73,31 @@ export class LazyTranslator {
 	}
 
 	/**
-	 * 	The lazyTranslationHandler method decides whether the node should be processed immediately or later
+	 * 	The process method determines whether the node can be processed later; otherwise, processes it immediately
 	 */
-	//
-	public process(node: Node) {
+
+	public handleNode(node: Node) {
 		// Lazy translate when own element intersect viewport
 		// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
 
-		if (this.config.lazyTranslate) {
-			const isAttachedToDOM = node.getRootNode() !== node;
-			const observableNode =
-				node instanceof Attr ? node.ownerElement : node.parentElement;
+		const isAttachedToDOM = node.getRootNode() !== node;
+		const observableNode =
+			node instanceof Attr ? node.ownerElement : node.parentElement;
 
-			// Ignore lazy translation for not intersectable nodes and translate it immediately
-			if (
-				isAttachedToDOM &&
-				observableNode !== null &&
-				isIntersectableNode(observableNode)
-			) {
-				this.handleElementByIntersectViewport(observableNode);
+		// Ignore lazy translation for not intersectable nodes and translate it immediately
+		if (
+			isAttachedToDOM &&
+			observableNode !== null &&
+			isIntersectableNode(observableNode)
+		) {
+			this.handleElementByIntersectViewport(observableNode);
 
-				return true;
-			}
+			return true;
 		}
 		return false;
 	}
 
-	public disable(node: Element) {
+	public stopHandling(node: Element) {
 		this.itersectStorage.delete(node);
 
 		this.itersectObserver.unobserve(node);

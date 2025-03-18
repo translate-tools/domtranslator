@@ -23,13 +23,9 @@ describe('base usage', () => {
 	});
 
 	test('translate element at intersection', async () => {
-		const lazyTraslator = new LazyTranslator({
-			lazyTranslate: true,
-			isTranslatableNode,
-		});
-		lazyTraslator.setTranslator(translator);
+		const lazyTraslator = new LazyTranslator(isTranslatableNode, translator);
 
-		const isLazyTranslate = lazyTraslator.process(textNode);
+		const isLazyTranslate = lazyTraslator.handleNode(textNode);
 
 		await awaitTranslation();
 
@@ -43,16 +39,11 @@ describe('base usage', () => {
 	});
 
 	test('translate node that intersect the custom ancestor', async () => {
-		const lazyTraslator = new LazyTranslator(
-			{
-				lazyTranslate: true,
-				isTranslatableNode,
-			},
-			{ root: divElement },
-		);
-		lazyTraslator.setTranslator(translator);
+		const lazyTraslator = new LazyTranslator(isTranslatableNode, translator, {
+			root: divElement,
+		});
 
-		const isLazyTranslate = lazyTraslator.process(textNode);
+		const isLazyTranslate = lazyTraslator.handleNode(textNode);
 
 		await awaitTranslation();
 
@@ -68,13 +59,9 @@ describe('base usage', () => {
 	test('not translate nodes that not intersected', async () => {
 		const textNode = document.createTextNode('Hello World!');
 
-		const lazyTraslator = new LazyTranslator({
-			lazyTranslate: true,
-			isTranslatableNode,
-		});
-		lazyTraslator.setTranslator(translator);
+		const lazyTraslator = new LazyTranslator(isTranslatableNode, translator);
 
-		const isLazyTranslate = lazyTraslator.process(textNode);
+		const isLazyTranslate = lazyTraslator.handleNode(textNode);
 
 		await awaitTranslation();
 
@@ -84,33 +71,14 @@ describe('base usage', () => {
 		expect(isLazyTranslate).toBe(false);
 	});
 
-	test('not translate nodes with lazyTranslate off', async () => {
-		const lazyTraslator = new LazyTranslator({
-			lazyTranslate: false,
-			isTranslatableNode,
-		});
-		lazyTraslator.setTranslator(translator);
-
-		const isLazyTranslate = lazyTraslator.process(textNode);
-
-		await awaitTranslation();
-
-		expect(translator.mock.calls).toHaveLength(0);
-
-		expect(isLazyTranslate).toBe(false);
-	});
-
 	test('not translate node that not intersect the custom ancestor', async () => {
-		const lazyTraslator = new LazyTranslator(
-			{
-				lazyTranslate: false,
-				isTranslatableNode,
-			},
-			{ root: divElement },
-		);
-		lazyTraslator.setTranslator(translator);
+		const textNode = document.createTextNode('Hello World!');
 
-		const isLazyTranslate = lazyTraslator.process(textNode);
+		const lazyTraslator = new LazyTranslator(isTranslatableNode, translator, {
+			root: divElement,
+		});
+
+		const isLazyTranslate = lazyTraslator.handleNode(textNode);
 
 		await awaitTranslation();
 
