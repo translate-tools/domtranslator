@@ -1,32 +1,31 @@
-import { LazyTranslator } from './LazyTranslator';
 import { NodeStorage } from './NodeStorage';
 import { Translator } from './Translator';
 import { nodeExplore } from './utils/nodeExplore';
 
-export class DomTranslationProcessor {
-	private isTranslatableNode: (node: Node) => boolean;
+type IsTranslatableNode = (node: Node) => boolean;
 
-	private lazyTranslator: LazyTranslator;
+export class DomTranslationProcessor {
+	private isTranslatableNode: IsTranslatableNode;
+
 	private nodeStorage: NodeStorage;
+
 	private translator: Translator;
 
 	constructor(
-		isTranslatableNode: (node: Node) => boolean,
-		lazyTranslator: LazyTranslator,
+		isTranslatableNode: IsTranslatableNode,
 		nodeStorage: NodeStorage,
 		translator: Translator,
 	) {
 		this.isTranslatableNode = isTranslatableNode;
-		this.lazyTranslator = lazyTranslator;
-		this.translator = translator;
 		this.nodeStorage = nodeStorage;
+		this.translator = translator;
 	}
 
 	public isNodeStorageHas(node: Node) {
 		return this.nodeStorage.has(node);
 	}
 
-	public getNodeData(node: Node) {
+	public getOriginalNodeText(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
 		if (nodeData === undefined) return null;
 
@@ -54,28 +53,14 @@ export class DomTranslationProcessor {
 		this.translator.translateNode(node, nodeData);
 	};
 
-	public addNode(node: Node) {
-		// Add all nodes which element contains (text nodes and attributes of current and inner elements)
-		if (node instanceof Element) {
-			this.handleTree(node, (node) => {
-				if (node instanceof Element) return;
+	public processNodesInElement(element: Element, callback: (node: Node) => void) {
+		this.handleTree(element, (node) => {
+			if (node instanceof Element) return;
 
-				if (this.isTranslatableNode(node)) {
-					this.addNode(node);
-				}
-			});
-
-			return;
-		}
-
-		// Handle text nodes and attributes
-
-		if (this.lazyTranslator.process(node)) {
-			return;
-		}
-
-		// Add to storage
-		this.handleNode(node);
+			if (this.isTranslatableNode(node)) {
+				callback(node);
+			}
+		});
 	}
 
 	public deleteNode(node: Node, onlyTarget = false) {
@@ -86,9 +71,6 @@ export class DomTranslationProcessor {
 					this.deleteNode(node, true);
 				});
 			}
-
-			// Unobserve
-			this.lazyTranslator.disable(node);
 		}
 
 		this.nodeStorage.delete(node);
@@ -97,8 +79,10 @@ export class DomTranslationProcessor {
 	// Updates never be lazy
 	public updateNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
+
 		if (nodeData !== undefined) {
 			this.nodeStorage.update(node);
+
 			this.translator.translateNode(node, nodeData);
 		}
 	}

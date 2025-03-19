@@ -42,7 +42,6 @@ export class NodesTranslator {
 			this.config.isTranslatableNode,
 			new NodeStorage(),
 			new Translator(translateCallback),
-			translateCallback,
 		);
 
 		this.lazyTranslator = new LazyTranslator(
@@ -55,7 +54,7 @@ export class NodesTranslator {
 		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
 
 		if (node instanceof Element) {
-			this.domTranslationProcessor.processElementChildNodes(node, (node) => {
+			this.domTranslationProcessor.processNodesInElement(node, (node) => {
 				this.addNode(node);
 			});
 			return;
@@ -124,6 +123,6 @@ export class NodesTranslator {
 	}
 
 	public getNodeData(node: Node) {
-		return this.domTranslationProcessor.getNodeData(node);
+		return this.domTranslationProcessor.getOriginalNodeText(node);
 	}
 }

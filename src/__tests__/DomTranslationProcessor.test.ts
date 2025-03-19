@@ -1,127 +1,126 @@
 import { readFileSync } from 'fs';
 
 import { DomTranslationProcessor } from '../DomTranslationProcessor';
-import { LazyTranslator } from '../LazyTranslator';
 import { NodeStorage } from '../NodeStorage';
 import { Translator } from '../Translator';
 import {
 	awaitTranslation,
-	composeName,
 	containsRegex,
 	fillDocument,
 	TRANSLATION_SYMBOL,
 	translator,
 } from './utils';
 
-require('intersection-observer');
-
-(IntersectionObserver.prototype as any).POLL_INTERVAL = 100;
-
 const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
 describe('base usage', () => {
-	[true, false].forEach((lazyTranslate) => {
-		let domTranslationProcessor: DomTranslationProcessor | null;
+	let domTranslationProcessor: DomTranslationProcessor | null;
 
-		beforeEach(() => {
-			const config = {
-				lazyTranslate: lazyTranslate,
-				isTranslatableNode: (node: Node) => node instanceof Text,
-			};
+	beforeEach(() => {
+		const isTranslatableNode = (node: Node) => node instanceof Text;
 
-			const lazyTranslator = new LazyTranslator(config);
+		domTranslationProcessor = new DomTranslationProcessor(
+			isTranslatableNode,
+			new NodeStorage(),
+			new Translator(translator),
+		);
+	});
 
-			domTranslationProcessor = new DomTranslationProcessor(
-				config.isTranslatableNode,
-				lazyTranslator,
-				new NodeStorage(),
-				new Translator(translator),
+	afterEach(() => {
+		domTranslationProcessor = null;
+	});
+
+	test('transalate whole document', async () => {
+		fillDocument(sample);
+
+		const parsedHTML = document.documentElement.outerHTML;
+
+		// handle all translatable nodes from element
+
+		if (document.documentElement instanceof Element) {
+			domTranslationProcessor?.processNodesInElement(
+				document.documentElement,
+				(node) => {
+					domTranslationProcessor?.handleNode(node);
+				},
 			);
+		}
 
-			lazyTranslator.setTranslator(domTranslationProcessor.handleNode);
-		});
+		// translate document
 
-		afterEach(() => {
-			domTranslationProcessor = null;
-		});
+		domTranslationProcessor?.handleNode(document.documentElement);
+		await awaitTranslation();
+		expect(document.documentElement.outerHTML).toMatchSnapshot();
 
-		const testName = composeName(
-			'translate whole document and disable translation',
-			lazyTranslate && 'with lazyTranslate',
+		// disable translation
+
+		domTranslationProcessor?.deleteNode(document.documentElement);
+		expect(document.documentElement.outerHTML).toBe(parsedHTML);
+	});
+
+	test('getNodeData returns the original text', async () => {
+		const originalText = 'Hello world!';
+
+		const div0 = document.createElement('div');
+		div0.innerHTML = originalText;
+
+		// handle all translatable nodes from element
+
+		if (div0 instanceof Element) {
+			domTranslationProcessor?.processNodesInElement(div0, (node) => {
+				domTranslationProcessor?.handleNode(node);
+			});
+		}
+
+		// translate document
+
+		domTranslationProcessor?.handleNode(div0);
+		await awaitTranslation();
+
+		expect(domTranslationProcessor?.getOriginalNodeText(div0.childNodes[0])).toEqual(
+			expect.objectContaining({
+				originalText: originalText,
+			}),
+		);
+	});
+
+	test('updateNode should be call ones', async () => {
+		const div0 = document.createElement('div');
+		div0.innerHTML = 'Hello world!';
+		document.body.appendChild(div0);
+
+		// Spy on the updateNode method
+		const updateNodesSpy = vi.spyOn(
+			domTranslationProcessor as DomTranslationProcessor,
+			'updateNode',
 		);
 
-		test(testName, async () => {
-			fillDocument(sample);
+		// handle all translatable nodes from element
 
-			const parsedHTML = document.documentElement.outerHTML;
+		if (div0 instanceof Element) {
+			domTranslationProcessor?.processNodesInElement(div0, (node) => {
+				domTranslationProcessor?.handleNode(node);
+			});
+		}
 
-			// translate document
-			domTranslationProcessor?.addNode(document.documentElement);
-			await awaitTranslation();
-			expect(document.documentElement.outerHTML).toMatchSnapshot();
+		domTranslationProcessor?.handleNode(div0);
+		await awaitTranslation();
 
-			// disable translation
-			domTranslationProcessor?.deleteNode(document.documentElement);
-			expect(document.documentElement.outerHTML).toBe(parsedHTML);
-		});
+		// update element
 
-		const getNodeDataTestName = composeName(
-			'getNodeData returns the original text',
-			lazyTranslate && 'with lazyTranslate',
+		const newText = 'Goodbye world!';
+		div0.innerHTML = newText;
+		domTranslationProcessor?.handleNode(div0.childNodes[0]);
+		await awaitTranslation();
+
+		domTranslationProcessor?.updateNode(div0.childNodes[0]);
+		await awaitTranslation();
+
+		expect(div0.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
+
+		expect(updateNodesSpy).toBeCalledTimes(1);
+		expect(updateNodesSpy.mock.calls[0][0]).toMatchObject(
+			containsRegex(TRANSLATION_SYMBOL),
 		);
-
-		test(getNodeDataTestName, async () => {
-			const originalText = 'Hello world!';
-
-			const div0 = document.createElement('div');
-			div0.innerHTML = originalText;
-
-			domTranslationProcessor?.addNode(div0);
-
-			await awaitTranslation();
-
-			expect(domTranslationProcessor?.getNodeData(div0.childNodes[0])).toEqual(
-				expect.objectContaining({
-					originalText: originalText,
-				}),
-			);
-		});
-
-		const updateNodeTestName = composeName(
-			'updateNode should be call ones',
-			lazyTranslate && 'with lazyTranslate',
-		);
-
-		test(updateNodeTestName, async () => {
-			const div0 = document.createElement('div');
-			div0.innerHTML = 'Hello world!';
-			document.body.appendChild(div0);
-
-			// Spy on the updateNode method
-			const updateNodesSpy = vi.spyOn(
-				domTranslationProcessor as DomTranslationProcessor,
-				'updateNode',
-			);
-
-			domTranslationProcessor?.addNode(div0);
-
-			await awaitTranslation();
-
-			// update element
-			const newText = 'Goodbye world!';
-			div0.innerHTML = newText;
-			domTranslationProcessor?.addNode(div0.childNodes[0]);
-			await awaitTranslation();
-
-			domTranslationProcessor?.updateNode(div0.childNodes[0]);
-			await awaitTranslation();
-
-			expect(div0.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
-
-			expect(updateNodesSpy).toBeCalledTimes(1);
-			expect(updateNodesSpy.mock.calls[0][0]).toMatchObject(
-				containsRegex(TRANSLATION_SYMBOL),
-			);
-		});
 	});
 });
