@@ -2,7 +2,6 @@ import { readFileSync } from 'fs';
 
 import { DomTranslationProcessor } from '../DomTranslationProcessor';
 import { NodeStorage } from '../NodeStorage';
-import { Translator } from '../Translator';
 import {
 	awaitTranslation,
 	containsRegex,
@@ -22,7 +21,7 @@ describe('base usage', () => {
 		domTranslationProcessor = new DomTranslationProcessor(
 			isTranslatableNode,
 			new NodeStorage(),
-			new Translator(translator),
+			translator,
 		);
 	});
 

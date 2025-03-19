@@ -1,24 +1,23 @@
 import { NodeStorage } from './NodeStorage';
-import { Translator } from './Translator';
+import { isInViewport } from './utils/isInViewport';
 import { nodeExplore } from './utils/nodeExplore';
+import { TranslatorInterface } from '.';
 
 type IsTranslatableNode = (node: Node) => boolean;
 
 export class DomTranslationProcessor {
 	private isTranslatableNode: IsTranslatableNode;
-
 	private nodeStorage: NodeStorage;
-
-	private translator: Translator;
+	private readonly translateCallback: TranslatorInterface;
 
 	constructor(
 		isTranslatableNode: IsTranslatableNode,
 		nodeStorage: NodeStorage,
-		translator: Translator,
+		translateCallback: TranslatorInterface,
 	) {
 		this.isTranslatableNode = isTranslatableNode;
 		this.nodeStorage = nodeStorage;
-		this.translator = translator;
+		this.translateCallback = translateCallback;
 	}
 
 	public isNodeStorageHas(node: Node) {
@@ -42,7 +41,7 @@ export class DomTranslationProcessor {
 		// Skip not translatable nodes
 		if (!this.isTranslatableNode(node)) return;
 
-		const priority = this.translator.getNodePriority(node);
+		const priority = this.getNodePriority(node);
 
 		this.nodeStorage.add(node, priority);
 
@@ -50,7 +49,7 @@ export class DomTranslationProcessor {
 		if (nodeData === undefined) {
 			throw new Error('Node is not register');
 		}
-		this.translator.translateNode(node, nodeData);
+		this.translateNode(node);
 	};
 
 	public processNodesInElement(element: Element, callback: (node: Node) => void) {
@@ -83,7 +82,7 @@ export class DomTranslationProcessor {
 		if (nodeData !== undefined) {
 			this.nodeStorage.update(node);
 
-			this.translator.translateNode(node, nodeData);
+			this.translateNode(node);
 		}
 	}
 
@@ -108,6 +107,66 @@ export class DomTranslationProcessor {
 					callback(attribute);
 				}
 			}
+		});
+	}
+
+	/**
+	 * Calculate node priority for translate, the bigger number the importance text
+	 */
+	private getNodePriority = (node: Node) => {
+		let score = 0;
+
+		if (node instanceof Attr) {
+			score += 1;
+			const parent = node.ownerElement;
+			if (parent && isInViewport(parent)) {
+				// Attribute of visible element is important than text of non-visible element
+				score += 2;
+			}
+		} else if (node instanceof Text) {
+			score += 2;
+			const parent = node.parentElement;
+			if (parent && isInViewport(parent)) {
+				// Text of visible element is most important node for translation
+				score += 2;
+			}
+		}
+
+		return score;
+	};
+
+	/**
+	 * Call only for new and updated nodes
+	 */
+	private translateNode(node: Node) {
+		const nodeData = this.nodeStorage.get(node);
+		if (nodeData === undefined) {
+			throw new Error('Node is not register');
+		}
+
+		if (node.nodeValue === null) return;
+
+		// Recursion prevention
+		if (nodeData.updateId <= nodeData.translateContext) {
+			return;
+		}
+
+		const nodeId = nodeData.id;
+		const nodeContext = nodeData.updateId;
+		return this.translateCallback(node.nodeValue, nodeData.priority).then((text) => {
+			const actualNodeData = this.nodeStorage.get(node);
+			if (actualNodeData === undefined || nodeId !== actualNodeData.id) {
+				return;
+			}
+			if (nodeContext !== actualNodeData.updateId) {
+				return;
+			}
+
+			// actualNodeData.translateData = text;
+			actualNodeData.originalText = node.nodeValue !== null ? node.nodeValue : '';
+			actualNodeData.translateContext = actualNodeData.updateId + 1;
+			node.nodeValue = text;
+			return node;
 		});
 	}
 }
