@@ -26,6 +26,10 @@ export interface NodeData {
 	priority: number;
 }
 
+/**
+ * The NodeStorage class encapsulates node storage, manages node metadata
+ */
+
 export class NodeStorage {
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
