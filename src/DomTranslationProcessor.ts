@@ -26,13 +26,16 @@ export class DomTranslationProcessor {
 
 	public getOriginalNodeText(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-		if (nodeData === undefined) return null;
 
-		const { originalText } = nodeData;
-		return { originalText };
+		return nodeData ? { originalText: nodeData.originalText } : null;
 	}
 
-	public handleNode = (node: Node) => {
+	public addNode = (node: Node) => {
+		if (node instanceof Element) {
+			this.processNodesInElement(node, this.addNode);
+			return;
+		}
+
 		if (this.isNodeStorageHas(node)) return;
 
 		// Skip empthy text
@@ -45,10 +48,6 @@ export class DomTranslationProcessor {
 
 		this.nodeStorage.add(node, priority);
 
-		const nodeData = this.nodeStorage.get(node);
-		if (nodeData === undefined) {
-			throw new Error('Node is not register');
-		}
 		this.translateNode(node);
 	};
 
@@ -77,13 +76,13 @@ export class DomTranslationProcessor {
 
 	// Updates never be lazy
 	public updateNode(node: Node) {
-		const nodeData = this.nodeStorage.get(node);
-
-		if (nodeData !== undefined) {
-			this.nodeStorage.update(node);
-
-			this.translateNode(node);
+		// update only if the node is in storage
+		if (!this.nodeStorage.get(node)) {
+			return;
 		}
+
+		this.nodeStorage.update(node);
+		this.translateNode(node);
 	}
 
 	/**
@@ -140,7 +139,7 @@ export class DomTranslationProcessor {
 	 */
 	private translateNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-		if (nodeData === undefined) {
+		if (!nodeData) {
 			throw new Error('Node is not register');
 		}
 
@@ -155,7 +154,7 @@ export class DomTranslationProcessor {
 		const nodeContext = nodeData.updateId;
 		return this.translateCallback(node.nodeValue, nodeData.priority).then((text) => {
 			const actualNodeData = this.nodeStorage.get(node);
-			if (actualNodeData === undefined || nodeId !== actualNodeData.id) {
+			if (!actualNodeData || nodeId !== actualNodeData.id) {
 				return;
 			}
 			if (nodeContext !== actualNodeData.updateId) {

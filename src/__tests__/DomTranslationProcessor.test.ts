@@ -13,7 +13,7 @@ import {
 const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
 describe('base usage', () => {
-	let domTranslationProcessor: DomTranslationProcessor | null;
+	let domTranslationProcessor: DomTranslationProcessor;
 
 	beforeEach(() => {
 		const isTranslatableNode = (node: Node) => node instanceof Text;
@@ -25,35 +25,20 @@ describe('base usage', () => {
 		);
 	});
 
-	afterEach(() => {
-		domTranslationProcessor = null;
-	});
-
 	test('transalate whole document', async () => {
 		fillDocument(sample);
 
 		const parsedHTML = document.documentElement.outerHTML;
 
-		// handle all translatable nodes from element
-
-		if (document.documentElement instanceof Element) {
-			domTranslationProcessor?.processNodesInElement(
-				document.documentElement,
-				(node) => {
-					domTranslationProcessor?.handleNode(node);
-				},
-			);
-		}
-
 		// translate document
 
-		domTranslationProcessor?.handleNode(document.documentElement);
+		domTranslationProcessor.addNode(document.documentElement);
 		await awaitTranslation();
 		expect(document.documentElement.outerHTML).toMatchSnapshot();
 
 		// disable translation
 
-		domTranslationProcessor?.deleteNode(document.documentElement);
+		domTranslationProcessor.deleteNode(document.documentElement);
 		expect(document.documentElement.outerHTML).toBe(parsedHTML);
 	});
 
@@ -63,20 +48,12 @@ describe('base usage', () => {
 		const div0 = document.createElement('div');
 		div0.innerHTML = originalText;
 
-		// handle all translatable nodes from element
-
-		if (div0 instanceof Element) {
-			domTranslationProcessor?.processNodesInElement(div0, (node) => {
-				domTranslationProcessor?.handleNode(node);
-			});
-		}
-
 		// translate document
+		domTranslationProcessor.addNode(div0);
 
-		domTranslationProcessor?.handleNode(div0);
 		await awaitTranslation();
 
-		expect(domTranslationProcessor?.getOriginalNodeText(div0.childNodes[0])).toEqual(
+		expect(domTranslationProcessor.getOriginalNodeText(div0.childNodes[0])).toEqual(
 			expect.objectContaining({
 				originalText: originalText,
 			}),
@@ -94,25 +71,17 @@ describe('base usage', () => {
 			'updateNode',
 		);
 
-		// handle all translatable nodes from element
-
-		if (div0 instanceof Element) {
-			domTranslationProcessor?.processNodesInElement(div0, (node) => {
-				domTranslationProcessor?.handleNode(node);
-			});
-		}
-
-		domTranslationProcessor?.handleNode(div0);
+		domTranslationProcessor.addNode(div0);
 		await awaitTranslation();
 
 		// update element
 
 		const newText = 'Goodbye world!';
 		div0.innerHTML = newText;
-		domTranslationProcessor?.handleNode(div0.childNodes[0]);
+		domTranslationProcessor.addNode(div0.childNodes[0]);
 		await awaitTranslation();
 
-		domTranslationProcessor?.updateNode(div0.childNodes[0]);
+		domTranslationProcessor.updateNode(div0.childNodes[0]);
 		await awaitTranslation();
 
 		expect(div0.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));

@@ -45,7 +45,7 @@ export class NodesTranslator {
 
 		this.lazyTranslator = new LazyTranslator(
 			this.config.isTranslatableNode,
-			this.domTranslationProcessor.handleNode,
+			this.domTranslationProcessor.addNode,
 		);
 	}
 
@@ -65,7 +65,7 @@ export class NodesTranslator {
 			return;
 		}
 
-		this.domTranslationProcessor.handleNode(node);
+		this.domTranslationProcessor.addNode(node);
 	}
 
 	private deleteNode(node: Node) {
