@@ -1,9 +1,8 @@
 import { NodeStorage } from './NodeStorage';
+import { IsTranslatableNode } from './types';
 import { isInViewport } from './utils/isInViewport';
 import { nodeExplore } from './utils/nodeExplore';
 import { TranslatorInterface } from '.';
-
-type IsTranslatableNode = (node: Node) => boolean;
 
 export class DomTranslationProcessor {
 	private isTranslatableNode: IsTranslatableNode;
