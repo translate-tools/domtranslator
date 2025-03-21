@@ -1,4 +1,4 @@
-import { IsTranslatableNode } from './types';
+import { TranslatableNodePredicate } from './types';
 
 type Translator = (node: Node) => void;
 
@@ -21,14 +21,14 @@ function isIntersectableNode(node: Element) {
  */
 export class LazyTranslator {
 	private translator?: Translator;
-	private readonly isTranslatableNode: IsTranslatableNode;
+	private readonly isTranslatableNode: TranslatableNodePredicate;
 
 	private readonly itersectStorage = new WeakSet<Node>();
 
 	private itersectObserver: IntersectionObserver;
 
 	constructor(
-		isTranslatableNode: IsTranslatableNode,
+		isTranslatableNode: TranslatableNodePredicate,
 		transaltor: Translator,
 		intersectionConfig: IntersectionConfig = {
 			root: null,

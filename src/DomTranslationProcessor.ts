@@ -1,16 +1,16 @@
 import { NodeStorage } from './NodeStorage';
-import { IsTranslatableNode } from './types';
+import { TranslatableNodePredicate } from './types';
 import { isInViewport } from './utils/isInViewport';
 import { nodeExplore } from './utils/nodeExplore';
 import { TranslatorInterface } from '.';
 
 export class DomTranslationProcessor {
-	private isTranslatableNode: IsTranslatableNode;
+	private isTranslatableNode: TranslatableNodePredicate;
 	private nodeStorage: NodeStorage;
 	private readonly translateCallback: TranslatorInterface;
 
 	constructor(
-		isTranslatableNode: IsTranslatableNode,
+		isTranslatableNode: TranslatableNodePredicate,
 		nodeStorage: NodeStorage,
 		translateCallback: TranslatorInterface,
 	) {

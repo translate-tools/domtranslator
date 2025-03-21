@@ -1,1 +1,1 @@
-export type IsTranslatableNode = (node: Node) => boolean;
+export type TranslatableNodePredicate = (node: Node) => boolean;
