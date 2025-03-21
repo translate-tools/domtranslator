@@ -13,9 +13,9 @@ describe('NodeStorage', () => {
 		div1 = document.createElement('div');
 	});
 
-	test('return false and undefined for a node that is not added', () => {
+	test('return correct value for a node that is not added', () => {
 		expect(nodeStorage.has(div)).toBe(false);
-		expect(nodeStorage.get(div)).toBeUndefined();
+		expect(nodeStorage.get(div)).toBeNull();
 	});
 
 	test('add a node to storage', () => {
@@ -70,7 +70,7 @@ describe('NodeStorage', () => {
 		nodeStorage.add(div, 1);
 		nodeStorage.delete(div);
 
-		expect(nodeStorage.get(div)).toBeUndefined();
+		expect(nodeStorage.get(div)).toBeNull();
 	});
 
 	test('not throw if deleting a non-existent node', () => {

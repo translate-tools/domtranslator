@@ -39,7 +39,7 @@ export class NodeStorage {
 	}
 
 	public get(node: Node) {
-		return this.nodeStorage.get(node);
+		return this.nodeStorage.get(node) ?? null;
 	}
 
 	public add(node: Node, priority: number) {
