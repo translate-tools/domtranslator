@@ -61,7 +61,7 @@ export class NodesTranslator {
 
 		// if an element can't be translated later, translate it immediately
 
-		if (this.config.lazyTranslate && this.lazyTranslator.handleNode(node)) {
+		if (this.config.lazyTranslate && this.lazyTranslator.isLazilyTranslatable(node)) {
 			return;
 		}
 
@@ -72,7 +72,7 @@ export class NodesTranslator {
 		this.domTranslationProcessor.deleteNode(node);
 
 		if (node instanceof Element) {
-			this.lazyTranslator.stopHandling(node);
+			this.lazyTranslator.disableLazyTranslation(node);
 		}
 	}
 

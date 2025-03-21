@@ -25,7 +25,7 @@ describe('base usage', () => {
 	test('translate element at intersection', async () => {
 		const lazyTraslator = new LazyTranslator(isTranslatableNode, translator);
 
-		const isLazyTranslate = lazyTraslator.handleNode(textNode);
+		const isLazyTranslate = lazyTraslator.isLazilyTranslatable(textNode);
 
 		await awaitTranslation();
 
@@ -43,7 +43,7 @@ describe('base usage', () => {
 			root: divElement,
 		});
 
-		const isLazyTranslate = lazyTraslator.handleNode(textNode);
+		const isLazyTranslate = lazyTraslator.isLazilyTranslatable(textNode);
 
 		await awaitTranslation();
 
@@ -61,7 +61,7 @@ describe('base usage', () => {
 
 		const lazyTraslator = new LazyTranslator(isTranslatableNode, translator);
 
-		const isLazyTranslate = lazyTraslator.handleNode(textNode);
+		const isLazyTranslate = lazyTraslator.isLazilyTranslatable(textNode);
 
 		await awaitTranslation();
 
@@ -78,7 +78,7 @@ describe('base usage', () => {
 			root: divElement,
 		});
 
-		const isLazyTranslate = lazyTraslator.handleNode(textNode);
+		const isLazyTranslate = lazyTraslator.isLazilyTranslatable(textNode);
 
 		await awaitTranslation();
 

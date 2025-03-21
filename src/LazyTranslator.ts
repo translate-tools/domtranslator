@@ -72,11 +72,7 @@ export class LazyTranslator {
 		this.itersectObserver.observe(node);
 	}
 
-	/**
-	 * 	The process method determines whether the node can be processed later; otherwise, processes it immediately
-	 */
-
-	public handleNode(node: Node) {
+	public isLazilyTranslatable(node: Node) {
 		// Lazy translate when own element intersect viewport
 		// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
 
@@ -97,7 +93,7 @@ export class LazyTranslator {
 		return false;
 	}
 
-	public stopHandling(node: Element) {
+	public disableLazyTranslation(node: Element) {
 		this.itersectStorage.delete(node);
 
 		this.itersectObserver.unobserve(node);
