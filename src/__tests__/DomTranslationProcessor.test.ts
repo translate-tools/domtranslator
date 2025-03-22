@@ -16,6 +16,16 @@ describe('base usage', () => {
 	let domTranslationProcessor: DomTranslationProcessor;
 	let div: Element;
 
+	const spy = vi.fn(async (node: Node) => {
+		if (node.textContent) {
+			node.textContent = await translator(node.textContent);
+		}
+	});
+
+	afterEach(() => {
+		spy.mockClear();
+	});
+
 	beforeEach(() => {
 		div = document.createElement('div');
 		div.innerHTML = 'Hello world!';
@@ -69,22 +79,18 @@ describe('base usage', () => {
 		expect(div.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 	});
 
-	test('process the element tree', () => {
+	test('process the element tree', async () => {
 		const div1 = document.createElement('div');
 		div1.innerHTML = 'Hello world too!';
 		div.append(div1);
 
-		const spy = vi.fn((node: Node) => {
-			if (node.textContent) {
-				translator(node.textContent);
-			}
-		});
-
 		domTranslationProcessor.processNodesInElement(div, spy);
+		await awaitTranslation();
 
 		expect(spy).toHaveBeenCalledTimes(2);
 		expect(spy).toHaveBeenCalledWith(div1.childNodes[0]);
 		expect(spy).not.toHaveBeenCalledWith(div1);
+		expect(div1.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	});
 
 	test('process the element tree with shadow dom', async () => {
@@ -95,13 +101,12 @@ describe('base usage', () => {
 		shadowElement.setAttribute('data-test', 'value');
 		shadowRoot.appendChild(shadowElement);
 
-		const spy = vi.fn();
-
 		domTranslationProcessor.processNodesInElement(container, spy);
 		await awaitTranslation();
 
 		expect(spy).toHaveBeenCalledWith(shadowElement.firstChild);
 		expect(spy).toBeCalledTimes(1);
+		expect(shadowElement.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	});
 
 	test('disable translation only for the target node', async () => {
@@ -109,12 +114,26 @@ describe('base usage', () => {
 		div1.innerHTML = 'Hello world too!';
 		div.append(div1);
 
+		// delete the target element and its nested items
 		domTranslationProcessor.addNode(div);
 		await awaitTranslation();
 
-		domTranslationProcessor.deleteNode(div, true);
+		domTranslationProcessor.deleteNode(div);
 
-		// child node has translated text
+		// child node and target has not translated text
+		expect(div1.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+		expect(div.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+
+		// delete translation only for the target element
+		domTranslationProcessor.addNode(div);
+		await awaitTranslation();
+
+		domTranslationProcessor.deleteNode(div.childNodes[0], true);
+
+		expect(div.childNodes[0].textContent).not.toMatch(
+			containsRegex(TRANSLATION_SYMBOL),
+		);
+		// child element still has translation
 		expect(div1.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	});
 
