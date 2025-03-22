@@ -20,7 +20,7 @@ function isIntersectableNode(node: Element) {
  * by default, the top-level document's viewport.
  */
 export class LazyTranslator {
-	private translator?: Translator;
+	private translator: Translator;
 	private readonly isTranslatableNode: TranslatableNodePredicate;
 
 	private readonly itersectStorage = new WeakSet<Node>();
@@ -61,8 +61,6 @@ export class LazyTranslator {
 			if (node instanceof Element || !this.isTranslatableNode(node)) {
 				return;
 			}
-
-			if (!this.translator) throw new Error('expect node handler');
 			this.translator(node);
 		});
 	}
@@ -70,7 +68,6 @@ export class LazyTranslator {
 	private handleElementByIntersectViewport(node: Element) {
 		if (this.itersectStorage.has(node)) return;
 		this.itersectStorage.add(node);
-
 		this.itersectObserver.observe(node);
 	}
 
