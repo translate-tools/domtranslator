@@ -1,8 +1,7 @@
 import { NodeStorage } from './NodeStorage';
-import { TranslatableNodePredicate } from './types';
 import { isInViewport } from './utils/isInViewport';
 import { nodeExplore } from './utils/nodeExplore';
-import { TranslatorInterface } from '.';
+import { TranslatableNodePredicate, TranslatorInterface } from '.';
 
 /**
  * Class DomTranslationProcessor responsible for translating DOM nodes

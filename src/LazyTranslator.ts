@@ -1,4 +1,4 @@
-import { TranslatableNodePredicate } from './types';
+import { TranslatableNodePredicate } from '.';
 
 type Translator = (node: Node) => void;
 

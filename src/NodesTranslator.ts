@@ -4,13 +4,15 @@ import { XMutationObserver } from './lib/XMutationObserver';
 import { NodeStorage } from './NodeStorage';
 import { configureTranslatableNodePredicate } from './utils/nodes';
 
+export type TranslatableNodePredicate = (node: Node) => boolean;
+
 export interface InnerConfig {
-	isTranslatableNode: (node: Node) => boolean;
+	isTranslatableNode: TranslatableNodePredicate;
 	lazyTranslate: boolean;
 }
 
 export interface Config {
-	isTranslatableNode?: (node: Node) => boolean;
+	isTranslatableNode?: TranslatableNodePredicate;
 	lazyTranslate?: boolean;
 }
 
