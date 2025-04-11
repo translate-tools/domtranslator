@@ -4,7 +4,7 @@ import { nodeExplore } from './utils/nodeExplore';
 import { TranslatableNodePredicate, TranslatorInterface } from '.';
 
 /**
- * Class DomTranslationProcessor responsible for translating DOM nodes
+ * Class DomNodesTranslator responsible for translating DOM nodes
  */
 export class DomNodesTranslator {
 	constructor(

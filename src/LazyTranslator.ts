@@ -16,8 +16,7 @@ function isIntersectingNode(node: Element) {
 }
 
 /**
- * The class provides a way to translate only those elements that intersect with an ancestor element,
- * by default, the top-level document's viewport.
+ * Translates nodes only if they intersect the viewport
  */
 export class LazyTranslator {
 	private readonly intersectStorage = new WeakSet<Node>();

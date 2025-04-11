@@ -27,7 +27,7 @@ export interface NodeData {
 }
 
 /**
- * The NodeStorage class encapsulates node storage, manages node metadata
+ * The NodeStorage class store nodes data
  */
 
 export class NodeStorage {
