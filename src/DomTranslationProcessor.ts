@@ -4,20 +4,15 @@ import { isInViewport } from './utils/isInViewport';
 import { nodeExplore } from './utils/nodeExplore';
 import { TranslatorInterface } from '.';
 
-export class DomTranslationProcessor {
-	private isTranslatableNode: TranslatableNodePredicate;
-	private nodeStorage: NodeStorage;
-	private readonly translateCallback: TranslatorInterface;
-
+/**
+ * Class DomTranslationProcessor responsible for translating DOM nodes
+ */
+export class DomNodesTranslator {
 	constructor(
-		isTranslatableNode: TranslatableNodePredicate,
-		nodeStorage: NodeStorage,
-		translateCallback: TranslatorInterface,
-	) {
-		this.isTranslatableNode = isTranslatableNode;
-		this.nodeStorage = nodeStorage;
-		this.translateCallback = translateCallback;
-	}
+		private isTranslatableNode: TranslatableNodePredicate,
+		private nodeStorage: NodeStorage,
+		private readonly translateCallback: TranslatorInterface,
+	) {}
 
 	public isNodeStorageHas(node: Node) {
 		return this.nodeStorage.has(node);
@@ -30,44 +25,25 @@ export class DomTranslationProcessor {
 	}
 
 	public addNode = (node: Node) => {
-		if (node instanceof Element) {
-			this.processNodesInElement(node, this.addNode);
-			return;
-		}
-
 		if (this.isNodeStorageHas(node)) return;
 
-		// Skip empthy text
+		// Skip empty text
 		if (node.nodeValue === null || node.nodeValue.trim().length == 0) return;
 
 		// Skip not translatable nodes
 		if (!this.isTranslatableNode(node)) return;
 
-		const priority = this.getNodePriority(node);
-
-		this.nodeStorage.add(node, priority);
+		this.nodeStorage.add(node, this.getNodePriority(node));
 
 		this.translateNode(node);
 	};
 
-	public processNodesInElement(element: Element, callback: (node: Node) => void) {
-		this.handleTree(element, (node) => {
-			if (node instanceof Element) return;
-
-			if (this.isTranslatableNode(node)) {
-				callback(node);
-			}
-		});
-	}
-
 	public deleteNode(node: Node, onlyTarget = false) {
-		if (node instanceof Element) {
+		if (node instanceof Element && !onlyTarget) {
 			// Delete all attributes and inner nodes
-			if (!onlyTarget) {
-				this.handleTree(node, (node) => {
-					this.deleteNode(node, true);
-				});
-			}
+			this.handleTree(node, (node) => {
+				this.deleteNode(node, true);
+			});
 		}
 
 		this.nodeStorage.delete(node);
@@ -76,12 +52,23 @@ export class DomTranslationProcessor {
 	// Updates never be lazy
 	public updateNode(node: Node) {
 		// update only if the node is in storage
-		if (!this.nodeStorage.get(node)) {
-			return;
-		}
+		if (!this.nodeStorage.get(node)) return;
 
 		this.nodeStorage.update(node);
 		this.translateNode(node);
+	}
+
+	/**
+	 * processNodesInElement execute callback only for translatable nodes, recursively traversing the element
+	 */
+	public processNodesInElement(element: Element, callback: (node: Node) => void) {
+		this.handleTree(element, (node) => {
+			if (node instanceof Element) return;
+
+			if (this.isTranslatableNode(node)) {
+				callback(node);
+			}
+		});
 	}
 
 	/**

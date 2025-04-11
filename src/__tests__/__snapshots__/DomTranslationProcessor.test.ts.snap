@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`base usage > transalate whole document 1`] = `
+exports[`base usage > translate whole document 1`] = `
 "<html lang="en"><head>
 	<meta charset="UTF-8">
 	<title>***TRANSLATED***Demo page with challenges for DOM translator</title>
