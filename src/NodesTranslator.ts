@@ -1,4 +1,4 @@
-import { DomNodesTranslator } from './DomTranslationProcessor';
+import { DomNodesTranslator } from './DomNodesTranslator';
 import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { NodeStorage } from './NodeStorage';

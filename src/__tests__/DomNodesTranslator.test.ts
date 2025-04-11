@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 
-import { DomNodesTranslator } from '../DomTranslationProcessor';
+import { DomNodesTranslator } from '../DomNodesTranslator';
 import { NodeStorage } from '../NodeStorage';
 import {
 	awaitTranslation,
@@ -13,7 +13,7 @@ import {
 const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
 describe('base usage', () => {
-	let domTranslationProcessor: DomNodesTranslator;
+	let domNodesTranslator: DomNodesTranslator;
 	let div: Element;
 
 	const spy = vi.fn(async (node: Node) => {
@@ -32,7 +32,7 @@ describe('base usage', () => {
 
 		const isTranslatableNode = (node: Node) => node instanceof Text;
 
-		domTranslationProcessor = new DomNodesTranslator(
+		domNodesTranslator = new DomNodesTranslator(
 			isTranslatableNode,
 			new NodeStorage(),
 			translator,
@@ -45,12 +45,9 @@ describe('base usage', () => {
 
 		// translate document
 		if (document.documentElement instanceof Element) {
-			domTranslationProcessor.processNodesInElement(
-				document.documentElement,
-				(node) => {
-					domTranslationProcessor.addNode(node);
-				},
-			);
+			domNodesTranslator.processNodesInElement(document.documentElement, (node) => {
+				domNodesTranslator.addNode(node);
+			});
 		}
 
 		await awaitTranslation();
@@ -58,7 +55,7 @@ describe('base usage', () => {
 
 		// disable translation
 
-		domTranslationProcessor.deleteNode(document.documentElement);
+		domNodesTranslator.deleteNode(document.documentElement);
 		expect(document.documentElement.outerHTML).toBe(parsedHTML);
 	});
 
@@ -66,11 +63,11 @@ describe('base usage', () => {
 		const originalText = 'Hello world!';
 
 		// translate
-		domTranslationProcessor.addNode(div.childNodes[0]);
+		domNodesTranslator.addNode(div.childNodes[0]);
 
 		await awaitTranslation();
 
-		expect(domTranslationProcessor.getOriginalNodeText(div.childNodes[0])).toEqual(
+		expect(domNodesTranslator.getOriginalNodeText(div.childNodes[0])).toEqual(
 			expect.objectContaining({
 				originalText: originalText,
 			}),
@@ -81,7 +78,7 @@ describe('base usage', () => {
 		div.innerHTML = ' ';
 		// translate document
 
-		domTranslationProcessor.addNode(div.childNodes[0]);
+		domNodesTranslator.addNode(div.childNodes[0]);
 		await awaitTranslation();
 
 		expect(div.childNodes[0].textContent).not.toMatch(
@@ -94,7 +91,7 @@ describe('base usage', () => {
 		div1.innerHTML = 'Hello world too!';
 		div.append(div1);
 
-		domTranslationProcessor.processNodesInElement(div, spy);
+		domNodesTranslator.processNodesInElement(div, spy);
 		await awaitTranslation();
 
 		expect(spy).toHaveBeenCalledTimes(2);
@@ -111,7 +108,7 @@ describe('base usage', () => {
 		shadowElement.setAttribute('data-test', 'value');
 		shadowRoot.appendChild(shadowElement);
 
-		domTranslationProcessor.processNodesInElement(container, spy);
+		domNodesTranslator.processNodesInElement(container, spy);
 		await awaitTranslation();
 
 		expect(spy).toHaveBeenCalledWith(shadowElement.firstChild);
@@ -122,8 +119,8 @@ describe('base usage', () => {
 	test('disable translation only for the target node', async () => {
 		const handelTree = (node: Node) => {
 			if (node instanceof Element) {
-				domTranslationProcessor.processNodesInElement(node, (node) => {
-					domTranslationProcessor.addNode(node);
+				domNodesTranslator.processNodesInElement(node, (node) => {
+					domNodesTranslator.addNode(node);
 				});
 			}
 		};
@@ -135,7 +132,7 @@ describe('base usage', () => {
 		handelTree(div1);
 		await awaitTranslation();
 
-		domTranslationProcessor.deleteNode(div);
+		domNodesTranslator.deleteNode(div);
 
 		// child node and target has not translated text
 		expect(div1.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
@@ -145,7 +142,7 @@ describe('base usage', () => {
 		handelTree(div);
 		await awaitTranslation();
 
-		domTranslationProcessor.deleteNode(div.childNodes[0], true);
+		domNodesTranslator.deleteNode(div.childNodes[0], true);
 
 		expect(div.childNodes[0].textContent).not.toMatch(
 			containsRegex(TRANSLATION_SYMBOL),
@@ -155,14 +152,14 @@ describe('base usage', () => {
 	});
 
 	test('isNodeStorageHas returns correct result', async () => {
-		domTranslationProcessor.addNode(div.childNodes[0]);
+		domNodesTranslator.addNode(div.childNodes[0]);
 		await awaitTranslation();
 
-		expect(domTranslationProcessor.isNodeStorageHas(div.childNodes[0])).toBe(true);
+		expect(domNodesTranslator.isNodeStorageHas(div.childNodes[0])).toBe(true);
 
 		//delete element
-		domTranslationProcessor.deleteNode(div.childNodes[0]);
-		expect(domTranslationProcessor.isNodeStorageHas(div.childNodes[0])).toBe(false);
+		domNodesTranslator.deleteNode(div.childNodes[0]);
+		expect(domNodesTranslator.isNodeStorageHas(div.childNodes[0])).toBe(false);
 	});
 
 	test('updateNode should be call ones', async () => {
@@ -170,14 +167,14 @@ describe('base usage', () => {
 
 		// spy on the updateNode method
 		const updateNodesSpy = vi.spyOn(
-			domTranslationProcessor as DomNodesTranslator,
+			domNodesTranslator as DomNodesTranslator,
 			'updateNode',
 		);
 
 		// translate element
 		if (div instanceof Element) {
-			domTranslationProcessor.processNodesInElement(div, (node) => {
-				domTranslationProcessor.addNode(node);
+			domNodesTranslator.processNodesInElement(div, (node) => {
+				domNodesTranslator.addNode(node);
 			});
 		}
 		await awaitTranslation();
@@ -186,10 +183,10 @@ describe('base usage', () => {
 
 		const newText = 'Goodbye world!';
 		div.innerHTML = newText;
-		domTranslationProcessor.addNode(div.childNodes[0]);
+		domNodesTranslator.addNode(div.childNodes[0]);
 		await awaitTranslation();
 
-		domTranslationProcessor.updateNode(div.childNodes[0]);
+		domNodesTranslator.updateNode(div.childNodes[0]);
 		await awaitTranslation();
 
 		expect(div.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
