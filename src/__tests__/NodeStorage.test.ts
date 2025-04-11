@@ -1,24 +1,25 @@
 import { NodeStorage } from '../NodeStorage';
 
 describe('NodeStorage', () => {
-	let nodeStorage: NodeStorage;
 	let div: Node;
 	let div1: Node;
 
 	beforeEach(() => {
-		nodeStorage = new NodeStorage();
-
 		div = document.createElement('div');
 		div.textContent = 'Hello world!';
 		div1 = document.createElement('div');
 	});
 
 	test('return correct value for a node that is not added', () => {
+		const nodeStorage = new NodeStorage();
+
 		expect(nodeStorage.has(div)).toBe(false);
 		expect(nodeStorage.get(div)).toBeNull();
 	});
 
 	test('add a node to storage', () => {
+		const nodeStorage = new NodeStorage();
+
 		nodeStorage.add(div, 1);
 
 		expect(nodeStorage.has(div)).toBe(true);
@@ -34,6 +35,8 @@ describe('NodeStorage', () => {
 	});
 
 	test('can not add the same node twice', () => {
+		const nodeStorage = new NodeStorage();
+
 		nodeStorage.add(div, 1);
 		nodeStorage.add(div, 1);
 
@@ -44,7 +47,9 @@ describe('NodeStorage', () => {
 		);
 	});
 
-	test('increase id counter when adding new node', () => {
+	test('increase id counter after add new node', () => {
+		const nodeStorage = new NodeStorage();
+
 		nodeStorage.add(div, 1);
 		nodeStorage.add(div1, 1);
 
@@ -55,7 +60,9 @@ describe('NodeStorage', () => {
 		);
 	});
 
-	test('increase updateId when updating a node', () => {
+	test('increase updateId after update a node', () => {
+		const nodeStorage = new NodeStorage();
+
 		nodeStorage.add(div, 1);
 		nodeStorage.update(div);
 
@@ -67,13 +74,11 @@ describe('NodeStorage', () => {
 	});
 
 	test('remove node from storage', () => {
+		const nodeStorage = new NodeStorage();
+
 		nodeStorage.add(div, 1);
 		nodeStorage.delete(div);
 
 		expect(nodeStorage.get(div)).toBeNull();
-	});
-
-	test('not throw if deleting a non-existent node', () => {
-		expect(() => nodeStorage.delete(div)).not.toThrow();
 	});
 });

@@ -23,9 +23,9 @@ describe('base usage', () => {
 	});
 
 	test('translate element at intersection', async () => {
-		const lazyTraslator = new LazyTranslator(isTranslatableNode, translator);
+		const lazyTranslator = new LazyTranslator(isTranslatableNode, translator);
 
-		const isLazyTranslate = lazyTraslator.isLazilyTranslatable(textNode);
+		const isLazyTranslate = lazyTranslator.isLazilyTranslatable(textNode);
 
 		await awaitTranslation();
 
@@ -39,11 +39,11 @@ describe('base usage', () => {
 	});
 
 	test('translate node that intersect the custom ancestor', async () => {
-		const lazyTraslator = new LazyTranslator(isTranslatableNode, translator, {
+		const lazyTranslator = new LazyTranslator(isTranslatableNode, translator, {
 			root: divElement,
 		});
 
-		const isLazyTranslate = lazyTraslator.isLazilyTranslatable(textNode);
+		const isLazyTranslate = lazyTranslator.isLazilyTranslatable(textNode);
 
 		await awaitTranslation();
 
@@ -57,11 +57,11 @@ describe('base usage', () => {
 	});
 
 	test('not translate nodes that not intersected', async () => {
+		const lazyTranslator = new LazyTranslator(isTranslatableNode, translator);
+
 		const textNode = document.createTextNode('Hello World!');
 
-		const lazyTraslator = new LazyTranslator(isTranslatableNode, translator);
-
-		const isLazyTranslate = lazyTraslator.isLazilyTranslatable(textNode);
+		const isLazyTranslate = lazyTranslator.isLazilyTranslatable(textNode);
 
 		await awaitTranslation();
 
@@ -72,13 +72,13 @@ describe('base usage', () => {
 	});
 
 	test('not translate node that not intersect the custom ancestor', async () => {
-		const textNode = document.createTextNode('Hello World!');
-
-		const lazyTraslator = new LazyTranslator(isTranslatableNode, translator, {
+		const lazyTranslator = new LazyTranslator(isTranslatableNode, translator, {
 			root: divElement,
 		});
 
-		const isLazyTranslate = lazyTraslator.isLazilyTranslatable(textNode);
+		const textNode = document.createTextNode('Hello World!');
+
+		const isLazyTranslate = lazyTranslator.isLazilyTranslatable(textNode);
 
 		await awaitTranslation();
 
