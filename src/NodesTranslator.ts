@@ -1,4 +1,4 @@
-import { DomTranslationProcessor } from './DomTranslationProcessor';
+import { DomNodesTranslator } from './DomTranslationProcessor';
 import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { NodeStorage } from './NodeStorage';
@@ -25,8 +25,10 @@ export type TranslatorInterface = (text: string, priority: number) => Promise<st
  */
 export class NodesTranslator {
 	private readonly config: InnerConfig;
-	private domTranslationProcessor: DomTranslationProcessor;
+	private domTranslationProcessor: DomNodesTranslator;
 	private lazyTranslator: LazyTranslator;
+
+	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 
 	constructor(translateCallback: TranslatorInterface, config?: Config) {
 		this.config = {
@@ -37,7 +39,7 @@ export class NodesTranslator {
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
 
-		this.domTranslationProcessor = new DomTranslationProcessor(
+		this.domTranslationProcessor = new DomNodesTranslator(
 			this.config.isTranslatableNode,
 			new NodeStorage(),
 			translateCallback,
@@ -49,40 +51,12 @@ export class NodesTranslator {
 		);
 	}
 
-	private addNode(node: Node) {
-		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
-
-		if (node instanceof Element) {
-			this.domTranslationProcessor.processNodesInElement(node, (node) => {
-				this.addNode(node);
-			});
-			return;
-		}
-
-		// if an element can't be translated later, translate it immediately
-
-		if (this.config.lazyTranslate && this.lazyTranslator.isLazilyTranslatable(node)) {
-			return;
-		}
-
-		this.domTranslationProcessor.addNode(node);
-	}
-
-	private deleteNode(node: Node) {
-		this.domTranslationProcessor.deleteNode(node);
-
-		if (node instanceof Element) {
-			this.lazyTranslator.disableLazyTranslation(node);
-		}
-	}
-
-	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 	public observe(node: Element) {
 		if (this.observedNodesStorage.has(node)) {
 			throw new Error('Node already under observe');
 		}
 
-		// Observe node and childs changes
+		// Observe node and children changes
 		const observer = new XMutationObserver();
 		this.observedNodesStorage.set(node, observer);
 
@@ -123,5 +97,33 @@ export class NodesTranslator {
 
 	public getNodeData(node: Node) {
 		return this.domTranslationProcessor.getOriginalNodeText(node);
+	}
+
+	private addNode(node: Node) {
+		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
+
+		if (node instanceof Element) {
+			this.domTranslationProcessor.processNodesInElement(node, (node) => {
+				this.addNode(node);
+			});
+			return;
+		}
+
+		// if an element can't be translated later, translate it immediately
+
+		if (this.config.lazyTranslate && this.lazyTranslator.isLazilyTranslatable(node)) {
+			return;
+		}
+
+		// translate
+		this.domTranslationProcessor.addNode(node);
+	}
+
+	private deleteNode(node: Node) {
+		this.domTranslationProcessor.deleteNode(node);
+
+		if (node instanceof Element) {
+			this.lazyTranslator.disableLazyTranslation(node);
+		}
 	}
 }
