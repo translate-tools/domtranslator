@@ -2,6 +2,7 @@ import { DomNodesTranslator, handleTree } from './DomNodesTranslator';
 import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { NodeStorage } from './NodeStorage';
+import { isIntersectingNode } from './utils/isIntersectingNode';
 import { configureTranslatableNodePredicate } from './utils/nodes';
 
 export type TranslatableNodePredicate = (node: Node) => boolean;
@@ -47,10 +48,10 @@ export class NodesTranslator {
 			translateCallback,
 		);
 
-		this.lazyTranslator = new LazyTranslator(
-			this.config.isTranslatableNode,
-			this.domTranslationProcessor.addNode,
-		);
+		this.lazyTranslator = new LazyTranslator({
+			isTranslatableNode: this.config.isTranslatableNode,
+			translator: this.domTranslationProcessor.addNode,
+		});
 	}
 
 	public observe(node: Element) {
@@ -103,7 +104,6 @@ export class NodesTranslator {
 
 	private addNode(node: Node) {
 		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
-
 		if (node instanceof Element) {
 			handleTree(node, (node) => {
 				if (node instanceof Element) return;
@@ -115,13 +115,24 @@ export class NodesTranslator {
 			return;
 		}
 
-		// if an element can't be translated later, translate it immediately
+		// Ignore lazy translation for not introspectable nodes and translate it immediately
+		if (this.config.lazyTranslate) {
+			// Lazy translate when own element intersect viewport
+			// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
+			const isAttachedToDOM = node.getRootNode() !== node;
+			const observableNode =
+				node instanceof Attr ? node.ownerElement : node.parentElement;
 
-		if (this.config.lazyTranslate && this.lazyTranslator.isLazilyTranslatable(node)) {
-			return;
+			if (
+				isAttachedToDOM &&
+				observableNode !== null &&
+				isIntersectingNode(observableNode)
+			) {
+				this.lazyTranslator.startObserving(observableNode);
+				return;
+			}
 		}
 
-		// translate
 		this.domTranslationProcessor.addNode(node);
 	}
 
@@ -129,7 +140,7 @@ export class NodesTranslator {
 		this.domTranslationProcessor.deleteNode(node);
 
 		if (node instanceof Element) {
-			this.lazyTranslator.disableLazyTranslation(node);
+			this.lazyTranslator.stopObserving(node);
 		}
 	}
 }

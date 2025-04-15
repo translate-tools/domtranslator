@@ -23,10 +23,9 @@ describe('base usage', () => {
 	});
 
 	test('translate element at intersection', async () => {
-		const lazyTranslator = new LazyTranslator(isTranslatableNode, translator);
+		const lazyTranslator = new LazyTranslator({ isTranslatableNode, translator });
 
-		const isLazyTranslate = lazyTranslator.isLazilyTranslatable(textNode);
-
+		lazyTranslator.startObserving(divElement);
 		await awaitTranslation();
 
 		// The mock function was called ones
@@ -34,17 +33,18 @@ describe('base usage', () => {
 		expect(translator).toHaveBeenCalledWith(textNode);
 
 		// the node translate lazy
-		expect(isLazyTranslate).toBe(true);
 		expect(textNode.textContent).toMatchObject(containsRegex(TRANSLATION_SYMBOL));
 	});
 
 	test('translate node that intersect the custom ancestor', async () => {
-		const lazyTranslator = new LazyTranslator(isTranslatableNode, translator, {
-			root: divElement,
+		const lazyTranslator = new LazyTranslator({
+			isTranslatableNode,
+			translator,
+			intersectionConfig: {
+				root: divElement,
+			},
 		});
-
-		const isLazyTranslate = lazyTranslator.isLazilyTranslatable(textNode);
-
+		lazyTranslator.startObserving(divElement);
 		await awaitTranslation();
 
 		// The mock function was called ones
@@ -52,36 +52,38 @@ describe('base usage', () => {
 		expect(translator).toHaveBeenCalledWith(textNode);
 
 		// the node translate lazy
-		expect(isLazyTranslate).toBe(true);
 		expect(textNode.textContent).toMatchObject(containsRegex(TRANSLATION_SYMBOL));
 	});
 
 	test('not translate nodes that not intersected', async () => {
-		const lazyTranslator = new LazyTranslator(isTranslatableNode, translator);
+		const lazyTranslator = new LazyTranslator({ isTranslatableNode, translator });
 
-		const textNode = document.createTextNode('Hello World!');
+		const newDivElement = document.createElement('div');
 
-		const isLazyTranslate = lazyTranslator.isLazilyTranslatable(textNode);
-
+		lazyTranslator.startObserving(newDivElement);
 		await awaitTranslation();
 
 		// The mock function was not called
 		expect(translator.mock.calls).toHaveLength(0);
-
-		expect(isLazyTranslate).toBe(false);
+		expect(newDivElement.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 	});
 
 	test('not translate node that not intersect the custom ancestor', async () => {
-		const lazyTranslator = new LazyTranslator(isTranslatableNode, translator, {
-			root: divElement,
+		const divElement = document.createElement('div');
+		const lazyTranslator = new LazyTranslator({
+			isTranslatableNode,
+			translator,
+			intersectionConfig: {
+				root: divElement,
+			},
 		});
 
-		const textNode = document.createTextNode('Hello World!');
+		const newDivElement = document.createElement('div');
 
-		const isLazyTranslate = lazyTranslator.isLazilyTranslatable(textNode);
-
+		lazyTranslator.startObserving(newDivElement);
 		await awaitTranslation();
 
-		expect(isLazyTranslate).toBe(false);
+		expect(translator.mock.calls).toHaveLength(0);
+		expect(newDivElement.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 	});
 });
