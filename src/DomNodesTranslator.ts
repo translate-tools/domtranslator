@@ -4,6 +4,30 @@ import { nodeExplore } from './utils/nodeExplore';
 import { TranslatableNodePredicate, TranslatorInterface } from '.';
 
 /**
+ * Handle all translatable nodes from element
+ * Element, Attr, Text
+ */
+export function handleTree(node: Element, callback: (node: Node) => void) {
+	nodeExplore(node, NodeFilter.SHOW_ALL, true, (node) => {
+		callback(node);
+
+		if (node instanceof Element) {
+			// Handle nodes from opened shadow DOM
+			if (node.shadowRoot !== null) {
+				for (const child of Array.from(node.shadowRoot.children)) {
+					handleTree(child, callback);
+				}
+			}
+
+			// Handle attributes of element
+			for (const attribute of Object.values(node.attributes)) {
+				callback(attribute);
+			}
+		}
+	});
+}
+
+/**
  * Class DomNodesTranslator responsible for translating DOM nodes
  */
 export class DomNodesTranslator {
@@ -40,7 +64,7 @@ export class DomNodesTranslator {
 	public deleteNode(node: Node, onlyTarget = false) {
 		if (node instanceof Element && !onlyTarget) {
 			// Delete all attributes and inner nodes
-			this.handleTree(node, (node) => {
+			handleTree(node, (node) => {
 				this.deleteNode(node, true);
 			});
 		}
@@ -55,43 +79,6 @@ export class DomNodesTranslator {
 
 		this.nodeStorage.update(node);
 		this.translateNode(node);
-	}
-
-	/**
-	 * processNodesInElement execute callback only for translatable nodes, recursively traversing the element
-	 */
-	public processNodesInElement(element: Element, callback: (node: Node) => void) {
-		this.handleTree(element, (node) => {
-			if (node instanceof Element) return;
-
-			if (this.isTranslatableNode(node)) {
-				callback(node);
-			}
-		});
-	}
-
-	/**
-	 * Handle all translatable nodes from element
-	 * Element, Attr, Text
-	 */
-	private handleTree(node: Element, callback: (node: Node) => void) {
-		nodeExplore(node, NodeFilter.SHOW_ALL, true, (node) => {
-			callback(node);
-
-			if (node instanceof Element) {
-				// Handle nodes from opened shadow DOM
-				if (node.shadowRoot !== null) {
-					for (const child of Array.from(node.shadowRoot.children)) {
-						this.handleTree(child, callback);
-					}
-				}
-
-				// Handle attributes of element
-				for (const attribute of Object.values(node.attributes)) {
-					callback(attribute);
-				}
-			}
-		});
 	}
 
 	/**

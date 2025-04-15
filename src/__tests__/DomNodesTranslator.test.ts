@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 
-import { DomNodesTranslator } from '../DomNodesTranslator';
+import { DomNodesTranslator, handleTree } from '../DomNodesTranslator';
 import { NodeStorage } from '../NodeStorage';
 import {
 	awaitTranslation,
@@ -45,7 +45,7 @@ describe('base usage', () => {
 
 		// translate document
 		if (document.documentElement instanceof Element) {
-			domNodesTranslator.processNodesInElement(document.documentElement, (node) => {
+			handleTree(document.documentElement, (node) => {
 				domNodesTranslator.addNode(node);
 			});
 		}
@@ -86,40 +86,10 @@ describe('base usage', () => {
 		);
 	});
 
-	test('process the element tree', async () => {
-		const div1 = document.createElement('div');
-		div1.innerHTML = 'Hello world too!';
-		div.append(div1);
-
-		domNodesTranslator.processNodesInElement(div, spy);
-		await awaitTranslation();
-
-		expect(spy).toHaveBeenCalledTimes(2);
-		expect(spy).toHaveBeenCalledWith(div1.childNodes[0]);
-		expect(spy).not.toHaveBeenCalledWith(div1);
-		expect(div1.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	});
-
-	test('process the element tree with shadow dom', async () => {
-		const container = document.createElement('div');
-		const shadowRoot = container.attachShadow({ mode: 'open' });
-		const shadowElement = document.createElement('p');
-		shadowElement.textContent = 'Shadow text';
-		shadowElement.setAttribute('data-test', 'value');
-		shadowRoot.appendChild(shadowElement);
-
-		domNodesTranslator.processNodesInElement(container, spy);
-		await awaitTranslation();
-
-		expect(spy).toHaveBeenCalledWith(shadowElement.firstChild);
-		expect(spy).toBeCalledTimes(1);
-		expect(shadowElement.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	});
-
 	test('disable translation only for the target node', async () => {
-		const handelTree = (node: Node) => {
+		const handelTree1 = (node: Node) => {
 			if (node instanceof Element) {
-				domNodesTranslator.processNodesInElement(node, (node) => {
+				handleTree(node, (node) => {
 					domNodesTranslator.addNode(node);
 				});
 			}
@@ -129,7 +99,7 @@ describe('base usage', () => {
 		div.append(div1);
 
 		// delete the target element and its nested items
-		handelTree(div1);
+		handelTree1(div1);
 		await awaitTranslation();
 
 		domNodesTranslator.deleteNode(div);
@@ -139,7 +109,7 @@ describe('base usage', () => {
 		expect(div.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 		// delete translation only for the target element
-		handelTree(div);
+		handelTree1(div);
 		await awaitTranslation();
 
 		domNodesTranslator.deleteNode(div.childNodes[0], true);
@@ -173,7 +143,7 @@ describe('base usage', () => {
 
 		// translate element
 		if (div instanceof Element) {
-			domNodesTranslator.processNodesInElement(div, (node) => {
+			handleTree(div, (node) => {
 				domNodesTranslator.addNode(node);
 			});
 		}

@@ -1,4 +1,4 @@
-import { DomNodesTranslator } from './DomNodesTranslator';
+import { DomNodesTranslator, handleTree } from './DomNodesTranslator';
 import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { NodeStorage } from './NodeStorage';
@@ -105,8 +105,12 @@ export class NodesTranslator {
 		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
 
 		if (node instanceof Element) {
-			this.domTranslationProcessor.processNodesInElement(node, (node) => {
-				this.addNode(node);
+			handleTree(node, (node) => {
+				if (node instanceof Element) return;
+
+				if (this.config.isTranslatableNode(node)) {
+					this.addNode(node);
+				}
 			});
 			return;
 		}
