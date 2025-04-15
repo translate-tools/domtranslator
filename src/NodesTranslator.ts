@@ -1,7 +1,8 @@
-import { DomNodesTranslator, handleTree } from './DomNodesTranslator';
+import { DomNodesTranslator } from './DomNodesTranslator';
 import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { NodeStorage } from './NodeStorage';
+import { handleTree } from './utils/handleTree';
 import { isIntersectingNode } from './utils/isIntersectingNode';
 import { configureTranslatableNodePredicate } from './utils/nodes';
 

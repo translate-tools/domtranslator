@@ -1,7 +1,8 @@
 import { readFileSync } from 'fs';
 
-import { DomNodesTranslator, handleTree } from '../DomNodesTranslator';
+import { DomNodesTranslator } from '../DomNodesTranslator';
 import { NodeStorage } from '../NodeStorage';
+import { handleTree } from '../utils/handleTree';
 import {
 	awaitTranslation,
 	containsRegex,
