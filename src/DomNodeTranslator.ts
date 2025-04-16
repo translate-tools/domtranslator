@@ -95,8 +95,8 @@ export class DomNodeTranslator {
 		const nodeData = this.nodeStorage.get(node);
 		if (nodeData !== undefined) {
 			nodeData.updateId++;
+			this.translateNode(node);
 		}
-		this.translateNode(node);
 	}
 
 	/**
