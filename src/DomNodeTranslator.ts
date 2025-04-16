@@ -2,7 +2,7 @@ import { handleTree } from './utils/handleTree';
 import { isInViewport } from './utils/isInViewport';
 import { TranslatableNodePredicate, TranslatorInterface } from '.';
 
-export interface NodeData {
+interface NodeData {
 	/**
 	 * Unique node identifier
 	 */
@@ -34,7 +34,7 @@ export interface NodeData {
  * Manages translation of DOM nodes:
  * Registers nodes and initiates translation. Triggers translation on update, addition, or deletion
  */
-export class DomNodesTranslator {
+export class DomNodeTranslator {
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 

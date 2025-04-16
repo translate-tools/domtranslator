@@ -1,7 +1,7 @@
-import { DomNodesTranslator } from './DomNodesTranslator';
-import { Translation } from './DomTranslationManager';
+import { DomNodeTranslator } from './DomNodeTranslator';
 import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
+import { TranslationManager } from './TranslationManager';
 import { configureTranslatableNodePredicate } from './utils/nodes';
 
 export type TranslatableNodePredicate = (node: Node) => boolean;
@@ -27,7 +27,7 @@ export type TranslatorInterface = (text: string, priority: number) => Promise<st
  */
 export class NodesTranslator {
 	private readonly config: InnerConfig;
-	private translator: Translation;
+	private translator: TranslationManager;
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 
@@ -40,9 +40,8 @@ export class NodesTranslator {
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
 
-		const domTranslationProcessor = new DomNodesTranslator(
+		const domTranslationProcessor = new DomNodeTranslator(
 			this.config.isTranslatableNode,
-			// new NodeStorage(),
 			translateCallback,
 		);
 
@@ -51,7 +50,7 @@ export class NodesTranslator {
 			translator: domTranslationProcessor.addNode,
 		});
 
-		this.translator = new Translation({
+		this.translator = new TranslationManager({
 			config: this.config,
 			domTranslationProcessor,
 			lazyTranslator,

@@ -1,4 +1,4 @@
-import { DomNodesTranslator } from './DomNodesTranslator';
+import { DomNodeTranslator } from './DomNodeTranslator';
 import { LazyTranslator } from './LazyTranslator';
 import { InnerConfig } from './NodesTranslator';
 import { handleTree } from './utils/handleTree';
@@ -6,16 +6,16 @@ import { isIntersectingNode } from './utils/isIntersectingNode';
 
 type TranslationManagerConfig = {
 	config: InnerConfig;
-	domTranslationProcessor: DomNodesTranslator;
+	domTranslationProcessor: DomNodeTranslator;
 	lazyTranslator: LazyTranslator;
 };
 
 /**
  * Class choose translation strategy: lazy or immediate.
  */
-export class Translation {
+export class TranslationManager {
 	private readonly config: InnerConfig;
-	private readonly domTranslationProcessor: DomNodesTranslator;
+	private readonly domTranslationProcessor: DomNodeTranslator;
 	private readonly lazyTranslator: LazyTranslator;
 
 	constructor({
