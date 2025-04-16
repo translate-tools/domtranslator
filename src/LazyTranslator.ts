@@ -1,15 +1,15 @@
 import { TranslatableNodePredicate } from '.';
 
 type IntersectionConfig = {
-	root?: null | Element;
-	rootMargin?: string;
-	threshold?: number;
+	root: null | Element;
+	rootMargin: string;
+	threshold: number;
 };
 
 type LazyTranslatorConfig = {
 	isTranslatableNode: TranslatableNodePredicate;
 	translator: (node: Node) => void;
-	intersectionConfig?: IntersectionConfig;
+	intersectionConfig?: Partial<IntersectionConfig>;
 };
 
 /**
@@ -23,7 +23,14 @@ export class LazyTranslator {
 	private readonly config: LazyTranslatorConfig;
 
 	constructor(config: LazyTranslatorConfig) {
-		this.config = config;
+		this.config = {
+			...config,
+			intersectionConfig: {
+				root: null,
+				rootMargin: '0px',
+				threshold: 0,
+			},
+		};
 
 		this.intersectionObserver = new IntersectionObserver((entries, observer) => {
 			entries.forEach((entry) => {
