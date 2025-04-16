@@ -1,30 +1,59 @@
-import { NodeStorage } from './NodeStorage';
 import { handleTree } from './utils/handleTree';
 import { isInViewport } from './utils/isInViewport';
 import { TranslatableNodePredicate, TranslatorInterface } from '.';
 
+export interface NodeData {
+	/**
+	 * Unique node identifier
+	 */
+	id: number;
+
+	/**
+	 * Each node update should increase the value
+	 */
+	updateId: number;
+
+	/**
+	 * Contains `updateId` value at time when start node translation
+	 */
+	translateContext: number;
+
+	/**
+	 * Original node text, before start translation
+	 * Contains `null` for node that not been translated yet
+	 */
+	originalText: null | string;
+
+	/**
+	 * Priority to translate node. The bigger the faster will translate
+	 */
+	priority: number;
+}
+
 /**
- * Class DomNodesTranslator responsible for translating DOM nodes
+ * Manages translation of DOM nodes:
+ * Registers nodes and initiates translation. Triggers translation on update, addition, or deletion
  */
 export class DomNodesTranslator {
+	private idCounter = 0;
+	private nodeStorage = new WeakMap<Node, NodeData>();
+
 	constructor(
 		private isTranslatableNode: TranslatableNodePredicate,
-		private nodeStorage: NodeStorage,
 		private readonly translateCallback: TranslatorInterface,
 	) {}
 
-	public isNodeStorageHas(node: Node) {
+	public has(node: Node) {
 		return this.nodeStorage.has(node);
 	}
 
 	public getOriginalNodeText(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-
 		return nodeData ? { originalText: nodeData.originalText } : null;
 	}
 
 	public addNode = (node: Node) => {
-		if (this.isNodeStorageHas(node)) return;
+		if (this.has(node)) return;
 
 		// Skip empty text
 		if (node.nodeValue === null || node.nodeValue.trim().length == 0) return;
@@ -32,28 +61,41 @@ export class DomNodesTranslator {
 		// Skip not translatable nodes
 		if (!this.isTranslatableNode(node)) return;
 
-		this.nodeStorage.add(node, this.getNodePriority(node));
+		this.nodeStorage.set(node, {
+			id: this.idCounter++,
+			updateId: 1,
+			translateContext: 0,
+			originalText: null,
+			priority: this.getNodePriority(node),
+		});
 
 		this.translateNode(node);
 	};
 
 	public deleteNode(node: Node, onlyTarget = false) {
+		// Delete all attributes and inner nodes
 		if (node instanceof Element && !onlyTarget) {
-			// Delete all attributes and inner nodes
 			handleTree(node, (node) => {
 				this.deleteNode(node, true);
 			});
 		}
 
-		this.nodeStorage.delete(node);
+		const nodeData = this.nodeStorage.get(node);
+		if (nodeData !== undefined) {
+			// Restore original text if text been replaced
+			if (nodeData.originalText !== null) {
+				node.nodeValue = nodeData.originalText;
+			}
+			this.nodeStorage.delete(node);
+		}
 	}
 
 	// Updates never be lazy
 	public updateNode(node: Node) {
-		// update only if the node is in storage
-		if (!this.nodeStorage.get(node)) return;
-
-		this.nodeStorage.update(node);
+		const nodeData = this.nodeStorage.get(node);
+		if (nodeData !== undefined) {
+			nodeData.updateId++;
+		}
 		this.translateNode(node);
 	}
 
