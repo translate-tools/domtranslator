@@ -3,7 +3,7 @@ import { handleTree } from '../utils/handleTree';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
 
 describe('DomNodeTranslator base usage', () => {
-	let domNodesTranslator: DomNodeTranslator;
+	let domNodeTranslator: DomNodeTranslator;
 	let div: Element;
 
 	beforeEach(() => {
@@ -12,7 +12,7 @@ describe('DomNodeTranslator base usage', () => {
 
 		const isTranslatableNode = (node: Node) => node instanceof Text;
 
-		domNodesTranslator = new DomNodeTranslator(isTranslatableNode, translator);
+		domNodeTranslator = new DomNodeTranslator(isTranslatableNode, translator);
 	});
 
 	test('correct translate element', async () => {
@@ -20,13 +20,13 @@ describe('DomNodeTranslator base usage', () => {
 		const originalText = 'Hello world!';
 		div.innerHTML = originalText;
 
-		domNodesTranslator.addNode(div.childNodes[0]);
+		domNodeTranslator.addNode(div.childNodes[0]);
 		await awaitTranslation();
 
 		expect(div.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 		// disable translation
-		domNodesTranslator.deleteNode(div.childNodes[0]);
+		domNodeTranslator.deleteNode(div.childNodes[0]);
 		expect(div.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 	});
 
@@ -34,10 +34,10 @@ describe('DomNodeTranslator base usage', () => {
 		const originalText = 'Hello world!';
 
 		// translate
-		domNodesTranslator.addNode(div.childNodes[0]);
+		domNodeTranslator.addNode(div.childNodes[0]);
 		await awaitTranslation();
 
-		expect(domNodesTranslator.getOriginalNodeText(div.childNodes[0])).toEqual(
+		expect(domNodeTranslator.getOriginalNodeText(div.childNodes[0])).toEqual(
 			expect.objectContaining({
 				originalText: originalText,
 			}),
@@ -48,7 +48,7 @@ describe('DomNodeTranslator base usage', () => {
 		div.innerHTML = ' ';
 
 		// translate
-		domNodesTranslator.addNode(div.childNodes[0]);
+		domNodeTranslator.addNode(div.childNodes[0]);
 		await awaitTranslation();
 
 		expect(div.childNodes[0].textContent).not.toMatch(
@@ -57,14 +57,14 @@ describe('DomNodeTranslator base usage', () => {
 	});
 
 	test('isNodeStorageHas returns correct result', async () => {
-		domNodesTranslator.addNode(div.childNodes[0]);
+		domNodeTranslator.addNode(div.childNodes[0]);
 		await awaitTranslation();
 
-		expect(domNodesTranslator.has(div.childNodes[0])).toBe(true);
+		expect(domNodeTranslator.has(div.childNodes[0])).toBe(true);
 
 		//delete element
-		domNodesTranslator.deleteNode(div.childNodes[0]);
-		expect(domNodesTranslator.has(div.childNodes[0])).toBe(false);
+		domNodeTranslator.deleteNode(div.childNodes[0]);
+		expect(domNodeTranslator.has(div.childNodes[0])).toBe(false);
 	});
 
 	describe('DeleteNode', () => {
@@ -89,10 +89,10 @@ describe('DomNodeTranslator base usage', () => {
 		});
 
 		test('delete translations from all nodes in the tree', async () => {
-			handleElementTree(parentDiv, domNodesTranslator.addNode);
+			handleElementTree(parentDiv, domNodeTranslator.addNode);
 			await awaitTranslation();
 
-			domNodesTranslator.deleteNode(parentDiv);
+			domNodeTranslator.deleteNode(parentDiv);
 
 			// child node and target has not translated text
 			expect(parentDiv.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
@@ -100,10 +100,10 @@ describe('DomNodeTranslator base usage', () => {
 		});
 
 		test('delete translation from the selected node', async () => {
-			handleElementTree(parentDiv, domNodesTranslator.addNode);
+			handleElementTree(parentDiv, domNodeTranslator.addNode);
 			await awaitTranslation();
 
-			domNodesTranslator.deleteNode(parentDiv.childNodes[0], true);
+			domNodeTranslator.deleteNode(parentDiv.childNodes[0], true);
 
 			//target element has not translation
 			expect(parentDiv.childNodes[0].textContent).not.toMatch(
@@ -121,22 +121,22 @@ describe('DomNodeTranslator base usage', () => {
 
 		// spy on the updateNode method
 		const updateNodesSpy = vi.spyOn(
-			domNodesTranslator as DomNodeTranslator,
+			domNodeTranslator as DomNodeTranslator,
 			'updateNode',
 		);
 
 		// translate element
-		domNodesTranslator.addNode(div.childNodes[0]);
+		domNodeTranslator.addNode(div.childNodes[0]);
 		await awaitTranslation();
 
 		// update element
 		const newText = 'Goodbye world!';
 		div.innerHTML = newText;
 
-		domNodesTranslator.addNode(div.childNodes[0]);
+		domNodeTranslator.addNode(div.childNodes[0]);
 		await awaitTranslation();
 
-		domNodesTranslator.updateNode(div.childNodes[0]);
+		domNodeTranslator.updateNode(div.childNodes[0]);
 		await awaitTranslation();
 
 		expect(div.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));

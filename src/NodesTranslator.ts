@@ -40,19 +40,19 @@ export class NodesTranslator {
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
 
-		const domTranslationProcessor = new DomNodeTranslator(
+		const domNodeTranslator = new DomNodeTranslator(
 			this.config.isTranslatableNode,
 			translateCallback,
 		);
 
 		const lazyTranslator = new LazyTranslator({
 			isTranslatableNode: this.config.isTranslatableNode,
-			translator: domTranslationProcessor.addNode,
+			translator: domNodeTranslator.addNode,
 		});
 
 		this.translator = new TranslationManager({
 			config: this.config,
-			domTranslationProcessor,
+			domNodeTranslator,
 			lazyTranslator,
 		});
 	}

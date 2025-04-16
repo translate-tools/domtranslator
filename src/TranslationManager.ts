@@ -6,7 +6,7 @@ import { isIntersectingNode } from './utils/isIntersectingNode';
 
 type TranslationManagerConfig = {
 	config: InnerConfig;
-	domTranslationProcessor: DomNodeTranslator;
+	domNodeTranslator: DomNodeTranslator;
 	lazyTranslator: LazyTranslator;
 };
 
@@ -15,29 +15,25 @@ type TranslationManagerConfig = {
  */
 export class TranslationManager {
 	private readonly config: InnerConfig;
-	private readonly domTranslationProcessor: DomNodeTranslator;
+	private readonly domNodeTranslator: DomNodeTranslator;
 	private readonly lazyTranslator: LazyTranslator;
 
-	constructor({
-		config,
-		domTranslationProcessor,
-		lazyTranslator,
-	}: TranslationManagerConfig) {
+	constructor({ config, domNodeTranslator, lazyTranslator }: TranslationManagerConfig) {
 		this.config = config;
-		this.domTranslationProcessor = domTranslationProcessor;
+		this.domNodeTranslator = domNodeTranslator;
 		this.lazyTranslator = lazyTranslator;
 	}
 
 	public getNodeData(node: Node) {
-		return this.domTranslationProcessor.getOriginalNodeText(node);
+		return this.domNodeTranslator.getOriginalNodeText(node);
 	}
 
 	public updateNode(node: Node) {
-		this.domTranslationProcessor.updateNode(node);
+		this.domNodeTranslator.updateNode(node);
 	}
 
 	public isNodeStorageHas(node: Node) {
-		return this.domTranslationProcessor.has(node);
+		return this.domNodeTranslator.has(node);
 	}
 
 	public addNode(node: Node) {
@@ -58,11 +54,11 @@ export class TranslationManager {
 			return;
 		}
 
-		this.domTranslationProcessor.addNode(node);
+		this.domNodeTranslator.addNode(node);
 	}
 
 	public deleteNode(node: Node) {
-		this.domTranslationProcessor.deleteNode(node);
+		this.domNodeTranslator.deleteNode(node);
 
 		if (node instanceof Element) {
 			this.lazyTranslator.stopObserving(node);
