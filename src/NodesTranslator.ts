@@ -1,9 +1,7 @@
 import { DomNodesTranslator } from './DomNodesTranslator';
+import { Translation } from './DomTranslationManager';
 import { LazyTranslator } from './LazyTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
-import { NodeStorage } from './NodeStorage';
-import { handleTree } from './utils/handleTree';
-import { isIntersectingNode } from './utils/isIntersectingNode';
 import { configureTranslatableNodePredicate } from './utils/nodes';
 
 export type TranslatableNodePredicate = (node: Node) => boolean;
@@ -29,8 +27,7 @@ export type TranslatorInterface = (text: string, priority: number) => Promise<st
  */
 export class NodesTranslator {
 	private readonly config: InnerConfig;
-	private domTranslationProcessor: DomNodesTranslator;
-	private lazyTranslator: LazyTranslator;
+	private translator: Translation;
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 
@@ -43,15 +40,21 @@ export class NodesTranslator {
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
 
-		this.domTranslationProcessor = new DomNodesTranslator(
+		const domTranslationProcessor = new DomNodesTranslator(
 			this.config.isTranslatableNode,
-			new NodeStorage(),
+			// new NodeStorage(),
 			translateCallback,
 		);
 
-		this.lazyTranslator = new LazyTranslator({
+		const lazyTranslator = new LazyTranslator({
 			isTranslatableNode: this.config.isTranslatableNode,
-			translator: this.domTranslationProcessor.addNode,
+			translator: domTranslationProcessor.addNode,
+		});
+
+		this.translator = new Translation({
+			config: this.config,
+			domTranslationProcessor,
+			lazyTranslator,
 		});
 	}
 
@@ -64,10 +67,14 @@ export class NodesTranslator {
 		const observer = new XMutationObserver();
 		this.observedNodesStorage.set(node, observer);
 
-		observer.addHandler('elementAdded', ({ target }) => this.addNode(target));
-		observer.addHandler('elementRemoved', ({ target }) => this.deleteNode(target));
+		observer.addHandler('elementAdded', ({ target }) =>
+			this.translator.addNode(target),
+		);
+		observer.addHandler('elementRemoved', ({ target }) =>
+			this.translator.deleteNode(target),
+		);
 		observer.addHandler('characterData', ({ target }) => {
-			this.domTranslationProcessor.updateNode(target);
+			this.translator.updateNode(target);
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
 			if (attributeName === undefined || attributeName === null) return;
@@ -78,15 +85,15 @@ export class NodesTranslator {
 			if (attribute === null) return;
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
-			if (!this.domTranslationProcessor.isNodeStorageHas(attribute)) {
-				this.addNode(attribute);
+			if (!this.translator.isNodeStorageHas(attribute)) {
+				this.translator.addNode(attribute);
 			} else {
-				this.domTranslationProcessor.updateNode(attribute);
+				this.translator.updateNode(attribute);
 			}
 		});
 
 		observer.observe(node);
-		this.addNode(node);
+		this.translator.addNode(node);
 	}
 
 	public unobserve(node: Element) {
@@ -94,54 +101,8 @@ export class NodesTranslator {
 			throw new Error('Node is not under observe');
 		}
 
-		this.deleteNode(node);
+		this.translator.deleteNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
-	}
-
-	public getNodeData(node: Node) {
-		return this.domTranslationProcessor.getOriginalNodeText(node);
-	}
-
-	private addNode(node: Node) {
-		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
-		if (node instanceof Element) {
-			handleTree(node, (node) => {
-				if (node instanceof Element) return;
-
-				if (this.config.isTranslatableNode(node)) {
-					this.addNode(node);
-				}
-			});
-			return;
-		}
-
-		// Ignore lazy translation for not introspectable nodes and translate it immediately
-		if (this.config.lazyTranslate) {
-			// Lazy translate when own element intersect viewport
-			// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
-			const isAttachedToDOM = node.getRootNode() !== node;
-			const observableNode =
-				node instanceof Attr ? node.ownerElement : node.parentElement;
-
-			if (
-				isAttachedToDOM &&
-				observableNode !== null &&
-				isIntersectingNode(observableNode)
-			) {
-				this.lazyTranslator.startObserving(observableNode);
-				return;
-			}
-		}
-
-		this.domTranslationProcessor.addNode(node);
-	}
-
-	private deleteNode(node: Node) {
-		this.domTranslationProcessor.deleteNode(node);
-
-		if (node instanceof Element) {
-			this.lazyTranslator.stopObserving(node);
-		}
 	}
 }
