@@ -1,5 +1,3 @@
-import { vi } from 'vitest';
-
 import { LazyTranslator } from '../LazyTranslator';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL } from './utils';
 
@@ -11,7 +9,7 @@ const translator = vi.fn().mockImplementation(async (node: Text) => {
 
 const isTranslatableNode = (node: Node) => node instanceof Text;
 
-describe('base usage', () => {
+describe('LazyTranslator base usage', () => {
 	const divElement = document.createElement('div');
 	const textNode = document.createTextNode('Hello, World!');
 

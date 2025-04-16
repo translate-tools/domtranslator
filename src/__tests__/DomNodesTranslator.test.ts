@@ -6,16 +6,6 @@ describe('DomNodeTranslator base usage', () => {
 	let domNodesTranslator: DomNodeTranslator;
 	let div: Element;
 
-	const spy = vi.fn(async (node: Node) => {
-		if (node.textContent) {
-			node.textContent = await translator(node.textContent);
-		}
-	});
-
-	afterEach(() => {
-		spy.mockClear();
-	});
-
 	beforeEach(() => {
 		div = document.createElement('div');
 		div.innerHTML = 'Hello world!';
@@ -45,7 +35,6 @@ describe('DomNodeTranslator base usage', () => {
 
 		// translate
 		domNodesTranslator.addNode(div.childNodes[0]);
-
 		await awaitTranslation();
 
 		expect(domNodesTranslator.getOriginalNodeText(div.childNodes[0])).toEqual(
@@ -57,8 +46,8 @@ describe('DomNodeTranslator base usage', () => {
 
 	test('not translate empty element', async () => {
 		div.innerHTML = ' ';
-		// translate document
 
+		// translate
 		domNodesTranslator.addNode(div.childNodes[0]);
 		await awaitTranslation();
 
@@ -82,7 +71,7 @@ describe('DomNodeTranslator base usage', () => {
 		let parentDiv: Element;
 		let childDiv: Element;
 
-		const handelTree = (node: Node, callback: (node: Node) => void) => {
+		const handleElementTree = (node: Node, callback: (node: Node) => void) => {
 			if (node instanceof Element) {
 				handleTree(node, (node) => {
 					callback(node);
@@ -100,8 +89,7 @@ describe('DomNodeTranslator base usage', () => {
 		});
 
 		test('delete translations from all nodes in the tree', async () => {
-			// delete the target element and its nested items
-			handelTree(parentDiv, domNodesTranslator.addNode);
+			handleElementTree(parentDiv, domNodesTranslator.addNode);
 			await awaitTranslation();
 
 			domNodesTranslator.deleteNode(parentDiv);
@@ -112,12 +100,12 @@ describe('DomNodeTranslator base usage', () => {
 		});
 
 		test('delete translation from the selected node', async () => {
-			// delete translation only for the target element
-			handelTree(parentDiv, domNodesTranslator.addNode);
+			handleElementTree(parentDiv, domNodesTranslator.addNode);
 			await awaitTranslation();
 
 			domNodesTranslator.deleteNode(parentDiv.childNodes[0], true);
 
+			//target element has not translation
 			expect(parentDiv.childNodes[0].textContent).not.toMatch(
 				containsRegex(TRANSLATION_SYMBOL),
 			);
@@ -127,7 +115,9 @@ describe('DomNodeTranslator base usage', () => {
 	});
 
 	test('updateNode should be call ones', async () => {
-		document.body.appendChild(div);
+		const div = document.createElement('div');
+		const originalText = 'Hello world!';
+		div.innerHTML = originalText;
 
 		// spy on the updateNode method
 		const updateNodesSpy = vi.spyOn(
@@ -136,17 +126,13 @@ describe('DomNodeTranslator base usage', () => {
 		);
 
 		// translate element
-		if (div instanceof Element) {
-			handleTree(div, (node) => {
-				domNodesTranslator.addNode(node);
-			});
-		}
+		domNodesTranslator.addNode(div.childNodes[0]);
 		await awaitTranslation();
 
 		// update element
-
 		const newText = 'Goodbye world!';
 		div.innerHTML = newText;
+
 		domNodesTranslator.addNode(div.childNodes[0]);
 		await awaitTranslation();
 
@@ -154,7 +140,6 @@ describe('DomNodeTranslator base usage', () => {
 		await awaitTranslation();
 
 		expect(div.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
-
 		expect(updateNodesSpy).toBeCalledTimes(1);
 		expect(updateNodesSpy.mock.calls[0][0]).toMatchObject(
 			containsRegex(TRANSLATION_SYMBOL),
