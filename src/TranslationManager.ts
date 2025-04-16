@@ -11,7 +11,7 @@ type TranslationManagerConfig = {
 };
 
 /**
- * Class choose translation strategy: lazy or immediate.
+ * Class coordinates the processing of DOM nodes for translation. Choose translation strategy: lazy or immediate.
  */
 export class TranslationManager {
 	private readonly config: InnerConfig;
@@ -53,7 +53,7 @@ export class TranslationManager {
 			return;
 		}
 
-		// Ignore lazy translation for non-intersecting nodes and translate it immediately
+		// translate later or immediately
 		if (this.config.lazyTranslate && this.tryLazyTranslate(node)) {
 			return;
 		}
@@ -76,6 +76,7 @@ export class TranslationManager {
 		const observableNode =
 			node instanceof Attr ? node.ownerElement : node.parentElement;
 
+		// Ignore lazy translation for non-intersecting nodes and translate it immediately
 		if (
 			isAttachedToDOM &&
 			observableNode !== null &&
