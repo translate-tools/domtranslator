@@ -29,8 +29,6 @@ export class NodesTranslator {
 	private readonly config: InnerConfig;
 	private translator: TranslationManager;
 
-	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
-
 	constructor(translateCallback: TranslatorInterface, config?: Config) {
 		this.config = {
 			...config,
@@ -57,6 +55,7 @@ export class NodesTranslator {
 		});
 	}
 
+	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 	public observe(node: Element) {
 		if (this.observedNodesStorage.has(node)) {
 			throw new Error('Node already under observe');
@@ -103,5 +102,9 @@ export class NodesTranslator {
 		this.translator.deleteNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
+	}
+
+	public getNodeData(node: Node) {
+		return this.translator.getNodeData(node);
 	}
 }
