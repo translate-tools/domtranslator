@@ -50,8 +50,22 @@ export class TranslationDispatcher {
 		}
 
 		// translate later or immediately
-		if (this.config.lazyTranslate && this.tryLazyTranslate(node)) {
-			return;
+		if (this.config.lazyTranslate) {
+			// Lazy translate when own element intersect viewport
+			// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
+			const isAttachedToDOM = node.getRootNode() !== node;
+			const observableNode =
+				node instanceof Attr ? node.ownerElement : node.parentElement;
+
+			// Ignore lazy translation for non-intersecting nodes and translate it immediately
+			if (
+				isAttachedToDOM &&
+				observableNode !== null &&
+				isIntersectingNode(observableNode)
+			) {
+				this.lazyTranslator.attach(observableNode);
+				return;
+			}
 		}
 
 		this.domNodeTranslator.translateNode(node);
@@ -63,24 +77,5 @@ export class TranslationDispatcher {
 		if (node instanceof Element) {
 			this.lazyTranslator.detach(node);
 		}
-	}
-
-	private tryLazyTranslate(node: Node) {
-		// Lazy translate when own element intersect viewport
-		// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
-		const isAttachedToDOM = node.getRootNode() !== node;
-		const observableNode =
-			node instanceof Attr ? node.ownerElement : node.parentElement;
-
-		// Ignore lazy translation for non-intersecting nodes and translate it immediately
-		if (
-			isAttachedToDOM &&
-			observableNode !== null &&
-			isIntersectingNode(observableNode)
-		) {
-			this.lazyTranslator.attach(observableNode);
-			return true;
-		}
-		return false;
 	}
 }
