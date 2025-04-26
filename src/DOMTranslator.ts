@@ -1,5 +1,5 @@
-import { handleTree } from './utils/handleTree';
 import { isInViewport } from './utils/isInViewport';
+import { visitWholeTree } from './utils/visitWholeTree';
 import { TranslatableNodePredicate, TranslatorInterface } from '.';
 
 interface NodeData {
@@ -104,7 +104,7 @@ export class DOMTranslator {
 	public restoreNode(node: Node, onlyTarget = false) {
 		// Delete all attributes and inner nodes
 		if (node instanceof Element && !onlyTarget) {
-			handleTree(node, (node) => {
+			visitWholeTree(node, (node) => {
 				this.restoreNode(node, true);
 			});
 		}

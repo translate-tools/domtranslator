@@ -1,8 +1,8 @@
 import { DOMTranslator } from './DOMTranslator';
 import { LazyDOMTranslator } from './LazyDOMTranslator';
 import { InnerConfig } from './NodesTranslator';
-import { handleTree } from './utils/handleTree';
 import { isIntersectingNode } from './utils/isIntersectingNode';
+import { visitWholeTree } from './utils/visitWholeTree';
 
 type TranslationManagerConfig = {
 	config: InnerConfig;
@@ -35,7 +35,7 @@ export class TranslationDispatcher {
 	public translateNode(node: Node) {
 		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
 		if (node instanceof Element) {
-			handleTree(node, (node) => {
+			visitWholeTree(node, (node) => {
 				if (node instanceof Element) return;
 
 				if (this.config.isTranslatableNode(node)) {

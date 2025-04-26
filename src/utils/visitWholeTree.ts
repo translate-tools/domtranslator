@@ -5,7 +5,7 @@ import { nodeExplore } from './nodeExplore';
  * Element, Attr, Text
  */
 
-export function handleTree(node: Element, callback: (node: Node) => void) {
+export function visitWholeTree(node: Element, callback: (node: Node) => void) {
 	nodeExplore(node, NodeFilter.SHOW_ALL, true, (node) => {
 		callback(node);
 
@@ -13,7 +13,7 @@ export function handleTree(node: Element, callback: (node: Node) => void) {
 			// Handle nodes from opened shadow DOM
 			if (node.shadowRoot !== null) {
 				for (const child of Array.from(node.shadowRoot.children)) {
-					handleTree(child, callback);
+					visitWholeTree(child, callback);
 				}
 			}
 

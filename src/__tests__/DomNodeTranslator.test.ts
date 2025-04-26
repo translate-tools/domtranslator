@@ -1,5 +1,5 @@
 import { DOMTranslator } from '../DOMTranslator';
-import { handleTree } from '../utils/handleTree';
+import { visitWholeTree } from '../utils/visitWholeTree';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
 
 describe('DomNodeTranslator base usage', () => {
@@ -73,7 +73,7 @@ describe('DomNodeTranslator base usage', () => {
 
 		const handleElementTree = (node: Node, callback: (node: Node) => void) => {
 			if (node instanceof Element) {
-				handleTree(node, (node) => {
+				visitWholeTree(node, (node) => {
 					callback(node);
 				});
 			}
