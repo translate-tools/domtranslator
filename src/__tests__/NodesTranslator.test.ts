@@ -76,10 +76,10 @@ describe('basic usage', () => {
 			const { translatorDispatcher, domNodeTranslator } = buildClass(translator, {
 				lazyTranslate,
 			});
-			const domTranslator = new NodesTranslator(
+			const domTranslator = new NodesTranslator({
 				translatorDispatcher,
-				domNodeTranslator,
-			);
+				domTranslator: domNodeTranslator,
+			});
 			domTranslator.observe(document.documentElement);
 
 			await awaitTranslation();
@@ -132,10 +132,10 @@ describe('basic usage', () => {
 					translator,
 					options,
 				);
-				const domTranslator = new NodesTranslator(
+				const domTranslator = new NodesTranslator({
 					translatorDispatcher,
-					domNodeTranslator,
-				);
+					domTranslator: domNodeTranslator,
+				});
 				domTranslator.observe(document.documentElement);
 
 				await awaitTranslation();
@@ -154,10 +154,10 @@ describe('basic usage', () => {
 					translator,
 					options,
 				);
-				const domTranslator = new NodesTranslator(
+				const domTranslator = new NodesTranslator({
 					translatorDispatcher,
-					domNodeTranslator,
-				);
+					domTranslator: domNodeTranslator,
+				});
 				domTranslator.observe(document.documentElement);
 
 				await awaitTranslation();
@@ -215,10 +215,10 @@ describe('basic usage', () => {
 					translator,
 					options,
 				);
-				const domTranslator = new NodesTranslator(
+				const domTranslator = new NodesTranslator({
 					translatorDispatcher,
-					domNodeTranslator,
-				);
+					domTranslator: domNodeTranslator,
+				});
 
 				const pElm = document.querySelector('p');
 				const form = document.querySelector('form');
@@ -278,10 +278,10 @@ describe('basic usage', () => {
 						}),
 					},
 				);
-				const domTranslator = new NodesTranslator(
+				const domTranslator = new NodesTranslator({
 					translatorDispatcher,
-					domNodeTranslator,
-				);
+					domTranslator: domNodeTranslator,
+				});
 				domTranslator.observe(document.documentElement);
 
 				await awaitTranslation();

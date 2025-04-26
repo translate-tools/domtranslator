@@ -10,10 +10,19 @@ import { TranslationDispatcher } from './TranslationDispatcher';
  * Module for dynamic translate a DOM nodes
  */
 export class NodesTranslator {
-	constructor(
-		private readonly translatorDispatcher: TranslationDispatcher,
-		private readonly domTranslator: DOMTranslator,
-	) {}
+	private readonly translatorDispatcher;
+	private readonly domTranslator;
+
+	constructor({
+		translatorDispatcher,
+		domTranslator,
+	}: {
+		translatorDispatcher: TranslationDispatcher;
+		domTranslator: DOMTranslator;
+	}) {
+		this.translatorDispatcher = translatorDispatcher;
+		this.domTranslator = domTranslator;
+	}
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 	public observe(node: Element) {
