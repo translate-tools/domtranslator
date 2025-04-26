@@ -40,10 +40,10 @@ function buildClass(translateCallback: TranslatorInterface, config?: Config) {
 		lazyTranslate: config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 	};
 
-	const domTranslator = new DOMTranslator(
-		innerConfig.isTranslatableNode,
+	const domTranslator = new DOMTranslator({
+		isTranslatableNode: innerConfig.isTranslatableNode,
 		translateCallback,
-	);
+	});
 
 	const lazyDOMTranslator = new LazyDOMTranslator(
 		innerConfig.isTranslatableNode,

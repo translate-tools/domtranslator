@@ -12,7 +12,10 @@ describe('DomNodeTranslator base usage', () => {
 
 		const isTranslatableNode = (node: Node) => node instanceof Text;
 
-		domNodeTranslator = new DOMTranslator(isTranslatableNode, translator);
+		domNodeTranslator = new DOMTranslator({
+			isTranslatableNode,
+			translateCallback: translator,
+		});
 	});
 
 	test('correct translate element', async () => {
