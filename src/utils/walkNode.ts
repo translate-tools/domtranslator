@@ -1,7 +1,7 @@
 /**
  * @param handler if return `false`, loop will stop
  */
-export const nodeExplore = (
+export const walkNode = (
 	inputNode: Node,
 	nodeFilter: number,
 	includeSelf: boolean,

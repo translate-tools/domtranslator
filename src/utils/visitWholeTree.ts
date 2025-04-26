@@ -1,4 +1,4 @@
-import { nodeExplore } from './nodeExplore';
+import { walkNode } from './walkNode';
 
 /**
  * Handle all translatable nodes from element
@@ -6,7 +6,7 @@ import { nodeExplore } from './nodeExplore';
  */
 
 export function visitWholeTree(node: Element, callback: (node: Node) => void) {
-	nodeExplore(node, NodeFilter.SHOW_ALL, true, (node) => {
+	walkNode(node, NodeFilter.SHOW_ALL, true, (node) => {
 		callback(node);
 
 		if (node instanceof Element) {
