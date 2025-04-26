@@ -1,35 +1,42 @@
 import { DOMTranslator } from './DOMTranslator';
 import { LazyDOMTranslator } from './LazyDOMTranslator';
-import { InnerConfig } from './NodesTranslator';
+import { TranslatableNodePredicate } from './NodesTranslator';
 import { isIntersectableNode } from './utils/isIntersectableNode';
 import { visitWholeTree } from './utils/visitWholeTree';
 
-type TranslationManagerConfig = {
-	config: InnerConfig;
-	domNodeTranslator: DOMTranslator;
-	lazyTranslator: LazyDOMTranslator;
-};
+interface InnerConfig {
+	isTranslatableNode: TranslatableNodePredicate;
+	lazyTranslate: boolean;
+}
 
 /**
  * Class coordinates the processing of DOM nodes for translation. Choose translation strategy: lazy or immediate.
  */
 export class TranslationDispatcher {
 	private readonly config: InnerConfig;
-	private readonly domNodeTranslator: DOMTranslator;
-	private readonly lazyTranslator: LazyDOMTranslator;
+	private readonly domTranslator: DOMTranslator;
+	private readonly lazyDOMTranslator: LazyDOMTranslator;
 
-	constructor({ config, domNodeTranslator, lazyTranslator }: TranslationManagerConfig) {
+	constructor({
+		config,
+		domTranslator,
+		lazyDOMTranslator,
+	}: {
+		config: InnerConfig;
+		domTranslator: DOMTranslator;
+		lazyDOMTranslator: LazyDOMTranslator;
+	}) {
 		this.config = config;
-		this.domNodeTranslator = domNodeTranslator;
-		this.lazyTranslator = lazyTranslator;
+		this.domTranslator = domTranslator;
+		this.lazyDOMTranslator = lazyDOMTranslator;
 	}
 
 	public updateNode(node: Node) {
-		this.domNodeTranslator.updateNode(node);
+		this.domTranslator.updateNode(node);
 	}
 
 	public hasNode(node: Node) {
-		return this.domNodeTranslator.hasNode(node);
+		return this.domTranslator.hasNode(node);
 	}
 
 	public translateNode(node: Node) {
@@ -59,19 +66,19 @@ export class TranslationDispatcher {
 				observableNode !== null &&
 				isIntersectableNode(observableNode)
 			) {
-				this.lazyTranslator.attach(observableNode);
+				this.lazyDOMTranslator.attach(observableNode);
 				return;
 			}
 		}
 
-		this.domNodeTranslator.translateNode(node);
+		this.domTranslator.translateNode(node);
 	}
 
 	public restoreNode(node: Node) {
-		this.domNodeTranslator.restoreNode(node);
+		this.domTranslator.restoreNode(node);
 
 		if (node instanceof Element) {
-			this.lazyTranslator.detach(node);
+			this.lazyDOMTranslator.detach(node);
 		}
 	}
 }
