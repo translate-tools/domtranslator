@@ -1,10 +1,6 @@
 import { DOMTranslator } from '../DOMTranslator';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
 
-beforeEach(() => {
-	document.body.innerHTML = '';
-});
-
 test('Translate and restore original element text', async () => {
 	const domTranslator = new DOMTranslator({
 		isTranslatableNode: Boolean,
