@@ -21,7 +21,7 @@ describe('LazyTranslator base usage', () => {
 	});
 
 	test('translate element at intersection', async () => {
-		const lazyTranslator = new LazyDOMTranslator(isTranslatableNode, translator);
+		const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
 
 		lazyTranslator.attach(divElement);
 		await awaitTranslation();
@@ -35,9 +35,13 @@ describe('LazyTranslator base usage', () => {
 	});
 
 	test('translate node that intersect the custom ancestor', async () => {
-		const lazyTranslator = new LazyDOMTranslator(isTranslatableNode, translator, {
-			intersectionConfig: {
-				root: divElement,
+		const lazyTranslator = new LazyDOMTranslator({
+			isTranslatableNode,
+			translator,
+			config: {
+				intersectionConfig: {
+					root: divElement,
+				},
 			},
 		});
 		lazyTranslator.attach(divElement);
@@ -52,7 +56,7 @@ describe('LazyTranslator base usage', () => {
 	});
 
 	test('not translate nodes that not intersected', async () => {
-		const lazyTranslator = new LazyDOMTranslator(isTranslatableNode, translator);
+		const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
 
 		const newDivElement = document.createElement('div');
 
@@ -66,9 +70,13 @@ describe('LazyTranslator base usage', () => {
 
 	test('not translate node that not intersect the custom ancestor', async () => {
 		const divElement = document.createElement('div');
-		const lazyTranslator = new LazyDOMTranslator(isTranslatableNode, translator, {
-			intersectionConfig: {
-				root: divElement,
+		const lazyTranslator = new LazyDOMTranslator({
+			isTranslatableNode,
+			translator,
+			config: {
+				intersectionConfig: {
+					root: divElement,
+				},
 			},
 		});
 

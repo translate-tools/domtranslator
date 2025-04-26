@@ -22,18 +22,18 @@ export class DefaultNodesTranslator extends NodesTranslator {
 			translateCallback,
 		});
 
-		const lazyDOMTranslator = new LazyDOMTranslator(
-			innerConfig.isTranslatableNode,
-			domTranslator.translateNode,
-		);
+		const lazyDOMTranslator = new LazyDOMTranslator({
+			isTranslatableNode: innerConfig.isTranslatableNode,
+			translator: domTranslator.translateNode,
+		});
 
-		super(
-			new TranslationDispatcher({
+		super({
+			translatorDispatcher: new TranslationDispatcher({
 				config: innerConfig,
 				domTranslator: domTranslator,
 				lazyDOMTranslator: lazyDOMTranslator,
 			}),
 			domTranslator,
-		);
+		});
 	}
 }

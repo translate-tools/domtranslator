@@ -9,13 +9,23 @@ export class LazyDOMTranslator {
 	private readonly nodesObservedForIntersection = new WeakSet<Node>();
 	private readonly intersectionObserver: IntersectionObserver;
 
-	constructor(
-		private readonly isTranslatableNode: TranslatableNodePredicate,
-		private readonly translator: (node: Node) => void,
+	private readonly isTranslatableNode;
+	private readonly translator;
+
+	constructor({
+		isTranslatableNode,
+		translator,
+		config,
+	}: {
+		isTranslatableNode: TranslatableNodePredicate;
+		translator: (node: Node) => void;
 		config?: {
 			intersectionConfig?: IntersectionObserverInit;
-		},
-	) {
+		};
+	}) {
+		this.isTranslatableNode = isTranslatableNode;
+		this.translator = translator;
+
 		this.intersectionObserver = new IntersectionObserver((entries, observer) => {
 			entries.forEach((entry) => {
 				const node = entry.target;
