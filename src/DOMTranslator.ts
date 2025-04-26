@@ -31,8 +31,8 @@ interface NodeData {
 }
 
 /**
- * Manages translation of DOM nodes:
- * Registers nodes and initiates translation. Triggers translation on update, addition, or deletion
+ * Manages a translation state of DOM nodes, registers nodes and initiates translation.
+ * Updates the translation when a node is modified or deleted
  */
 export class DOMTranslator {
 	private idCounter = 0;
@@ -72,6 +72,10 @@ export class DOMTranslator {
 		this.translateNodeContent(node);
 	};
 
+	/**
+	 * Restores the original node text
+	 * @param onlyTarget determines whether only the target node or all its nested nodes will be restored
+	 */
 	public restoreNode(node: Node, onlyTarget = false) {
 		// Delete all attributes and inner nodes
 		if (node instanceof Element && !onlyTarget) {
@@ -90,7 +94,9 @@ export class DOMTranslator {
 		}
 	}
 
-	// Updates never be lazy
+	/**
+	 * Translates node after it has been modified
+	 */
 	public updateNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
 		if (nodeData !== undefined) {
@@ -151,7 +157,6 @@ export class DOMTranslator {
 				return;
 			}
 
-			// actualNodeData.translateData = text;
 			actualNodeData.originalText = node.nodeValue !== null ? node.nodeValue : '';
 			actualNodeData.translateContext = actualNodeData.updateId + 1;
 			node.nodeValue = text;
