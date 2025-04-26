@@ -39,7 +39,7 @@ export class DOMTranslator {
 	private nodeStorage = new WeakMap<Node, NodeData>();
 
 	constructor(
-		private isTranslatableNode: TranslatableNodePredicate,
+		private readonly isTranslatableNode: TranslatableNodePredicate,
 		private readonly translateCallback: TranslatorInterface,
 	) {}
 
@@ -49,7 +49,7 @@ export class DOMTranslator {
 
 	public getOriginalNodeText(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-		return nodeData ? { originalText: nodeData.originalText } : null;
+		return nodeData ? nodeData.originalText : null;
 	}
 
 	public translateNode = (node: Node) => {
