@@ -110,13 +110,14 @@ export class DOMTranslator {
 		}
 
 		const nodeData = this.nodeStorage.get(node);
-		if (nodeData !== undefined) {
-			// Restore original text if text been replaced
-			if (nodeData.originalText !== null) {
-				node.nodeValue = nodeData.originalText;
-			}
-			this.nodeStorage.delete(node);
+		if (nodeData == undefined) {
+			return;
 		}
+		// Restore original text if text been replaced
+		if (nodeData.originalText !== null) {
+			node.nodeValue = nodeData.originalText;
+		}
+		this.nodeStorage.delete(node);
 	}
 
 	/**
@@ -124,10 +125,11 @@ export class DOMTranslator {
 	 */
 	public updateNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-		if (nodeData !== undefined) {
-			nodeData.updateId++;
-			this.translateNodeContent(node);
+		if (nodeData == undefined) {
+			return;
 		}
+		nodeData.updateId++;
+		this.translateNodeContent(node);
 	}
 
 	/**
@@ -160,7 +162,6 @@ export class DOMTranslator {
 			actualNodeData.originalText = node.nodeValue !== null ? node.nodeValue : '';
 			actualNodeData.translateContext = actualNodeData.updateId + 1;
 			node.nodeValue = text;
-			return node;
 		});
 	}
 }
