@@ -1,12 +1,10 @@
 import { readFileSync } from 'fs';
 
-import { DOMTranslator, TranslatorInterface } from '../DOMTranslator';
+import { DOMTranslator } from '../DOMTranslator';
 import { LazyDOMTranslator } from '../LazyDOMTranslator';
 import { NodesTranslator } from '../NodesTranslator';
-import {
-	TranslatableNodePredicate,
-	TranslationDispatcher,
-} from '../TranslationDispatcher';
+import { TranslationDispatcher } from '../TranslationDispatcher';
+import { Config, TranslatorInterface } from '../types';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
 
 require('intersection-observer');
@@ -34,18 +32,7 @@ const fillDocument = (text: string) => {
 	document.write(text);
 };
 
-interface Config {
-	isTranslatableNode?: TranslatableNodePredicate;
-	lazyTranslate?: boolean;
-}
-
-function buildClass(
-	translateCallback: TranslatorInterface,
-	config?: {
-		isTranslatableNode?: TranslatableNodePredicate;
-		lazyTranslate?: boolean;
-	},
-) {
+function buildClass(translateCallback: TranslatorInterface, config?: Config) {
 	const innerConfig = {
 		...config,
 		isTranslatableNode:

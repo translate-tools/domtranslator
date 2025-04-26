@@ -1,4 +1,4 @@
-import { TranslatableNodePredicate } from './TranslationDispatcher';
+import { TranslatableNodePredicate } from './types';
 
 /**
  * Translates nodes only if they intersect the viewport

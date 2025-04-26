@@ -1,25 +1,14 @@
 import { NodesTranslator } from './NodesTranslator';
+import { Config, TranslatorInterface } from './types';
 import { configureTranslatableNodePredicate } from './utils/nodes';
-import {
-	DOMTranslator,
-	LazyDOMTranslator,
-	TranslatableNodePredicate,
-	TranslationDispatcher,
-	TranslatorInterface,
-} from '.';
+import { DOMTranslator, LazyDOMTranslator, TranslationDispatcher } from '.';
 
 /**
  * Module for dynamic translate a DOM nodes.
  * A preconfigured version of {@link NodesTranslator} with all necessary dependencies.
  */
 export class DefaultNodesTranslator extends NodesTranslator {
-	constructor(
-		translateCallback: TranslatorInterface,
-		config?: {
-			isTranslatableNode?: TranslatableNodePredicate;
-			lazyTranslate?: boolean;
-		},
-	) {
+	constructor(translateCallback: TranslatorInterface, config?: Config) {
 		const innerConfig = {
 			...config,
 			isTranslatableNode:

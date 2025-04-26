@@ -1,9 +1,8 @@
 import { DOMTranslator } from './DOMTranslator';
 import { LazyDOMTranslator } from './LazyDOMTranslator';
+import { TranslatableNodePredicate } from './types';
 import { isIntersectableNode } from './utils/isIntersectableNode';
 import { visitWholeTree } from './utils/visitWholeTree';
-
-export type TranslatableNodePredicate = (node: Node) => boolean;
 
 /**
  * Class coordinates the processing of DOM nodes for translation. Choose translation strategy: lazy or immediate.
