@@ -3,11 +3,11 @@ import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL } from './utils';
 
 require('intersection-observer');
 
-const translator = vi.fn().mockImplementation(async (node: Text) => {
-	return (node.textContent = TRANSLATION_SYMBOL + node.textContent);
+const translator = vi.fn().mockImplementation(async (node: Node) => {
+	node.textContent += TRANSLATION_SYMBOL;
 });
 
-const isTranslatableNode = (node: Node) => node instanceof Text;
+const isTranslatableNode = (node: Node) => node instanceof Text || node instanceof Attr;
 
 describe('LazyTranslator base usage', () => {
 	const divElement = document.createElement('div');
