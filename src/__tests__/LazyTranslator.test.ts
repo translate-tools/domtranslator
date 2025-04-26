@@ -79,3 +79,25 @@ test('Does not translate elements if they are not attached to the DOM or not vis
 	expect(translator.mock.calls).toHaveLength(0);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
+
+test('Not translate element after detach', async () => {
+	const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
+	// element not attach to DOM
+	const div = document.createElement('div');
+	div.innerHTML = 'Hello world!';
+	div.style.display = 'none';
+	document.body.appendChild(div);
+
+	lazyTranslator.attach(div);
+	await awaitTranslation();
+	// not translate
+	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+
+	// after display element on node element still not translate
+	lazyTranslator.detach(div);
+
+	// attach element to DOM
+	div.style.display = 'block';
+
+	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+});
