@@ -1,7 +1,7 @@
 import { DOMTranslator } from './DOMTranslator';
 import { LazyDOMTranslator } from './LazyDOMTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
-import { TranslationManager } from './TranslationManager';
+import { TranslationDispatcher } from './TranslationDispatcher';
 import { configureTranslatableNodePredicate } from './utils/nodes';
 
 export type TranslatableNodePredicate = (node: Node) => boolean;
@@ -27,7 +27,7 @@ export type TranslatorInterface = (text: string, priority: number) => Promise<st
  */
 export class NodesTranslator {
 	private readonly config: InnerConfig;
-	private translator: TranslationManager;
+	private translator: TranslationDispatcher;
 
 	constructor(translateCallback: TranslatorInterface, config?: Config) {
 		this.config = {
@@ -48,7 +48,7 @@ export class NodesTranslator {
 			domNodeTranslator.translateNode,
 		);
 
-		this.translator = new TranslationManager({
+		this.translator = new TranslationDispatcher({
 			config: this.config,
 			domNodeTranslator,
 			lazyTranslator,
@@ -66,10 +66,10 @@ export class NodesTranslator {
 		this.observedNodesStorage.set(node, observer);
 
 		observer.addHandler('elementAdded', ({ target }) =>
-			this.translator.addNode(target),
+			this.translator.translateNode(target),
 		);
 		observer.addHandler('elementRemoved', ({ target }) =>
-			this.translator.deleteNode(target),
+			this.translator.restoreNode(target),
 		);
 		observer.addHandler('characterData', ({ target }) => {
 			this.translator.updateNode(target);
@@ -83,15 +83,15 @@ export class NodesTranslator {
 			if (attribute === null) return;
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
-			if (!this.translator.isNodeStorageHas(attribute)) {
-				this.translator.addNode(attribute);
+			if (!this.translator.hasNode(attribute)) {
+				this.translator.translateNode(attribute);
 			} else {
 				this.translator.updateNode(attribute);
 			}
 		});
 
 		observer.observe(node);
-		this.translator.addNode(node);
+		this.translator.translateNode(node);
 	}
 
 	public unobserve(node: Element) {
@@ -99,12 +99,12 @@ export class NodesTranslator {
 			throw new Error('Node is not under observe');
 		}
 
-		this.translator.deleteNode(node);
+		this.translator.restoreNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
 	}
 
 	public getNodeData(node: Node) {
-		return this.translator.getNodeData(node);
+		return this.translator.getOriginalNodeText(node);
 	}
 }

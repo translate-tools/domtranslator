@@ -13,7 +13,7 @@ type TranslationManagerConfig = {
 /**
  * Class coordinates the processing of DOM nodes for translation. Choose translation strategy: lazy or immediate.
  */
-export class TranslationManager {
+export class TranslationDispatcher {
 	private readonly config: InnerConfig;
 	private readonly domNodeTranslator: DOMTranslator;
 	private readonly lazyTranslator: LazyDOMTranslator;
@@ -24,7 +24,7 @@ export class TranslationManager {
 		this.lazyTranslator = lazyTranslator;
 	}
 
-	public getNodeData(node: Node) {
+	public getOriginalNodeText(node: Node) {
 		return this.domNodeTranslator.getOriginalNodeText(node);
 	}
 
@@ -32,18 +32,18 @@ export class TranslationManager {
 		this.domNodeTranslator.updateNode(node);
 	}
 
-	public isNodeStorageHas(node: Node) {
+	public hasNode(node: Node) {
 		return this.domNodeTranslator.hasNode(node);
 	}
 
-	public addNode(node: Node) {
+	public translateNode(node: Node) {
 		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
 		if (node instanceof Element) {
 			handleTree(node, (node) => {
 				if (node instanceof Element) return;
 
 				if (this.config.isTranslatableNode(node)) {
-					this.addNode(node);
+					this.translateNode(node);
 				}
 			});
 			return;
@@ -57,7 +57,7 @@ export class TranslationManager {
 		this.domNodeTranslator.translateNode(node);
 	}
 
-	public deleteNode(node: Node) {
+	public restoreNode(node: Node) {
 		this.domNodeTranslator.restoreNode(node);
 
 		if (node instanceof Element) {
