@@ -17,6 +17,7 @@ type LazyTranslatorConfig = {
  */
 
 export class LazyDOMTranslator {
+	// Store the nodes that is under observing for intersection
 	private readonly nodesObservedForIntersection = new WeakSet<Node>();
 	private intersectionObserver: IntersectionObserver;
 
@@ -36,9 +37,12 @@ export class LazyDOMTranslator {
 			entries.forEach((entry) => {
 				const node = entry.target;
 
+				// Skip nodes that are not under observation or still is not intersected
 				if (!this.nodesObservedForIntersection.has(node) || !entry.isIntersecting)
 					return;
 
+				// Process the node once and forget it
+				// This makes it possible to observe the node again later if needed
 				this.nodesObservedForIntersection.delete(node);
 				observer.unobserve(node);
 
