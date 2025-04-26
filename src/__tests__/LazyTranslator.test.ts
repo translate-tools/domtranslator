@@ -9,83 +9,73 @@ const translator = vi.fn().mockImplementation(async (node: Node) => {
 
 const isTranslatableNode = (node: Node) => node instanceof Text || node instanceof Attr;
 
-describe('LazyTranslator base usage', () => {
-	const divElement = document.createElement('div');
-	const textNode = document.createTextNode('Hello, World!');
+beforeEach(() => {
+	document.body.innerHTML = '';
+	vi.clearAllMocks();
+});
 
-	divElement.appendChild(textNode);
-	document.body.appendChild(divElement);
+test('Translate element from viewport', async () => {
+	const div = document.createElement('div');
+	div.innerHTML = 'Hello, World!';
+	document.body.appendChild(div);
 
-	beforeEach(() => {
-		vi.clearAllMocks();
-	});
+	const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
 
-	test('translate element at intersection', async () => {
-		const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
+	lazyTranslator.attach(div);
+	await awaitTranslation();
 
-		lazyTranslator.attach(divElement);
-		await awaitTranslation();
+	// The mock function was called ones
+	expect(translator.mock.calls).toHaveLength(1);
+	expect(translator).toHaveBeenCalledWith(div.childNodes[0]);
+	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+});
 
-		// The mock function was called ones
-		expect(translator.mock.calls).toHaveLength(1);
-		expect(translator).toHaveBeenCalledWith(textNode);
+test('Translate one element twice', async () => {
+	const div = document.createElement('div');
+	div.innerHTML = 'Hello, World!';
+	document.body.appendChild(div);
 
-		// the node translate lazy
-		expect(textNode.textContent).toMatchObject(containsRegex(TRANSLATION_SYMBOL));
-	});
+	const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
+	lazyTranslator.attach(div);
+	await awaitTranslation();
 
-	test('translate node that intersect the custom ancestor', async () => {
-		const lazyTranslator = new LazyDOMTranslator({
-			isTranslatableNode,
-			translator,
-			config: {
-				intersectionConfig: {
-					root: divElement,
-				},
-			},
-		});
-		lazyTranslator.attach(divElement);
-		await awaitTranslation();
+	expect(translator.mock.calls).toHaveLength(1);
+	expect(translator).toHaveBeenCalledWith(div.childNodes[0]);
+	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-		// The mock function was called ones
-		expect(translator.mock.calls).toHaveLength(1);
-		expect(translator).toHaveBeenCalledWith(textNode);
+	// update element content
+	const updatedText = 'Hello, World 12345!';
+	div.innerHTML = updatedText;
 
-		// the node translate lazy
-		expect(textNode.textContent).toMatchObject(containsRegex(TRANSLATION_SYMBOL));
-	});
+	lazyTranslator.attach(div);
+	await awaitTranslation();
 
-	test('not translate nodes that not intersected', async () => {
-		const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
+	// translated text contains translated symbols and updated text
+	expect(div.textContent).toMatch(updatedText);
+	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+});
 
-		const newDivElement = document.createElement('div');
+test('Does not translate elements if they are not attached to the DOM or not visible', async () => {
+	const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
 
-		lazyTranslator.attach(newDivElement);
-		await awaitTranslation();
+	// element not attach to DOM
+	const div = document.createElement('div');
+	div.innerHTML = 'Hello, world';
 
-		// The mock function was not called
-		expect(translator.mock.calls).toHaveLength(0);
-		expect(newDivElement.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
-	});
+	lazyTranslator.attach(div);
+	await awaitTranslation();
 
-	test('not translate node that not intersect the custom ancestor', async () => {
-		const divElement = document.createElement('div');
-		const lazyTranslator = new LazyDOMTranslator({
-			isTranslatableNode,
-			translator,
-			config: {
-				intersectionConfig: {
-					root: divElement,
-				},
-			},
-		});
+	expect(translator.mock.calls).toHaveLength(0);
+	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-		const newDivElement = document.createElement('div');
+	// Attach to the DOM; elements with display = 'none' should not be intersectable
+	document.body.appendChild(div);
+	// Hidden: Element with the visible property is considered intersectable, so use the display property instead.
+	div.style.display = 'none';
 
-		lazyTranslator.attach(newDivElement);
-		await awaitTranslation();
+	lazyTranslator.attach(div);
+	await awaitTranslation();
 
-		expect(translator.mock.calls).toHaveLength(0);
-		expect(newDivElement.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
-	});
+	expect(translator.mock.calls).toHaveLength(0);
+	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
