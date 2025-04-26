@@ -1,6 +1,14 @@
 import { readFileSync } from 'fs';
 
-import { Config, NodesTranslator } from '../NodesTranslator';
+import { DOMTranslator } from '../DOMTranslator';
+import { LazyDOMTranslator } from '../LazyDOMTranslator';
+import {
+	Config,
+	NodesTranslator,
+	TranslatableNodePredicate,
+	TranslatorInterface,
+} from '../NodesTranslator';
+import { TranslationDispatcher } from '../TranslationDispatcher';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
 
 require('intersection-observer');
@@ -28,6 +36,38 @@ const fillDocument = (text: string) => {
 	document.write(text);
 };
 
+function buildClass(
+	translateCallback: TranslatorInterface,
+	config?: { isTranslatableNode?: TranslatableNodePredicate; lazyTranslate?: boolean },
+) {
+	const innerConfig = {
+		...config,
+		isTranslatableNode:
+			config?.isTranslatableNode ?? configureTranslatableNodePredicate(),
+		lazyTranslate: config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
+	};
+
+	const domTranslator = new DOMTranslator(
+		innerConfig.isTranslatableNode,
+		translateCallback,
+	);
+
+	const lazyDOMTranslator = new LazyDOMTranslator(
+		innerConfig.isTranslatableNode,
+		domTranslator.translateNode,
+	);
+
+	return {
+		domTranslator,
+
+		translatorDispatcher: new TranslationDispatcher({
+			config: innerConfig,
+			domTranslator: domTranslator,
+			lazyDOMTranslator: lazyDOMTranslator,
+		}),
+	};
+}
+
 describe('basic usage', () => {
 	const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
@@ -41,7 +81,9 @@ describe('basic usage', () => {
 			const parsedHTML = document.documentElement.outerHTML;
 
 			// Translate document
-			const domTranslator = new NodesTranslator(translator, { lazyTranslate });
+			const domTranslator = new NodesTranslator(
+				buildClass(translator, { lazyTranslate }).translatorDispatcher,
+			);
 			domTranslator.observe(document.documentElement);
 
 			await awaitTranslation();
@@ -79,6 +121,7 @@ describe('basic usage', () => {
 					'textarea',
 				],
 			} satisfies NodesFilterOptions;
+
 			const options = {
 				lazyTranslate: isLazyTranslation,
 				isTranslatableNode: configureTranslatableNodePredicate(filterOptions),
@@ -89,7 +132,9 @@ describe('basic usage', () => {
 				const parsedHTML = document.documentElement.outerHTML;
 
 				// Translate document
-				const domTranslator = new NodesTranslator(translator, options);
+				const domTranslator = new NodesTranslator(
+					buildClass(translator, options).translatorDispatcher,
+				);
 				domTranslator.observe(document.documentElement);
 
 				await awaitTranslation();
@@ -104,7 +149,9 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new NodesTranslator(translator, options);
+				const domTranslator = new NodesTranslator(
+					buildClass(translator, options).translatorDispatcher,
+				);
 				domTranslator.observe(document.documentElement);
 
 				await awaitTranslation();
@@ -158,7 +205,9 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new NodesTranslator(translator, options);
+				const domTranslator = new NodesTranslator(
+					buildClass(translator, options).translatorDispatcher,
+				);
 
 				const pElm = document.querySelector('p');
 				const form = document.querySelector('form');
@@ -204,17 +253,19 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new NodesTranslator(translator, {
-					...options,
-					isTranslatableNode: configureTranslatableNodePredicate({
-						...filterOptions,
-						ignoredSelectors: [
-							...filterOptions.ignoredSelectors,
-							'[translate="no"], .notranslate, [contenteditable], [contenteditable="true"]',
-							'.custom-elements :checked',
-						],
-					}),
-				});
+				const domTranslator = new NodesTranslator(
+					buildClass(translator, {
+						...options,
+						isTranslatableNode: configureTranslatableNodePredicate({
+							...filterOptions,
+							ignoredSelectors: [
+								...filterOptions.ignoredSelectors,
+								'[translate="no"], .notranslate, [contenteditable], [contenteditable="true"]',
+								'.custom-elements :checked',
+							],
+						}),
+					}).translatorDispatcher,
+				);
 				domTranslator.observe(document.documentElement);
 
 				await awaitTranslation();

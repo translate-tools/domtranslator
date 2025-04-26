@@ -1,15 +1,7 @@
-import { DOMTranslator } from './DOMTranslator';
-import { LazyDOMTranslator } from './LazyDOMTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationDispatcher } from './TranslationDispatcher';
-import { configureTranslatableNodePredicate } from './utils/nodes';
 
 export type TranslatableNodePredicate = (node: Node) => boolean;
-
-export interface InnerConfig {
-	isTranslatableNode: TranslatableNodePredicate;
-	lazyTranslate: boolean;
-}
 
 export interface Config {
 	isTranslatableNode?: TranslatableNodePredicate;
@@ -26,34 +18,9 @@ export type TranslatorInterface = (text: string, priority: number) => Promise<st
  * Module for dynamic translate a DOM nodes
  */
 export class NodesTranslator {
-	private readonly config: InnerConfig;
-	private translator: TranslationDispatcher;
-
-	constructor(translateCallback: TranslatorInterface, config?: Config) {
-		this.config = {
-			...config,
-			isTranslatableNode:
-				config?.isTranslatableNode ?? configureTranslatableNodePredicate(),
-			lazyTranslate:
-				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
-		};
-
-		const domNodeTranslator = new DOMTranslator(
-			this.config.isTranslatableNode,
-			translateCallback,
-		);
-
-		const lazyTranslator = new LazyDOMTranslator(
-			this.config.isTranslatableNode,
-			domNodeTranslator.translateNode,
-		);
-
-		this.translator = new TranslationDispatcher({
-			config: this.config,
-			domNodeTranslator,
-			lazyTranslator,
-		});
-	}
+	constructor(
+		private readonly translatorDispatcher: TranslationDispatcher, // private readonly domTranslator: DOMTranslator,
+	) {}
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 	public observe(node: Element) {
@@ -66,13 +33,13 @@ export class NodesTranslator {
 		this.observedNodesStorage.set(node, observer);
 
 		observer.addHandler('elementAdded', ({ target }) =>
-			this.translator.translateNode(target),
+			this.translatorDispatcher.translateNode(target),
 		);
 		observer.addHandler('elementRemoved', ({ target }) =>
-			this.translator.restoreNode(target),
+			this.translatorDispatcher.restoreNode(target),
 		);
 		observer.addHandler('characterData', ({ target }) => {
-			this.translator.updateNode(target);
+			this.translatorDispatcher.updateNode(target);
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
 			if (attributeName === undefined || attributeName === null) return;
@@ -83,15 +50,15 @@ export class NodesTranslator {
 			if (attribute === null) return;
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
-			if (!this.translator.hasNode(attribute)) {
-				this.translator.translateNode(attribute);
+			if (!this.translatorDispatcher.hasNode(attribute)) {
+				this.translatorDispatcher.translateNode(attribute);
 			} else {
-				this.translator.updateNode(attribute);
+				this.translatorDispatcher.updateNode(attribute);
 			}
 		});
 
 		observer.observe(node);
-		this.translator.translateNode(node);
+		this.translatorDispatcher.translateNode(node);
 	}
 
 	public unobserve(node: Element) {
@@ -99,12 +66,12 @@ export class NodesTranslator {
 			throw new Error('Node is not under observe');
 		}
 
-		this.translator.restoreNode(node);
+		this.translatorDispatcher.restoreNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
 	}
 
-	public getNodeData(node: Node) {
-		return this.translator.getOriginalNodeText(node);
-	}
+	// public getNodeData(node: Node) {
+	// 	return this.domTranslator.getOriginalNodeText(node);
+	// }
 }
