@@ -64,8 +64,7 @@ function buildClass(
 	);
 
 	return {
-		domTranslator,
-
+		domNodeTranslator: domTranslator,
 		translatorDispatcher: new TranslationDispatcher({
 			config: innerConfig,
 			domTranslator: domTranslator,
@@ -87,8 +86,12 @@ describe('basic usage', () => {
 			const parsedHTML = document.documentElement.outerHTML;
 
 			// Translate document
+			const { translatorDispatcher, domNodeTranslator } = buildClass(translator, {
+				lazyTranslate,
+			});
 			const domTranslator = new NodesTranslator(
-				buildClass(translator, { lazyTranslate }).translatorDispatcher,
+				translatorDispatcher,
+				domNodeTranslator,
 			);
 			domTranslator.observe(document.documentElement);
 
@@ -138,8 +141,13 @@ describe('basic usage', () => {
 				const parsedHTML = document.documentElement.outerHTML;
 
 				// Translate document
+				const { translatorDispatcher, domNodeTranslator } = buildClass(
+					translator,
+					options,
+				);
 				const domTranslator = new NodesTranslator(
-					buildClass(translator, options).translatorDispatcher,
+					translatorDispatcher,
+					domNodeTranslator,
 				);
 				domTranslator.observe(document.documentElement);
 
@@ -155,8 +163,13 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
+				const { translatorDispatcher, domNodeTranslator } = buildClass(
+					translator,
+					options,
+				);
 				const domTranslator = new NodesTranslator(
-					buildClass(translator, options).translatorDispatcher,
+					translatorDispatcher,
+					domNodeTranslator,
 				);
 				domTranslator.observe(document.documentElement);
 
@@ -211,8 +224,13 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
+				const { translatorDispatcher, domNodeTranslator } = buildClass(
+					translator,
+					options,
+				);
 				const domTranslator = new NodesTranslator(
-					buildClass(translator, options).translatorDispatcher,
+					translatorDispatcher,
+					domNodeTranslator,
 				);
 
 				const pElm = document.querySelector('p');
@@ -259,8 +277,9 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new NodesTranslator(
-					buildClass(translator, {
+				const { translatorDispatcher, domNodeTranslator } = buildClass(
+					translator,
+					{
 						...options,
 						isTranslatableNode: configureTranslatableNodePredicate({
 							...filterOptions,
@@ -270,7 +289,11 @@ describe('basic usage', () => {
 								'.custom-elements :checked',
 							],
 						}),
-					}).translatorDispatcher,
+					},
+				);
+				const domTranslator = new NodesTranslator(
+					translatorDispatcher,
+					domNodeTranslator,
 				);
 				domTranslator.observe(document.documentElement);
 

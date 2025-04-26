@@ -1,3 +1,4 @@
+import { DOMTranslator } from './DOMTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationDispatcher } from './TranslationDispatcher';
 
@@ -10,7 +11,8 @@ import { TranslationDispatcher } from './TranslationDispatcher';
  */
 export class NodesTranslator {
 	constructor(
-		private readonly translatorDispatcher: TranslationDispatcher, // private readonly domTranslator: DOMTranslator,
+		private readonly translatorDispatcher: TranslationDispatcher,
+		private readonly domTranslator: DOMTranslator,
 	) {}
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
@@ -62,7 +64,7 @@ export class NodesTranslator {
 		this.observedNodesStorage.delete(node);
 	}
 
-	// public getNodeData(node: Node) {
-	// 	return this.domTranslator.getOriginalNodeText(node);
-	// }
+	public getNodeData(node: Node) {
+		return this.domTranslator.getOriginalNodeText(node);
+	}
 }
