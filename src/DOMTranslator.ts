@@ -34,7 +34,7 @@ interface NodeData {
  * Manages translation of DOM nodes:
  * Registers nodes and initiates translation. Triggers translation on update, addition, or deletion
  */
-export class DomNodeTranslator {
+export class DOMTranslator {
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 
@@ -43,7 +43,7 @@ export class DomNodeTranslator {
 		private readonly translateCallback: TranslatorInterface,
 	) {}
 
-	public has(node: Node) {
+	public hasNode(node: Node) {
 		return this.nodeStorage.has(node);
 	}
 
@@ -52,8 +52,8 @@ export class DomNodeTranslator {
 		return nodeData ? { originalText: nodeData.originalText } : null;
 	}
 
-	public addNode = (node: Node) => {
-		if (this.has(node)) return;
+	public translateNode = (node: Node) => {
+		if (this.hasNode(node)) return;
 
 		// Skip empty text
 		if (node.nodeValue === null || node.nodeValue.trim().length == 0) return;
@@ -69,14 +69,14 @@ export class DomNodeTranslator {
 			priority: this.getNodePriority(node),
 		});
 
-		this.translateNode(node);
+		this.translateNodeContent(node);
 	};
 
-	public deleteNode(node: Node, onlyTarget = false) {
+	public restoreNode(node: Node, onlyTarget = false) {
 		// Delete all attributes and inner nodes
 		if (node instanceof Element && !onlyTarget) {
 			handleTree(node, (node) => {
-				this.deleteNode(node, true);
+				this.restoreNode(node, true);
 			});
 		}
 
@@ -95,7 +95,7 @@ export class DomNodeTranslator {
 		const nodeData = this.nodeStorage.get(node);
 		if (nodeData !== undefined) {
 			nodeData.updateId++;
-			this.translateNode(node);
+			this.translateNodeContent(node);
 		}
 	}
 
@@ -127,7 +127,7 @@ export class DomNodeTranslator {
 	/**
 	 * Call only for new and updated nodes
 	 */
-	private translateNode(node: Node) {
+	private translateNodeContent(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
 		if (!nodeData) {
 			throw new Error('Node is not register');

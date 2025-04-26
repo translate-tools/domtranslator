@@ -1,4 +1,4 @@
-import { DomNodeTranslator } from './DomNodeTranslator';
+import { DOMTranslator } from './DOMTranslator';
 import { LazyDOMTranslator } from './LazyDOMTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationManager } from './TranslationManager';
@@ -38,14 +38,14 @@ export class NodesTranslator {
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
 
-		const domNodeTranslator = new DomNodeTranslator(
+		const domNodeTranslator = new DOMTranslator(
 			this.config.isTranslatableNode,
 			translateCallback,
 		);
 
 		const lazyTranslator = new LazyDOMTranslator(
 			this.config.isTranslatableNode,
-			domNodeTranslator.addNode,
+			domNodeTranslator.translateNode,
 		);
 
 		this.translator = new TranslationManager({

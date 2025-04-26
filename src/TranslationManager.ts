@@ -1,4 +1,4 @@
-import { DomNodeTranslator } from './DomNodeTranslator';
+import { DOMTranslator } from './DOMTranslator';
 import { LazyDOMTranslator } from './LazyDOMTranslator';
 import { InnerConfig } from './NodesTranslator';
 import { handleTree } from './utils/handleTree';
@@ -6,7 +6,7 @@ import { isIntersectingNode } from './utils/isIntersectingNode';
 
 type TranslationManagerConfig = {
 	config: InnerConfig;
-	domNodeTranslator: DomNodeTranslator;
+	domNodeTranslator: DOMTranslator;
 	lazyTranslator: LazyDOMTranslator;
 };
 
@@ -15,7 +15,7 @@ type TranslationManagerConfig = {
  */
 export class TranslationManager {
 	private readonly config: InnerConfig;
-	private readonly domNodeTranslator: DomNodeTranslator;
+	private readonly domNodeTranslator: DOMTranslator;
 	private readonly lazyTranslator: LazyDOMTranslator;
 
 	constructor({ config, domNodeTranslator, lazyTranslator }: TranslationManagerConfig) {
@@ -33,7 +33,7 @@ export class TranslationManager {
 	}
 
 	public isNodeStorageHas(node: Node) {
-		return this.domNodeTranslator.has(node);
+		return this.domNodeTranslator.hasNode(node);
 	}
 
 	public addNode(node: Node) {
@@ -54,11 +54,11 @@ export class TranslationManager {
 			return;
 		}
 
-		this.domNodeTranslator.addNode(node);
+		this.domNodeTranslator.translateNode(node);
 	}
 
 	public deleteNode(node: Node) {
-		this.domNodeTranslator.deleteNode(node);
+		this.domNodeTranslator.restoreNode(node);
 
 		if (node instanceof Element) {
 			this.lazyTranslator.detach(node);
