@@ -43,10 +43,10 @@ export class NodesTranslator {
 			translateCallback,
 		);
 
-		const lazyTranslator = new LazyDOMTranslator({
-			isTranslatableNode: this.config.isTranslatableNode,
-			translator: domNodeTranslator.addNode,
-		});
+		const lazyTranslator = new LazyDOMTranslator(
+			this.config.isTranslatableNode,
+			domNodeTranslator.addNode,
+		);
 
 		this.translator = new TranslationManager({
 			config: this.config,
