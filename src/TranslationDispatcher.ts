@@ -1,19 +1,15 @@
 import { DOMTranslator } from './DOMTranslator';
 import { LazyDOMTranslator } from './LazyDOMTranslator';
-import { TranslatableNodePredicate } from './NodesTranslator';
 import { isIntersectableNode } from './utils/isIntersectableNode';
 import { visitWholeTree } from './utils/visitWholeTree';
 
-interface InnerConfig {
-	isTranslatableNode: TranslatableNodePredicate;
-	lazyTranslate: boolean;
-}
+export type TranslatableNodePredicate = (node: Node) => boolean;
 
 /**
  * Class coordinates the processing of DOM nodes for translation. Choose translation strategy: lazy or immediate.
  */
 export class TranslationDispatcher {
-	private readonly config: InnerConfig;
+	private readonly config;
 	private readonly domTranslator: DOMTranslator;
 	private readonly lazyDOMTranslator: LazyDOMTranslator;
 
@@ -22,7 +18,10 @@ export class TranslationDispatcher {
 		domTranslator,
 		lazyDOMTranslator,
 	}: {
-		config: InnerConfig;
+		config: {
+			isTranslatableNode: TranslatableNodePredicate;
+			lazyTranslate: boolean;
+		};
 		domTranslator: DOMTranslator;
 		lazyDOMTranslator: LazyDOMTranslator;
 	}) {

@@ -1,15 +1,6 @@
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationDispatcher } from './TranslationDispatcher';
 
-export type TranslatableNodePredicate = (node: Node) => boolean;
-
-export interface Config {
-	isTranslatableNode?: TranslatableNodePredicate;
-	lazyTranslate?: boolean;
-}
-
-export type TranslatorInterface = (text: string, priority: number) => Promise<string>;
-
 // TODO: consider local language definitions (and implement `from`, `to` parameters for translator to specify default or locale languages)
 // TODO: scan nodes lazy - defer scan to `requestIdleCallback` instead of instant scan
 // TODO: describe nodes life cycle
