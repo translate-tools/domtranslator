@@ -1,7 +1,7 @@
 import { DOMTranslator } from './DOMTranslator';
 import { LazyDOMTranslator } from './LazyDOMTranslator';
 import { InnerConfig } from './NodesTranslator';
-import { isIntersectingNode } from './utils/isIntersectingNode';
+import { isIntersectableNode } from './utils/isIntersectableNode';
 import { visitWholeTree } from './utils/visitWholeTree';
 
 type TranslationManagerConfig = {
@@ -57,7 +57,7 @@ export class TranslationDispatcher {
 			if (
 				isAttachedToDOM &&
 				observableNode !== null &&
-				isIntersectingNode(observableNode)
+				isIntersectableNode(observableNode)
 			) {
 				this.lazyTranslator.attach(observableNode);
 				return;
