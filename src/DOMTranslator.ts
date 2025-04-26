@@ -31,6 +31,31 @@ interface NodeData {
 }
 
 /**
+ * Calculate node priority for translate, the bigger number the importance text
+ */
+function getNodePriority(node: Node) {
+	let score = 0;
+
+	if (node instanceof Attr) {
+		score += 1;
+		const parent = node.ownerElement;
+		if (parent && isInViewport(parent)) {
+			// Attribute of visible element is important than text of non-visible element
+			score += 2;
+		}
+	} else if (node instanceof Text) {
+		score += 2;
+		const parent = node.parentElement;
+		if (parent && isInViewport(parent)) {
+			// Text of visible element is most important node for translation
+			score += 2;
+		}
+	}
+
+	return score;
+}
+
+/**
  * Manages a translation state of DOM nodes, registers nodes and initiates translation.
  * Updates the translation when a node is modified or deleted
  */
@@ -66,7 +91,7 @@ export class DOMTranslator {
 			updateId: 1,
 			translateContext: 0,
 			originalText: null,
-			priority: this.getNodePriority(node),
+			priority: getNodePriority(node),
 		});
 
 		this.translateNodeContent(node);
@@ -104,31 +129,6 @@ export class DOMTranslator {
 			this.translateNodeContent(node);
 		}
 	}
-
-	/**
-	 * Calculate node priority for translate, the bigger number the importance text
-	 */
-	private getNodePriority = (node: Node) => {
-		let score = 0;
-
-		if (node instanceof Attr) {
-			score += 1;
-			const parent = node.ownerElement;
-			if (parent && isInViewport(parent)) {
-				// Attribute of visible element is important than text of non-visible element
-				score += 2;
-			}
-		} else if (node instanceof Text) {
-			score += 2;
-			const parent = node.parentElement;
-			if (parent && isInViewport(parent)) {
-				// Text of visible element is most important node for translation
-				score += 2;
-			}
-		}
-
-		return score;
-	};
 
 	/**
 	 * Call only for new and updated nodes
