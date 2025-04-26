@@ -16,8 +16,8 @@ type LazyTranslatorConfig = {
  * Translates nodes only if they intersect the viewport
  */
 
-export class LazyTranslator {
-	private readonly intersectStorage = new WeakSet<Node>();
+export class LazyDOMTranslator {
+	private readonly nodesObservedForIntersection = new WeakSet<Node>();
 	private intersectionObserver: IntersectionObserver;
 
 	private readonly config: LazyTranslatorConfig;
@@ -36,9 +36,10 @@ export class LazyTranslator {
 			entries.forEach((entry) => {
 				const node = entry.target;
 
-				if (!this.intersectStorage.has(node) || !entry.isIntersecting) return;
+				if (!this.nodesObservedForIntersection.has(node) || !entry.isIntersecting)
+					return;
 
-				this.intersectStorage.delete(node);
+				this.nodesObservedForIntersection.delete(node);
 				observer.unobserve(node);
 
 				this.handlerIntersectNode(node);
@@ -46,16 +47,16 @@ export class LazyTranslator {
 		}, this.config.intersectionConfig);
 	}
 
-	public stopObserving(node: Element) {
-		this.intersectStorage.delete(node);
-
-		this.intersectionObserver.unobserve(node);
+	public attach(node: Element) {
+		if (this.nodesObservedForIntersection.has(node)) return;
+		this.nodesObservedForIntersection.add(node);
+		this.intersectionObserver.observe(node);
 	}
 
-	public startObserving(node: Element) {
-		if (this.intersectStorage.has(node)) return;
-		this.intersectStorage.add(node);
-		this.intersectionObserver.observe(node);
+	public detach(node: Element) {
+		this.nodesObservedForIntersection.delete(node);
+
+		this.intersectionObserver.unobserve(node);
 	}
 
 	private handlerIntersectNode(node: Node) {

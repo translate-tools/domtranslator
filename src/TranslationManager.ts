@@ -1,5 +1,5 @@
 import { DomNodeTranslator } from './DomNodeTranslator';
-import { LazyTranslator } from './LazyTranslator';
+import { LazyDOMTranslator } from './LazyDOMTranslator';
 import { InnerConfig } from './NodesTranslator';
 import { handleTree } from './utils/handleTree';
 import { isIntersectingNode } from './utils/isIntersectingNode';
@@ -7,7 +7,7 @@ import { isIntersectingNode } from './utils/isIntersectingNode';
 type TranslationManagerConfig = {
 	config: InnerConfig;
 	domNodeTranslator: DomNodeTranslator;
-	lazyTranslator: LazyTranslator;
+	lazyTranslator: LazyDOMTranslator;
 };
 
 /**
@@ -16,7 +16,7 @@ type TranslationManagerConfig = {
 export class TranslationManager {
 	private readonly config: InnerConfig;
 	private readonly domNodeTranslator: DomNodeTranslator;
-	private readonly lazyTranslator: LazyTranslator;
+	private readonly lazyTranslator: LazyDOMTranslator;
 
 	constructor({ config, domNodeTranslator, lazyTranslator }: TranslationManagerConfig) {
 		this.config = config;
@@ -61,7 +61,7 @@ export class TranslationManager {
 		this.domNodeTranslator.deleteNode(node);
 
 		if (node instanceof Element) {
-			this.lazyTranslator.stopObserving(node);
+			this.lazyTranslator.detach(node);
 		}
 	}
 
@@ -78,7 +78,7 @@ export class TranslationManager {
 			observableNode !== null &&
 			isIntersectingNode(observableNode)
 		) {
-			this.lazyTranslator.startObserving(observableNode);
+			this.lazyTranslator.attach(observableNode);
 			return true;
 		}
 		return false;

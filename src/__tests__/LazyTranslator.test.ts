@@ -1,4 +1,4 @@
-import { LazyTranslator } from '../LazyTranslator';
+import { LazyDOMTranslator } from '../LazyDOMTranslator';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL } from './utils';
 
 require('intersection-observer');
@@ -21,9 +21,9 @@ describe('LazyTranslator base usage', () => {
 	});
 
 	test('translate element at intersection', async () => {
-		const lazyTranslator = new LazyTranslator({ isTranslatableNode, translator });
+		const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
 
-		lazyTranslator.startObserving(divElement);
+		lazyTranslator.attach(divElement);
 		await awaitTranslation();
 
 		// The mock function was called ones
@@ -35,14 +35,14 @@ describe('LazyTranslator base usage', () => {
 	});
 
 	test('translate node that intersect the custom ancestor', async () => {
-		const lazyTranslator = new LazyTranslator({
+		const lazyTranslator = new LazyDOMTranslator({
 			isTranslatableNode,
 			translator,
 			intersectionConfig: {
 				root: divElement,
 			},
 		});
-		lazyTranslator.startObserving(divElement);
+		lazyTranslator.attach(divElement);
 		await awaitTranslation();
 
 		// The mock function was called ones
@@ -54,11 +54,11 @@ describe('LazyTranslator base usage', () => {
 	});
 
 	test('not translate nodes that not intersected', async () => {
-		const lazyTranslator = new LazyTranslator({ isTranslatableNode, translator });
+		const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
 
 		const newDivElement = document.createElement('div');
 
-		lazyTranslator.startObserving(newDivElement);
+		lazyTranslator.attach(newDivElement);
 		await awaitTranslation();
 
 		// The mock function was not called
@@ -68,7 +68,7 @@ describe('LazyTranslator base usage', () => {
 
 	test('not translate node that not intersect the custom ancestor', async () => {
 		const divElement = document.createElement('div');
-		const lazyTranslator = new LazyTranslator({
+		const lazyTranslator = new LazyDOMTranslator({
 			isTranslatableNode,
 			translator,
 			intersectionConfig: {
@@ -78,7 +78,7 @@ describe('LazyTranslator base usage', () => {
 
 		const newDivElement = document.createElement('div');
 
-		lazyTranslator.startObserving(newDivElement);
+		lazyTranslator.attach(newDivElement);
 		await awaitTranslation();
 
 		expect(translator.mock.calls).toHaveLength(0);

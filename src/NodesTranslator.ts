@@ -1,5 +1,5 @@
 import { DomNodeTranslator } from './DomNodeTranslator';
-import { LazyTranslator } from './LazyTranslator';
+import { LazyDOMTranslator } from './LazyDOMTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationManager } from './TranslationManager';
 import { configureTranslatableNodePredicate } from './utils/nodes';
@@ -43,7 +43,7 @@ export class NodesTranslator {
 			translateCallback,
 		);
 
-		const lazyTranslator = new LazyTranslator({
+		const lazyTranslator = new LazyDOMTranslator({
 			isTranslatableNode: this.config.isTranslatableNode,
 			translator: domNodeTranslator.addNode,
 		});
