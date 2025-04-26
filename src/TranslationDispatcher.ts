@@ -24,10 +24,6 @@ export class TranslationDispatcher {
 		this.lazyTranslator = lazyTranslator;
 	}
 
-	public getOriginalNodeText(node: Node) {
-		return this.domNodeTranslator.getOriginalNodeText(node);
-	}
-
 	public updateNode(node: Node) {
 		this.domNodeTranslator.updateNode(node);
 	}
