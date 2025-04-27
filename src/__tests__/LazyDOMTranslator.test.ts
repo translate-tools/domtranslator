@@ -130,13 +130,11 @@ test('Not translate element after detach', async () => {
 });
 
 test('Translate element only after it appears in the viewport', async () => {
-	const container = document.createElement('div');
 	const div = document.createElement('div');
 	div.innerHTML = 'Hello world!';
-	container.appendChild(div);
-	document.body.appendChild(container);
+	document.body.appendChild(div);
 
-	mockBoundingClientRect(container, {
+	mockBoundingClientRect(document.body, {
 		top: 0,
 		left: 0,
 		bottom: 300,
@@ -158,7 +156,6 @@ test('Translate element only after it appears in the viewport', async () => {
 	const lazyTranslator = new LazyDOMTranslator({
 		isTranslatableNode,
 		translator,
-		config: { intersectionConfig: { root: container } },
 	});
 
 	lazyTranslator.attach(div);
@@ -170,7 +167,7 @@ test('Translate element only after it appears in the viewport', async () => {
 
 	// change coordinates, now element in viewport
 	mockBoundingClientRect(div, {
-		top: 100,
+		top: 0,
 		left: 0,
 		bottom: 200,
 		right: 100,
@@ -188,13 +185,11 @@ test('Translate element only after it appears in the viewport', async () => {
 });
 
 test('Not translate the element if it is still not in the viewport after scrolling', async () => {
-	const container = document.createElement('div');
 	const div = document.createElement('div');
 	div.innerHTML = 'Hello world!';
-	container.appendChild(div);
-	document.body.appendChild(container);
+	document.body.appendChild(div);
 
-	mockBoundingClientRect(container, {
+	mockBoundingClientRect(document.body, {
 		top: 0,
 		left: 0,
 		bottom: 300,
@@ -216,7 +211,6 @@ test('Not translate the element if it is still not in the viewport after scrolli
 	const lazyTranslator = new LazyDOMTranslator({
 		isTranslatableNode,
 		translator,
-		config: { intersectionConfig: { root: container } },
 	});
 
 	lazyTranslator.attach(div);
