@@ -90,7 +90,7 @@ test('Does not translate elements if they are not attached to the DOM or not vis
 
 	// Attach to the DOM; elements with display = 'none' should not be intersectable
 	document.body.appendChild(div);
-	// Hidden: Element with the visible property is considered intersectable, so use the display property instead.
+	// Hidden: Element with the visible property is considered intersectable, so use the display property instead
 	div.style.display = 'none';
 
 	lazyTranslator.attach(div);
@@ -98,6 +98,13 @@ test('Does not translate elements if they are not attached to the DOM or not vis
 
 	expect(translator.mock.calls).toHaveLength(0);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+
+	// the element becomes visible and is translated
+	div.style.display = 'block';
+	await awaitTranslation();
+
+	expect(translator.mock.calls).toHaveLength(1);
+	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
 test('Not translate element after detach', async () => {
