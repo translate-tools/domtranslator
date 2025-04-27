@@ -109,7 +109,7 @@ test('Does not translate elements if they are not attached to the DOM or not vis
 
 test('Not translate element after detach', async () => {
 	const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
-	// element not attach to DOM
+
 	const div = document.createElement('div');
 	div.innerHTML = 'Hello world!';
 	div.style.display = 'none';
@@ -117,14 +117,16 @@ test('Not translate element after detach', async () => {
 
 	lazyTranslator.attach(div);
 	await awaitTranslation();
+
 	// not translate because element not visible
+	expect(translator.mock.calls).toHaveLength(0);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// after the element becomes visible, it still isn't translated
+	// element is detached, he becomes visible but still isn't translated after detaching
 	lazyTranslator.detach(div);
-	// visible element
 	div.style.display = 'block';
 
+	expect(translator.mock.calls).toHaveLength(0);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
@@ -167,7 +169,7 @@ test('Translate element only after it appears in the viewport', async () => {
 	await awaitTranslation();
 
 	// don't translate because the element doesn't intersect the container
-	expect(translator).not.toHaveBeenCalled();
+	expect(translator.mock.calls).toHaveLength(0);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 	// change coordinates, now element in viewport
@@ -185,7 +187,7 @@ test('Translate element only after it appears in the viewport', async () => {
 	document.dispatchEvent(new Event('scroll', { bubbles: true }));
 
 	await awaitTranslation();
-	expect(translator).toHaveBeenCalledTimes(1);
+	expect(translator.mock.calls).toHaveLength(1);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
@@ -228,10 +230,10 @@ test('Not translate the element if it is still not in the viewport after scrolli
 	await awaitTranslation();
 
 	// don't translate because the element doesn't intersect the container
-	expect(translator).not.toHaveBeenCalled();
+	expect(translator.mock.calls).toHaveLength(0);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// change coordinates, now element in viewport
+	// change coordinates, element still not in viewport
 	mockBoundingClientRect(div, {
 		top: 330,
 		left: 0,
@@ -247,6 +249,6 @@ test('Not translate the element if it is still not in the viewport after scrolli
 	await awaitTranslation();
 
 	// still have not translate
-	expect(translator).toHaveBeenCalledTimes(0);
+	expect(translator.mock.calls).toHaveLength(0);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
