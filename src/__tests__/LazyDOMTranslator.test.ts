@@ -87,12 +87,11 @@ test('Does not translate elements if they are not attached to the DOM or not vis
 	expect(translator.mock.calls).toHaveLength(0);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// Attach to the DOM; elements with display = 'none' should not be intersectable
+	// Attach to the DOM, but elements with display = 'none' is not be intersectable, and not translate
+	// Element with the visible property is considered intersectable, so use the display=none property instead
 	document.body.appendChild(div);
-	// Hidden: Element with the visible property is considered intersectable, so use the display property instead
 	div.style.display = 'none';
 
-	lazyTranslator.attach(div);
 	await awaitTranslation();
 
 	expect(translator.mock.calls).toHaveLength(0);
@@ -109,6 +108,7 @@ test('Does not translate elements if they are not attached to the DOM or not vis
 test('Not translate element after detach', async () => {
 	const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
 
+	// create element with display=none, it not intersectible
 	const div = document.createElement('div');
 	div.innerHTML = 'Hello world!';
 	div.style.display = 'none';
@@ -121,7 +121,8 @@ test('Not translate element after detach', async () => {
 	expect(translator.mock.calls).toHaveLength(0);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// element is detached, he becomes visible but still isn't translated after detaching
+	// element is detached to DOM
+	// becomes visible and intersectable, but is still not translated after detach
 	lazyTranslator.detach(div);
 	div.style.display = 'block';
 
@@ -175,11 +176,11 @@ test('Translate element only after it appears in the viewport', async () => {
 		height: 100,
 	});
 
-	// simulates the scroll event, and the polyfill listens for the "scroll" event in the document
+	// simulates the scroll event; the polyfill listens for the "scroll" event in the document
 	// the scroll event triggers an intersection check
 	document.dispatchEvent(new Event('scroll', { bubbles: true }));
-
 	await awaitTranslation();
+
 	expect(translator.mock.calls).toHaveLength(1);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
