@@ -181,3 +181,65 @@ test('Translate element only after it appears in the viewport', async () => {
 	expect(translator).toHaveBeenCalledTimes(1);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
+
+test('Not translate the element if it is still not in the viewport after scrolling', async () => {
+	const container = document.createElement('div');
+	const div = document.createElement('div');
+	div.innerHTML = 'Hello world!';
+	container.appendChild(div);
+	document.body.appendChild(container);
+
+	container.style.width = '300px';
+	container.style.height = '300px';
+
+	mockBoundingClientRect(container, {
+		top: 0,
+		left: 0,
+		bottom: 300,
+		right: 300,
+		width: 300,
+		height: 300,
+	});
+
+	// element out of viewport, it not intersect container
+	mockBoundingClientRect(div, {
+		top: 400,
+		left: 0,
+		bottom: 500,
+		right: 100,
+		width: 100,
+		height: 100,
+	});
+
+	const lazyTranslator = new LazyDOMTranslator({
+		isTranslatableNode,
+		translator,
+		config: { intersectionConfig: { root: container } },
+	});
+
+	lazyTranslator.attach(div);
+	await awaitTranslation();
+
+	// don't translate because the element doesn't intersect the container
+	expect(translator).not.toHaveBeenCalled();
+	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+
+	// change coordinates, now element in viewport
+	mockBoundingClientRect(div, {
+		top: 330,
+		left: 0,
+		bottom: 200,
+		right: 100,
+		width: 100,
+		height: 100,
+	});
+
+	// simulates the scroll event, and the polyfill listens for the "scroll" event in the document
+	// the scroll event triggers an intersection check
+	document.dispatchEvent(new Event('scroll', { bubbles: true }));
+	await awaitTranslation();
+
+	// still have not translate
+	expect(translator).toHaveBeenCalledTimes(0);
+	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+});
