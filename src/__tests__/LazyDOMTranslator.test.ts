@@ -24,7 +24,6 @@ const mockBoundingClientRect = (element: HTMLElement, rect: Partial<DOMRect>) =>
 			x: 0,
 			y: 0,
 			...rect,
-			toJSON: () => JSON.stringify(rect),
 		})),
 	});
 };
@@ -137,9 +136,6 @@ test('Translate element only after it appears in the viewport', async () => {
 	container.appendChild(div);
 	document.body.appendChild(container);
 
-	container.style.width = '300px';
-	container.style.height = '300px';
-
 	mockBoundingClientRect(container, {
 		top: 0,
 		left: 0,
@@ -197,9 +193,6 @@ test('Not translate the element if it is still not in the viewport after scrolli
 	div.innerHTML = 'Hello world!';
 	container.appendChild(div);
 	document.body.appendChild(container);
-
-	container.style.width = '300px';
-	container.style.height = '300px';
 
 	mockBoundingClientRect(container, {
 		top: 0,
