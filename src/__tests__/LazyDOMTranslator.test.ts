@@ -1,4 +1,4 @@
-import { LazyDOMTranslator } from '../LazyDOMTranslator';
+import { IntersectionObserverWithFilter } from '../LazyDOMTranslator';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL } from './utils';
 
 require('intersection-observer');
@@ -38,7 +38,10 @@ test('Translate element from viewport', async () => {
 	div.innerHTML = 'Hello, World!';
 	document.body.appendChild(div);
 
-	const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
+	const lazyTranslator = new IntersectionObserverWithFilter({
+		filter: isTranslatableNode,
+		onIntersected: translator,
+	});
 
 	lazyTranslator.attach(div);
 	await awaitTranslation();
@@ -54,7 +57,10 @@ test('Translate one element twice', async () => {
 	div.innerHTML = 'Hello, World!';
 	document.body.appendChild(div);
 
-	const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
+	const lazyTranslator = new IntersectionObserverWithFilter({
+		filter: isTranslatableNode,
+		onIntersected: translator,
+	});
 	lazyTranslator.attach(div);
 	await awaitTranslation();
 
@@ -75,7 +81,10 @@ test('Translate one element twice', async () => {
 });
 
 test('Does not translate elements if they are not attached to the DOM or not visible', async () => {
-	const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
+	const lazyTranslator = new IntersectionObserverWithFilter({
+		filter: isTranslatableNode,
+		onIntersected: translator,
+	});
 
 	// element not attach to DOM
 	const div = document.createElement('div');
@@ -106,7 +115,10 @@ test('Does not translate elements if they are not attached to the DOM or not vis
 });
 
 test('Not translate element after detach', async () => {
-	const lazyTranslator = new LazyDOMTranslator({ isTranslatableNode, translator });
+	const lazyTranslator = new IntersectionObserverWithFilter({
+		filter: isTranslatableNode,
+		onIntersected: translator,
+	});
 
 	// create element with display=none, it not intersectible
 	const div = document.createElement('div');
@@ -154,9 +166,9 @@ test('Translate element only after it appears in the viewport', async () => {
 		height: 100,
 	});
 
-	const lazyTranslator = new LazyDOMTranslator({
-		isTranslatableNode,
-		translator,
+	const lazyTranslator = new IntersectionObserverWithFilter({
+		filter: isTranslatableNode,
+		onIntersected: translator,
 	});
 
 	lazyTranslator.attach(div);
@@ -209,9 +221,9 @@ test('Not translate the element if it is still not in the viewport after scrolli
 		height: 100,
 	});
 
-	const lazyTranslator = new LazyDOMTranslator({
-		isTranslatableNode,
-		translator,
+	const lazyTranslator = new IntersectionObserverWithFilter({
+		filter: isTranslatableNode,
+		onIntersected: translator,
 	});
 
 	lazyTranslator.attach(div);

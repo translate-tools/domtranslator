@@ -1,7 +1,7 @@
 import { NodesTranslator } from './NodesTranslator';
 import { Config, TranslatorInterface } from './types';
 import { configureTranslatableNodePredicate } from './utils/nodes';
-import { DOMTranslator, LazyDOMTranslator, TranslationDispatcher } from '.';
+import { DOMTranslator, IntersectionObserverWithFilter, TranslationDispatcher } from '.';
 
 /**
  * Module for dynamic translate a DOM nodes.
@@ -22,9 +22,9 @@ export class DefaultNodesTranslator extends NodesTranslator {
 			translateCallback,
 		});
 
-		const lazyDOMTranslator = new LazyDOMTranslator({
-			isTranslatableNode: innerConfig.isTranslatableNode,
-			translator: domTranslator.translateNode,
+		const lazyDOMTranslator = new IntersectionObserverWithFilter({
+			filter: innerConfig.isTranslatableNode,
+			onIntersected: domTranslator.translateNode,
 		});
 
 		super({

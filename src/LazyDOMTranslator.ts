@@ -4,27 +4,27 @@ import { TranslatableNodePredicate } from './types';
  * Translates nodes only if they intersect the viewport
  */
 
-export class LazyDOMTranslator {
+export class IntersectionObserverWithFilter {
 	// Store the nodes that is under observing for intersection
 	private readonly nodesObservedForIntersection = new WeakSet<Node>();
 	private readonly intersectionObserver: IntersectionObserver;
 
-	private readonly isTranslatableNode;
-	private readonly translator;
+	private readonly filter;
+	private readonly onIntersected;
 
 	constructor({
-		isTranslatableNode,
-		translator,
+		filter,
+		onIntersected,
 		config,
 	}: {
-		isTranslatableNode: TranslatableNodePredicate;
-		translator: (node: Node) => void;
+		filter: TranslatableNodePredicate;
+		onIntersected: (node: Node) => void;
 		config?: {
 			intersectionConfig?: IntersectionObserverInit;
 		};
 	}) {
-		this.isTranslatableNode = isTranslatableNode;
-		this.translator = translator;
+		this.filter = filter;
+		this.onIntersected = onIntersected;
 
 		this.intersectionObserver = new IntersectionObserver((entries, observer) => {
 			entries.forEach((entry) => {
@@ -60,10 +60,10 @@ export class LazyDOMTranslator {
 		// Translate child text nodes and attributes of target node
 		// WARNING: we shall not touch inner nodes, because its may still not intersected
 		node.childNodes.forEach((node) => {
-			if (node instanceof Element || !this.isTranslatableNode(node)) {
+			if (node instanceof Element || !this.filter(node)) {
 				return;
 			}
-			this.translator(node);
+			this.onIntersected(node);
 		});
 	}
 }

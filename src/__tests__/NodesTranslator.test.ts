@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 
 import { DOMTranslator } from '../DOMTranslator';
-import { LazyDOMTranslator } from '../LazyDOMTranslator';
+import { IntersectionObserverWithFilter } from '../LazyDOMTranslator';
 import { NodesTranslator } from '../NodesTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { Config, TranslatorInterface } from '../types';
@@ -45,9 +45,9 @@ function buildClass(translateCallback: TranslatorInterface, config?: Config) {
 		translateCallback,
 	});
 
-	const lazyDOMTranslator = new LazyDOMTranslator({
-		isTranslatableNode: innerConfig.isTranslatableNode,
-		translator: domTranslator.translateNode,
+	const lazyDOMTranslator = new IntersectionObserverWithFilter({
+		filter: innerConfig.isTranslatableNode,
+		onIntersected: domTranslator.translateNode,
 	});
 
 	return {
