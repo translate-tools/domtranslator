@@ -36,7 +36,7 @@ beforeEach(() => {
 	vi.clearAllMocks();
 });
 
-test('Translate element from viewport', async () => {
+test('Call onIntersected for node from viewport', async () => {
 	const div = document.createElement('div');
 	div.innerHTML = 'Hello, World!';
 	document.body.appendChild(div);
@@ -49,9 +49,8 @@ test('Translate element from viewport', async () => {
 	lazyTranslator.attach(div);
 	await awaitTranslation();
 
-	// The mock function was called ones
-	expect(translator.mock.calls).toHaveLength(1);
-	expect(translator).toHaveBeenCalledWith(div.childNodes[0]);
+	// The mock function was called once
+	expect(translator.mock.calls).toEqual([[div.childNodes[0]]]);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
@@ -83,47 +82,46 @@ test('Translate one element twice', async () => {
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Does not translate elements if they are not attached to the DOM or not visible', async () => {
+test('Call onIntersected for a node only when it becomes intersectable', async () => {
 	const lazyTranslator = new IntersectionObserverWithFilter({
 		filter: isTranslatableNode,
 		onIntersected: translator,
 	});
 
-	// element not attach to DOM
+	// node not attach to DOM, it not intersectable, not translate it
 	const div = document.createElement('div');
 	div.innerHTML = 'Hello, world';
 
 	lazyTranslator.attach(div);
 	await awaitTranslation();
 
-	expect(translator.mock.calls).toHaveLength(0);
+	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 	// Attach to the DOM, but elements with display = 'none' is not be intersectable, and not translate
-	// Element with the visible property is considered intersectable, so use the display=none property instead
+	// node with the visible='hidden' property is considered intersectable, so use the display=none property instead
 	document.body.appendChild(div);
 	div.style.display = 'none';
-
 	await awaitTranslation();
 
-	expect(translator.mock.calls).toHaveLength(0);
+	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// the element becomes visible and is translated
+	// the node becomes visible and is translated
 	div.style.display = 'block';
 	await awaitTranslation();
 
-	expect(translator.mock.calls).toHaveLength(1);
+	expect(translator.mock.calls).toEqual([[div.childNodes[0]]]);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Not translate element after detach', async () => {
+test('Not call onIntersected after node is detached', async () => {
 	const lazyTranslator = new IntersectionObserverWithFilter({
 		filter: isTranslatableNode,
 		onIntersected: translator,
 	});
 
-	// create element with display=none, it not intersectible
+	// create node with display=none, it not intersectible
 	const div = document.createElement('div');
 	div.innerHTML = 'Hello world!';
 	div.style.display = 'none';
@@ -132,20 +130,24 @@ test('Not translate element after detach', async () => {
 	lazyTranslator.attach(div);
 	await awaitTranslation();
 
-	// not translate because element not visible
-	expect(translator.mock.calls).toHaveLength(0);
+	// not translate because node not visible
+	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// element is detached to DOM
-	// becomes visible and intersectable, but is still not translated after detach
+	// node is detached
 	lazyTranslator.detach(div);
+	// becomes visible and intersectable, but is still not translated after detach
 	div.style.display = 'block';
 
-	expect(translator.mock.calls).toHaveLength(0);
+	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Translate element only after it appears in the viewport', async () => {
+test('Call onIntersected only after node intersect viewport', async () => {
+	const lazyTranslator = new IntersectionObserverWithFilter({
+		filter: isTranslatableNode,
+		onIntersected: translator,
+	});
 	const div = document.createElement('div');
 	div.innerHTML = 'Hello world!';
 	document.body.appendChild(div);
@@ -173,19 +175,14 @@ test('Translate element only after it appears in the viewport', async () => {
 		y: 0,
 	});
 
-	const lazyTranslator = new IntersectionObserverWithFilter({
-		filter: isTranslatableNode,
-		onIntersected: translator,
-	});
-
 	lazyTranslator.attach(div);
 	await awaitTranslation();
 
-	// don't translate because the element doesn't intersect the container
-	expect(translator.mock.calls).toHaveLength(0);
+	// don't translate because the node doesn't intersect the container
+	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// change coordinates, now element in viewport
+	// change coordinates, now node in viewport
 	mockBoundingClientRect(div, {
 		top: 0,
 		left: 0,
@@ -202,11 +199,15 @@ test('Translate element only after it appears in the viewport', async () => {
 	document.dispatchEvent(new Event('scroll', { bubbles: true }));
 	await awaitTranslation();
 
-	expect(translator.mock.calls).toHaveLength(1);
+	expect(translator.mock.calls).toEqual([[div.childNodes[0]]]);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Not translate the element if it is still not in the viewport after scrolling', async () => {
+test('Not call a onIntersected for node that not intersect viewport after scrolling', async () => {
+	const lazyTranslator = new IntersectionObserverWithFilter({
+		filter: isTranslatableNode,
+		onIntersected: translator,
+	});
 	const div = document.createElement('div');
 	div.innerHTML = 'Hello world!';
 	document.body.appendChild(div);
@@ -222,7 +223,7 @@ test('Not translate the element if it is still not in the viewport after scrolli
 		y: 0,
 	});
 
-	// element out of viewport, it not intersect container
+	// node out of viewport, it not intersect container
 	mockBoundingClientRect(div, {
 		top: 400,
 		left: 0,
@@ -234,19 +235,14 @@ test('Not translate the element if it is still not in the viewport after scrolli
 		y: 0,
 	});
 
-	const lazyTranslator = new IntersectionObserverWithFilter({
-		filter: isTranslatableNode,
-		onIntersected: translator,
-	});
-
 	lazyTranslator.attach(div);
 	await awaitTranslation();
 
 	// don't translate because the element doesn't intersect the container
-	expect(translator.mock.calls).toHaveLength(0);
+	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// change coordinates, element still not in viewport
+	// change coordinates, node still not in viewport
 	mockBoundingClientRect(div, {
 		top: 330,
 		left: 0,
@@ -264,6 +260,6 @@ test('Not translate the element if it is still not in the viewport after scrolli
 	await awaitTranslation();
 
 	// still have not translate
-	expect(translator.mock.calls).toHaveLength(0);
+	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
