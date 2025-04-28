@@ -1,6 +1,28 @@
 import { DOMTranslator } from '../DOMTranslator';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
 
+// mock for to translate the entire element tree
+const handleElementTree = (node: Node, callback: (node: Node) => void) => {
+	if (node instanceof Element) {
+		vi.fn((root: Element, callback: (n: Node) => void) => {
+			const handel = (n: Node) => {
+				callback(n);
+				if (n instanceof Element) {
+					Array.from(n.childNodes).forEach(handel);
+					Array.from(n.attributes).forEach(callback);
+				}
+			};
+			handel(root);
+		})(node, (node) => {
+			callback(node);
+		});
+	}
+};
+
+beforeEach(() => {
+	vi.clearAllMocks();
+});
+
 test('Translate and restore original element text', async () => {
 	const domTranslator = new DOMTranslator({
 		isTranslatableNode: Boolean,
@@ -104,91 +126,71 @@ test('Update translation for element', async () => {
 	);
 });
 
-describe('Restore node', () => {
-	// mock for to translate the entire element tree
-	const handleElementTree = (node: Node, callback: (node: Node) => void) => {
-		if (node instanceof Element) {
-			vi.fn((root: Element, callback: (n: Node) => void) => {
-				const handel = (n: Node) => {
-					callback(n);
-					if (n instanceof Element) {
-						Array.from(n.childNodes).forEach(handel);
-						Array.from(n.attributes).forEach(callback);
-					}
-				};
-				handel(root);
-			})(node, (node) => {
-				callback(node);
-			});
-		}
-	};
-
-	test('Restore the text element after a few translations', async () => {
-		const domTranslator = new DOMTranslator({
-			isTranslatableNode: Boolean,
-			translateCallback: translator,
-		});
-		const div = document.createElement('div');
-		div.innerHTML = 'Hello world!';
-
-		// translate
-		domTranslator.translateNode(div.childNodes[0]);
-		await awaitTranslation();
-
-		// translate again
-		const newText = 'Hello world 1234!';
-		div.innerHTML = newText;
-		domTranslator.translateNode(div.childNodes[0]);
-		await awaitTranslation();
-
-		// restore, elements have the last updated text and have not translated
-		domTranslator.restoreNode(div.childNodes[0]);
-		expect(div.innerHTML).toMatch(newText);
-		expect(div.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+test('Restore the text element after a few translations', async () => {
+	const domTranslator = new DOMTranslator({
+		isTranslatableNode: Boolean,
+		translateCallback: translator,
 	});
+	const div = document.createElement('div');
+	div.innerHTML = 'Hello world!';
 
-	test('Restore translations from all nested nodes in the element', async () => {
-		const domTranslator = new DOMTranslator({
-			isTranslatableNode: Boolean,
-			translateCallback: translator,
-		});
-		const parentDiv = document.createElement('div');
-		parentDiv.innerHTML = 'Hello world!';
-		const childDiv = document.createElement('div');
-		childDiv.innerHTML = 'Hello world too!';
-		parentDiv.append(childDiv);
+	// translate
+	domTranslator.translateNode(div.childNodes[0]);
+	await awaitTranslation();
 
-		handleElementTree(parentDiv, domTranslator.translateNode);
-		await awaitTranslation();
+	// translate again
+	const newText = 'Hello world 1234!';
+	div.innerHTML = newText;
+	domTranslator.translateNode(div.childNodes[0]);
+	await awaitTranslation();
 
-		domTranslator.restoreNode(parentDiv);
+	// restore, elements have the last updated text and have not translated
+	domTranslator.restoreNode(div.childNodes[0]);
+	expect(div.innerHTML).toMatch(newText);
+	expect(div.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+});
 
-		// child node and target has not translated text
-		expect(parentDiv.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
-		expect(childDiv.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+test('Restore translations from all nested nodes in the element', async () => {
+	const domTranslator = new DOMTranslator({
+		isTranslatableNode: Boolean,
+		translateCallback: translator,
 	});
+	const parentDiv = document.createElement('div');
+	parentDiv.innerHTML = 'Hello world!';
+	const childDiv = document.createElement('div');
+	childDiv.innerHTML = 'Hello world too!';
+	parentDiv.append(childDiv);
 
-	test('Delete translation only from target element', async () => {
-		const domTranslator = new DOMTranslator({
-			isTranslatableNode: Boolean,
-			translateCallback: translator,
-		});
-		const parentDiv = document.createElement('div');
-		parentDiv.innerHTML = 'Hello world!';
-		const childDiv = document.createElement('div');
-		childDiv.innerHTML = 'Hello world too!';
-		parentDiv.append(childDiv);
+	handleElementTree(parentDiv, domTranslator.translateNode);
+	await awaitTranslation();
 
-		handleElementTree(parentDiv, domTranslator.translateNode);
-		await awaitTranslation();
+	domTranslator.restoreNode(parentDiv);
 
-		domTranslator.restoreNode(parentDiv.childNodes[0], true);
+	// child node and target has not translated text
+	expect(parentDiv.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(childDiv.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+});
 
-		//target element has not translation
-		expect(parentDiv.childNodes[0].textContent).not.toMatch(
-			containsRegex(TRANSLATION_SYMBOL),
-		);
-		// child element still has translation
-		expect(childDiv.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
+test('Delete translation only from target element', async () => {
+	const domTranslator = new DOMTranslator({
+		isTranslatableNode: Boolean,
+		translateCallback: translator,
 	});
+	const parentDiv = document.createElement('div');
+	parentDiv.innerHTML = 'Hello world!';
+	const childDiv = document.createElement('div');
+	childDiv.innerHTML = 'Hello world too!';
+	parentDiv.append(childDiv);
+
+	handleElementTree(parentDiv, domTranslator.translateNode);
+	await awaitTranslation();
+
+	domTranslator.restoreNode(parentDiv.childNodes[0], true);
+
+	//target element has not translation
+	expect(parentDiv.childNodes[0].textContent).not.toMatch(
+		containsRegex(TRANSLATION_SYMBOL),
+	);
+	// child element still has translation
+	expect(childDiv.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
