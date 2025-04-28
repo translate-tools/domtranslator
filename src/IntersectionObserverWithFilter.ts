@@ -1,9 +1,8 @@
 import { TranslatableNodePredicate } from './types';
 
 /**
- * Translates nodes only if they intersect the viewport
+ * Call the provided callback when the node intersects the viewport
  */
-
 export class IntersectionObserverWithFilter {
 	// Store the nodes that is under observing for intersection
 	private readonly nodesObservedForIntersection = new WeakSet<Node>();
