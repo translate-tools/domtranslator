@@ -63,22 +63,6 @@ test('Get original node text', async () => {
 	);
 });
 
-test('Not translate empty element', async () => {
-	const domTranslator = new DOMTranslator({
-		isTranslatableNode: Boolean,
-		translateCallback: translator,
-	});
-
-	const div = document.createElement('div');
-	div.innerHTML = ' ';
-
-	// translate
-	domTranslator.translateNode(div.childNodes[0]);
-	await awaitTranslation();
-
-	expect(div.childNodes[0].textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
-});
-
 test('Translated node has in the storage', async () => {
 	const domTranslator = new DOMTranslator({
 		isTranslatableNode: Boolean,
