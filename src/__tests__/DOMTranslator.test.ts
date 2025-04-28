@@ -23,7 +23,7 @@ beforeEach(() => {
 	vi.clearAllMocks();
 });
 
-test('Translate and restore original element text', async () => {
+test('Translate and restore original node text', async () => {
 	const domTranslator = new DOMTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
@@ -79,7 +79,7 @@ test('Not translate empty element', async () => {
 	expect(div.childNodes[0].textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Checks existing element in storage', async () => {
+test('Translated node has in the storage', async () => {
 	const domTranslator = new DOMTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
@@ -97,7 +97,7 @@ test('Checks existing element in storage', async () => {
 	expect(domTranslator.hasNode(div.childNodes[0])).toBe(false);
 });
 
-test('Update translation for element', async () => {
+test('Update translation for node', async () => {
 	const domTranslator = new DOMTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
@@ -126,7 +126,7 @@ test('Update translation for element', async () => {
 	);
 });
 
-test('Restore the text element after a few translations', async () => {
+test('Restored node contain the most recent content after few translate', async () => {
 	const domTranslator = new DOMTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
