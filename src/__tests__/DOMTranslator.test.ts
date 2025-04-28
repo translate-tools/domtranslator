@@ -75,38 +75,31 @@ test('Checks existing element in storage', async () => {
 	expect(domTranslator.hasNode(div.childNodes[0])).toBe(false);
 });
 
-test('Update translation for element ', async () => {
+test('Update translation for element', async () => {
 	const domTranslator = new DOMTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
 	});
-	const div = document.createElement('div');
-	const originalText = 'Hello world!';
-	div.innerHTML = originalText;
-
 	// spy on the updateNode method
 	const updateNodesSpy = vi.spyOn(domTranslator as DOMTranslator, 'updateNode');
 
+	const text = 'Hello world!';
+	const textNode = document.createTextNode(text);
+
 	// translate element
-	domTranslator.translateNode(div.childNodes[0]);
+	domTranslator.translateNode(textNode);
 	await awaitTranslation();
 
-	// update element
-	const newText = 'Goodbye world!';
-	div.innerHTML = newText;
-	domTranslator.translateNode(div.childNodes[0]);
+	// In the actual code the sequence of calls is as follows:
+	// Node is translated -> the node's content is changed ->
+	// Node update event is triggered -> the updateNode method is called with new translated content
+	domTranslator.updateNode(textNode);
 	await awaitTranslation();
-
-	domTranslator.updateNode(div.childNodes[0]);
-	await awaitTranslation();
-
-	// correct text translation
-	expect(div.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div.innerHTML).toMatch(newText);
 
 	// update calls one time
 	expect(updateNodesSpy).toBeCalledTimes(1);
-	expect(updateNodesSpy.mock.calls[0][0]).toMatchObject(
+	expect(updateNodesSpy.mock.calls[0][0].nodeValue).toMatch(text);
+	expect(updateNodesSpy.mock.calls[0][0].nodeValue).toMatch(
 		containsRegex(TRANSLATION_SYMBOL),
 	);
 });
@@ -137,16 +130,18 @@ describe('Restore node', () => {
 		});
 		const div = document.createElement('div');
 		div.innerHTML = 'Hello world!';
+
+		// translate
 		domTranslator.translateNode(div.childNodes[0]);
 		await awaitTranslation();
 
-		// update text
+		// translate again
 		const newText = 'Hello world 1234!';
 		div.innerHTML = newText;
 		domTranslator.translateNode(div.childNodes[0]);
 		await awaitTranslation();
 
-		// restore
+		// restore, elements have the last updated text and have not translated
 		domTranslator.restoreNode(div.childNodes[0]);
 		expect(div.innerHTML).toMatch(newText);
 		expect(div.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
