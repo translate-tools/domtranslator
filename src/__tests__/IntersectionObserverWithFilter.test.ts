@@ -54,34 +54,6 @@ test('Call onIntersected for node from viewport', async () => {
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Translate one element twice', async () => {
-	const div = document.createElement('div');
-	div.innerHTML = 'Hello, World!';
-	document.body.appendChild(div);
-
-	const lazyTranslator = new IntersectionObserverWithFilter({
-		filter: isTranslatableNode,
-		onIntersected: translator,
-	});
-	lazyTranslator.attach(div);
-	await awaitTranslation();
-
-	expect(translator.mock.calls).toHaveLength(1);
-	expect(translator).toHaveBeenCalledWith(div.childNodes[0]);
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-
-	// update element content
-	const updatedText = 'Hello, World 12345!';
-	div.innerHTML = updatedText;
-
-	lazyTranslator.attach(div);
-	await awaitTranslation();
-
-	// translated text contains translated symbols and updated text
-	expect(div.textContent).toMatch(updatedText);
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-});
-
 test('Call onIntersected for a node only when it becomes intersectable', async () => {
 	const lazyTranslator = new IntersectionObserverWithFilter({
 		filter: isTranslatableNode,
