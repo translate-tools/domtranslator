@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 
 import { DOMTranslator } from '../DOMTranslator';
-import { IntersectionObserverWithFilter } from '../LazyDOMTranslator';
+import { IntersectionObserverWithFilter } from '../IntersectionObserverWithFilter';
 import { NodesTranslator } from '../NodesTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { Config, TranslatorInterface } from '../types';

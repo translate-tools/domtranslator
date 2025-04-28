@@ -1,4 +1,4 @@
-import { IntersectionObserverWithFilter } from '../LazyDOMTranslator';
+import { IntersectionObserverWithFilter } from '../IntersectionObserverWithFilter';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL } from './utils';
 
 require('intersection-observer');
