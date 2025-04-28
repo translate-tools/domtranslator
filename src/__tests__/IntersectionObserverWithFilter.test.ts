@@ -7,28 +7,31 @@ const translator = vi.fn().mockImplementation(async (node: Node) => {
 	node.textContent += TRANSLATION_SYMBOL;
 });
 
-const isTranslatableNode = (node: Node) => node instanceof Text || node instanceof Attr;
+const isTranslatableNode = () => true;
 
 // jsdom does not actually modify element coordinates
 // Create a mock that sets the real values for the coordinates
-const mockBoundingClientRect = (element: HTMLElement, rect: Partial<DOMRect>) => {
+// DOMRect interface requires the toJSON property, this is not necessary for our tests, so use Omit utility type
+const mockBoundingClientRect = (element: HTMLElement, rect: Omit<DOMRect, 'toJSON'>) => {
 	Object.defineProperty(element, 'getBoundingClientRect', {
 		configurable: true,
-		value: vi.fn(() => ({
-			top: 0,
-			left: 0,
-			bottom: 0,
-			right: 0,
-			width: 0,
-			height: 0,
-			x: 0,
-			y: 0,
+		value: () => ({
 			...rect,
-		})),
+		}),
 	});
 };
 
 beforeEach(() => {
+	mockBoundingClientRect(document.body, {
+		top: 0,
+		left: 0,
+		bottom: 0,
+		right: 0,
+		width: 0,
+		height: 0,
+		x: 0,
+		y: 0,
+	});
 	document.body.innerHTML = '';
 	vi.clearAllMocks();
 });
@@ -154,6 +157,8 @@ test('Translate element only after it appears in the viewport', async () => {
 		right: 300,
 		width: 300,
 		height: 300,
+		x: 0,
+		y: 0,
 	});
 
 	// element out of viewport, it not intersect container
@@ -164,6 +169,8 @@ test('Translate element only after it appears in the viewport', async () => {
 		right: 100,
 		width: 100,
 		height: 100,
+		x: 0,
+		y: 0,
 	});
 
 	const lazyTranslator = new IntersectionObserverWithFilter({
@@ -186,6 +193,8 @@ test('Translate element only after it appears in the viewport', async () => {
 		right: 100,
 		width: 100,
 		height: 100,
+		x: 0,
+		y: 0,
 	});
 
 	// simulates the scroll event; the polyfill listens for the "scroll" event in the document
@@ -209,6 +218,8 @@ test('Not translate the element if it is still not in the viewport after scrolli
 		right: 300,
 		width: 300,
 		height: 300,
+		x: 0,
+		y: 0,
 	});
 
 	// element out of viewport, it not intersect container
@@ -219,6 +230,8 @@ test('Not translate the element if it is still not in the viewport after scrolli
 		right: 100,
 		width: 100,
 		height: 100,
+		x: 0,
+		y: 0,
 	});
 
 	const lazyTranslator = new IntersectionObserverWithFilter({
@@ -241,6 +254,8 @@ test('Not translate the element if it is still not in the viewport after scrolli
 		right: 100,
 		width: 100,
 		height: 100,
+		x: 0,
+		y: 0,
 	});
 
 	// simulates the scroll event, and the polyfill listens for the "scroll" event in the document
