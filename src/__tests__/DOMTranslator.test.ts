@@ -90,24 +90,29 @@ test('Update translation for node', async () => {
 	const updateNodesSpy = vi.spyOn(domTranslator as DOMTranslator, 'updateNode');
 
 	const text = 'Hello world!';
-	const textNode = document.createTextNode(text);
+	const div = document.createElement('div');
+	div.innerHTML = text;
 
 	// translate element
-	domTranslator.translateNode(textNode);
+	domTranslator.translateNode(div.childNodes[0]);
 	await awaitTranslation();
 
 	// In the actual code the sequence of calls is as follows:
 	// Node is translated -> the node's content is changed ->
 	// Node update event is triggered -> the updateNode method is called with new translated content
-	domTranslator.updateNode(textNode);
+	domTranslator.updateNode(div.childNodes[0]);
 	await awaitTranslation();
 
 	// update calls one time
 	expect(updateNodesSpy).toBeCalledTimes(1);
-	expect(updateNodesSpy.mock.calls[0][0].nodeValue).toMatch(text);
-	expect(updateNodesSpy.mock.calls[0][0].nodeValue).toMatch(
-		containsRegex(TRANSLATION_SYMBOL),
-	);
+	expect(updateNodesSpy.mock.calls).toEqual([[div.childNodes[0]]]);
+	expect(updateNodesSpy.mock.calls).toEqual([
+		[
+			expect.objectContaining({
+				nodeValue: expect.stringMatching(containsRegex(TRANSLATION_SYMBOL)),
+			}),
+		],
+	]);
 });
 
 test('Restored node contain the most recent content after few translate', async () => {
