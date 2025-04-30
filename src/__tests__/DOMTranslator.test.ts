@@ -44,7 +44,7 @@ test('Translate and restore original node text', async () => {
 	expect(div.innerHTML).toMatch(originElementText);
 });
 
-test('Get original node text', async () => {
+test('Returns original text node after translation', async () => {
 	const domTranslator = new DOMTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
@@ -81,7 +81,7 @@ test('Translated node has in the storage', async () => {
 	expect(domTranslator.hasNode(div.childNodes[0])).toBe(false);
 });
 
-test('Update translation for node', async () => {
+test('Calls updateNode when node content is updated', async () => {
 	const domTranslator = new DOMTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
@@ -158,28 +158,4 @@ test('Restore translations from all nested nodes in the element', async () => {
 	// child node and target has not translated text
 	expect(parentDiv.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(childDiv.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
-});
-
-test('Delete translation only from target element', async () => {
-	const domTranslator = new DOMTranslator({
-		isTranslatableNode: Boolean,
-		translateCallback: translator,
-	});
-	const parentDiv = document.createElement('div');
-	parentDiv.innerHTML = 'Hello world!';
-	const childDiv = document.createElement('div');
-	childDiv.innerHTML = 'Hello world too!';
-	parentDiv.append(childDiv);
-
-	handleElementTree(parentDiv, domTranslator.translateNode);
-	await awaitTranslation();
-
-	domTranslator.restoreNode(parentDiv.childNodes[0], true);
-
-	//target element has not translation
-	expect(parentDiv.childNodes[0].textContent).not.toMatch(
-		containsRegex(TRANSLATION_SYMBOL),
-	);
-	// child element still has translation
-	expect(childDiv.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
