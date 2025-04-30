@@ -1,28 +1,6 @@
 import { DOMTranslator } from '../DOMTranslator';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
 
-// mock for to translate the entire element tree
-const handleElementTree = (node: Node, callback: (node: Node) => void) => {
-	if (node instanceof Element) {
-		vi.fn((root: Element, callback: (n: Node) => void) => {
-			const handel = (n: Node) => {
-				callback(n);
-				if (n instanceof Element) {
-					Array.from(n.childNodes).forEach(handel);
-					Array.from(n.attributes).forEach(callback);
-				}
-			};
-			handel(root);
-		})(node, (node) => {
-			callback(node);
-		});
-	}
-};
-
-beforeEach(() => {
-	vi.clearAllMocks();
-});
-
 test('Translate and restore original node text', async () => {
 	const domTranslator = new DOMTranslator({
 		isTranslatableNode: Boolean,
@@ -140,6 +118,24 @@ test('Restored node contain the most recent content after few translate', async 
 });
 
 test('Restore translations from all nested nodes in the element', async () => {
+	// mock for to translate the entire element tree
+	const handleElementTree = (node: Node, callback: (node: Node) => void) => {
+		if (node instanceof Element) {
+			vi.fn((root: Element, callback: (n: Node) => void) => {
+				const handel = (n: Node) => {
+					callback(n);
+					if (n instanceof Element) {
+						Array.from(n.childNodes).forEach(handel);
+						Array.from(n.attributes).forEach(callback);
+					}
+				};
+				handel(root);
+			})(node, (node) => {
+				callback(node);
+			});
+		}
+	};
+
 	const domTranslator = new DOMTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
