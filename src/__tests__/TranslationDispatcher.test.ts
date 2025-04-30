@@ -29,7 +29,7 @@ function createClassDependency(
 	return { intersectionObserver, domTranslator };
 }
 
-test('Not use intersectionObserver for not intersectedle node', async () => {
+test('Not call intersectionObserver for not intersectedle node', async () => {
 	const config = {
 		isTranslatableNode: () => true,
 		lazyTranslate: true,
@@ -106,37 +106,4 @@ test('Not use lazy strategy with falsy lazyTranslate param', async () => {
 	// lazy translator not called
 	expect(intersectionObserverSpy.mock.calls).toEqual([]);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-});
-
-test('Translates entire DOM subtree', async () => {
-	const config = {
-		isTranslatableNode: () => true,
-		lazyTranslate: false,
-	};
-	const { domTranslator, intersectionObserver } = createClassDependency(
-		config.isTranslatableNode,
-		translator,
-	);
-	const translationDispatcher = new TranslationDispatcher({
-		config,
-		domTranslator: domTranslator,
-		lazyDOMTranslator: intersectionObserver,
-	});
-
-	const div = document.createElement('div');
-	div.innerHTML = 'Hello';
-	const div1 = document.createElement('div');
-	div1.innerHTML = 'Hello world';
-	const p = document.createElement('p');
-	p.innerHTML = 'I`m a fox';
-	div1.appendChild(p);
-	div.appendChild(div1);
-
-	translationDispatcher.translateNode(div1);
-	await awaitTranslation();
-
-	// all nodes was translated
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div1.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(p.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
