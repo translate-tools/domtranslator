@@ -1,7 +1,7 @@
 import { TranslatableNodePredicate } from './TranslationDispatcher';
 
 /**
- * Call the provided callback when the node intersects the viewport
+ * Observe DOM nodes and call a callback for filtered nodes when they intersect the viewport
  */
 export class IntersectionObserverWithFilter {
 	// Store the nodes that is under observing for intersection
@@ -51,7 +51,6 @@ export class IntersectionObserverWithFilter {
 
 	public detach(node: Element) {
 		this.nodesObservedForIntersection.delete(node);
-
 		this.intersectionObserver.unobserve(node);
 	}
 
