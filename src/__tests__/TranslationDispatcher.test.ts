@@ -10,6 +10,10 @@ const intersectionObserverSpy = vi.spyOn(
 	'attach',
 );
 
+beforeEach(() => {
+	vi.clearAllMocks();
+});
+
 function createClassDependency(
 	isTranslatableNode: (node: Node) => boolean,
 	translateCallback: (text: string) => Promise<string>,
