@@ -1,4 +1,4 @@
-import { TranslatableNodePredicate } from './types';
+import { TranslatableNodePredicate } from './TranslationDispatcher';
 
 /**
  * Call the provided callback when the node intersects the viewport

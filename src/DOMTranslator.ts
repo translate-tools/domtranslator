@@ -1,4 +1,5 @@
-import { TranslatableNodePredicate, TranslatorInterface } from './types';
+import { TranslatableNodePredicate } from './TranslationDispatcher';
+import { TranslatorInterface } from './types';
 import { isInViewport } from './utils/isInViewport';
 import { visitWholeTree } from './utils/visitWholeTree';
 
