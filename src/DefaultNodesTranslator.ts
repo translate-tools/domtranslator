@@ -1,5 +1,6 @@
+import { TranslatorInterface } from './DOMTranslator';
 import { NodesTranslator } from './NodesTranslator';
-import { Config, TranslatorInterface } from './types';
+import { Config } from './types';
 import { configureTranslatableNodePredicate } from './utils/nodes';
 import { DOMTranslator, IntersectionObserverWithFilter, TranslationDispatcher } from '.';
 

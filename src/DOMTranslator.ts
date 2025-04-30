@@ -1,7 +1,8 @@
 import { TranslatableNodePredicate } from './TranslationDispatcher';
-import { TranslatorInterface } from './types';
 import { isInViewport } from './utils/isInViewport';
 import { visitWholeTree } from './utils/visitWholeTree';
+
+export type TranslatorInterface = (text: string, priority: number) => Promise<string>;
 
 interface NodeData {
 	/**
