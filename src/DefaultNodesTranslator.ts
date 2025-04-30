@@ -1,8 +1,17 @@
 import { TranslatorInterface } from './DOMTranslator';
 import { NodesTranslator } from './NodesTranslator';
-import { Config } from './types';
 import { configureTranslatableNodePredicate } from './utils/nodes';
-import { DOMTranslator, IntersectionObserverWithFilter, TranslationDispatcher } from '.';
+import {
+	DOMTranslator,
+	IntersectionObserverWithFilter,
+	TranslatableNodePredicate,
+	TranslationDispatcher,
+} from '.';
+
+export interface Config {
+	isTranslatableNode?: TranslatableNodePredicate;
+	lazyTranslate?: boolean;
+}
 
 /**
  * Module for dynamic translate a DOM nodes.

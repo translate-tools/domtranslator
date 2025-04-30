@@ -1,10 +1,10 @@
 import { readFileSync } from 'fs';
 
-import { DOMTranslator , TranslatorInterface } from '../DOMTranslator';
+import { Config } from '../DefaultNodesTranslator';
+import { DOMTranslator, TranslatorInterface } from '../DOMTranslator';
 import { IntersectionObserverWithFilter } from '../IntersectionObserverWithFilter';
 import { NodesTranslator } from '../NodesTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
-import { Config } from '../types';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
 
 require('intersection-observer');
