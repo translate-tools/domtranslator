@@ -5,7 +5,10 @@ import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from 
 
 require('intersection-observer');
 
-const lazyTranslatorSpy = vi.spyOn(IntersectionObserverWithFilter.prototype, 'attach');
+const intersectionObserverSpy = vi.spyOn(
+	IntersectionObserverWithFilter.prototype,
+	'attach',
+);
 
 beforeEach(() => {
 	vi.clearAllMocks();
@@ -26,7 +29,7 @@ function createClassDependency(
 	return { intersectionObserver, domTranslator };
 }
 
-test('Translate node immediately', async () => {
+test('Not use intersectionObserver for not intersectedle node', async () => {
 	const config = {
 		isTranslatableNode: () => true,
 		lazyTranslate: true,
@@ -41,18 +44,19 @@ test('Translate node immediately', async () => {
 		lazyDOMTranslator: intersectionObserver,
 	});
 
-	// Node not to attach the DOM, is can`t translate lazy, but should translated immediately
-	const div = document.createElement('div');
-	div.innerHTML = 'Hello, world!';
-	translationDispatcher.translateNode(div);
+	// OPTION node is not intersectible, node can`t translate 'lazy'
+	const node = document.createElement('option');
+	node.innerHTML = 'Hello, world!';
+	document.body.appendChild(node);
+	translationDispatcher.translateNode(node);
 	await awaitTranslation();
 
 	// lazy translator not called
-	expect(lazyTranslatorSpy).toBeCalledTimes(0);
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(intersectionObserverSpy).toBeCalledTimes(0);
+	expect(node.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Translate node lazy', async () => {
+test('Call IntersectionObserver for deferred translation of intersecting node', async () => {
 	const config = {
 		isTranslatableNode: () => true,
 		lazyTranslate: true,
@@ -74,11 +78,11 @@ test('Translate node lazy', async () => {
 	await awaitTranslation();
 
 	// lazy translator called
-	expect(lazyTranslatorSpy.mock.calls).toEqual([[div]]);
+	expect(intersectionObserverSpy.mock.calls).toEqual([[div]]);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Translate immediately with lazyTranslate false', async () => {
+test('Not use lazy strategy with falsy lazyTranslate param', async () => {
 	const config = {
 		isTranslatableNode: () => true,
 		lazyTranslate: false,
@@ -100,11 +104,11 @@ test('Translate immediately with lazyTranslate false', async () => {
 	await awaitTranslation();
 
 	// lazy translator not called
-	expect(lazyTranslatorSpy.mock.calls).toEqual([]);
+	expect(intersectionObserverSpy.mock.calls).toEqual([]);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Translate the entire node tree', async () => {
+test('Translates entire DOM subtree', async () => {
 	const config = {
 		isTranslatableNode: () => true,
 		lazyTranslate: false,
