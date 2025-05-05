@@ -1,6 +1,5 @@
 import { TranslatableNodePredicate } from './TranslationDispatcher';
 import { isInViewport } from './utils/isInViewport';
-import { visitWholeTree } from './utils/visitWholeTree';
 
 export type TranslatorInterface = (text: string, priority: number) => Promise<string>;
 
@@ -110,16 +109,8 @@ export class DOMTranslator {
 
 	/**
 	 * Restores the original node text
-	 * @param onlyTarget determines whether only the target node or all its nested nodes will be restored
 	 */
-	public restoreNode(node: Node, onlyTarget = false) {
-		// Delete all attributes and inner nodes
-		if (node instanceof Element && !onlyTarget) {
-			visitWholeTree(node, (node) => {
-				this.restoreNode(node, true);
-			});
-		}
-
+	public restoreNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
 		if (nodeData == undefined) {
 			return;
