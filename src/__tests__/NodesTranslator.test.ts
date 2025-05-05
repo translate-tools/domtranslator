@@ -44,7 +44,7 @@ function buildTranslationServices(
 		translateCallback,
 	});
 
-	// enable intersectionObserver if the lazyTranslate parameter is passed
+	// not create instance if param lazyTranslate falsy
 	const intersectionObserverWithFilter = config.lazyTranslate
 		? new IntersectionObserverWithFilter({
 			filter: isTranslatableNode,
@@ -53,7 +53,7 @@ function buildTranslationServices(
 		: undefined;
 
 	const translatorDispatcher = new TranslationDispatcher({
-		config: { isTranslatableNode },
+		isTranslatableNode,
 		domTranslator: domNodeTranslator,
 		lazyDOMTranslator: intersectionObserverWithFilter,
 	});

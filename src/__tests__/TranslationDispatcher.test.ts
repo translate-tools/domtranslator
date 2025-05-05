@@ -22,7 +22,7 @@ test('Not call intersectionObserver for not intersectedle node', async () => {
 		translateCallback: translator,
 	});
 	const translationDispatcher = new TranslationDispatcher({
-		config: { isTranslatableNode },
+		isTranslatableNode,
 		domTranslator: domTranslator,
 
 		lazyDOMTranslator: new IntersectionObserverWithFilter({
@@ -49,7 +49,7 @@ test('Call IntersectionObserver for deferred translation of intersecting node', 
 		translateCallback: translator,
 	});
 	const translationDispatcher = new TranslationDispatcher({
-		config: { isTranslatableNode },
+		isTranslatableNode,
 		domTranslator: domTranslator,
 
 		lazyDOMTranslator: new IntersectionObserverWithFilter({
@@ -75,7 +75,7 @@ test('Not use lazy strategy with falsy lazyTranslate param', async () => {
 		translateCallback: translator,
 	});
 	const translationDispatcher = new TranslationDispatcher({
-		config: { isTranslatableNode },
+		isTranslatableNode,
 		domTranslator: domTranslator,
 	});
 

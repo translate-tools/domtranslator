@@ -20,7 +20,6 @@ export interface Config {
 export class DefaultNodesTranslator extends NodesTranslator {
 	constructor(translateCallback: TranslatorInterface, config?: Config) {
 		const innerConfig = {
-			...config,
 			isTranslatableNode:
 				config?.isTranslatableNode ?? configureTranslatableNodePredicate(),
 			lazyTranslate:
@@ -32,16 +31,19 @@ export class DefaultNodesTranslator extends NodesTranslator {
 			translateCallback,
 		});
 
-		const lazyDOMTranslator = new IntersectionObserverWithFilter({
-			filter: innerConfig.isTranslatableNode,
-			onIntersected: domTranslator.translateNode,
-		});
+		// not create instance if param lazyTranslate falsy
+		const lazyDOMTranslator = innerConfig.lazyTranslate
+			? new IntersectionObserverWithFilter({
+				filter: innerConfig.isTranslatableNode,
+				onIntersected: domTranslator.translateNode,
+			  })
+			: undefined;
 
 		super({
 			translatorDispatcher: new TranslationDispatcher({
-				config: innerConfig,
-				domTranslator: domTranslator,
-				lazyDOMTranslator: lazyDOMTranslator,
+				isTranslatableNode: innerConfig.isTranslatableNode,
+				domTranslator,
+				lazyDOMTranslator,
 			}),
 			domTranslator,
 		});

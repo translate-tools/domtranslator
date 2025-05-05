@@ -9,22 +9,21 @@ export type TranslatableNodePredicate = (node: Node) => boolean;
  * Class coordinates the processing of DOM nodes for translation. Choose translation strategy: lazy or immediate.
  */
 export class TranslationDispatcher {
-	private readonly config;
+	private readonly isTranslatableNode: TranslatableNodePredicate;
 	private readonly domTranslator: DOMNodesTranslator;
+	// if dependency is not passed, then the node will not be translated lazy
 	private readonly lazyDOMTranslator: IntersectionObserverWithFilter | null;
 
 	constructor({
-		config,
+		isTranslatableNode,
 		domTranslator,
 		lazyDOMTranslator,
 	}: {
-		config: {
-			isTranslatableNode: TranslatableNodePredicate;
-		};
+		isTranslatableNode: TranslatableNodePredicate;
 		domTranslator: DOMNodesTranslator;
 		lazyDOMTranslator?: IntersectionObserverWithFilter;
 	}) {
-		this.config = config;
+		this.isTranslatableNode = isTranslatableNode;
 		this.domTranslator = domTranslator;
 		this.lazyDOMTranslator = lazyDOMTranslator || null;
 	}
@@ -43,7 +42,7 @@ export class TranslationDispatcher {
 			visitWholeTree(node, (node) => {
 				if (node instanceof Element) return;
 
-				if (this.config.isTranslatableNode(node)) {
+				if (this.isTranslatableNode(node)) {
 					this.translateNode(node);
 				}
 			});
