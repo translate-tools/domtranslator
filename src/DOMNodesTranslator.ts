@@ -57,8 +57,8 @@ function getNodePriority(node: Node) {
 }
 
 /**
- * Manages a translation state of DOM nodes, registers nodes and initiates translation.
- * Updates the translation when a node is modified or deleted
+ * Manages a translation state of DOM nodes. Processing text-containing nodes (Text, Attr, etc).
+ * Registers nodes and initiates translation, updates the translation when a node is modified or deleted.
  */
 export class DOMNodesTranslator {
 	private idCounter = 0;
