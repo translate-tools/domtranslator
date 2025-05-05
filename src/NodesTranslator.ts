@@ -11,17 +11,17 @@ import { TranslationDispatcher } from './TranslationDispatcher';
  */
 export class NodesTranslator {
 	private readonly translatorDispatcher;
-	private readonly domTranslator;
+	private readonly domNodesTranslator;
 
 	constructor({
 		translatorDispatcher,
-		domTranslator,
+		domNodesTranslator,
 	}: {
 		translatorDispatcher: TranslationDispatcher;
-		domTranslator: DOMNodesTranslator;
+		domNodesTranslator: DOMNodesTranslator;
 	}) {
 		this.translatorDispatcher = translatorDispatcher;
-		this.domTranslator = domTranslator;
+		this.domNodesTranslator = domNodesTranslator;
 	}
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
@@ -74,6 +74,6 @@ export class NodesTranslator {
 	}
 
 	public getNodeData(node: Node) {
-		return this.domTranslator.getOriginalNodeText(node);
+		return this.domNodesTranslator.getOriginalNodeText(node);
 	}
 }

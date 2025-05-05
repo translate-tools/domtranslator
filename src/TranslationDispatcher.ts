@@ -10,13 +10,13 @@ export type TranslatableNodePredicate = (node: Node) => boolean;
  */
 export class TranslationDispatcher {
 	private readonly isTranslatableNode: TranslatableNodePredicate;
-	private readonly domTranslator: DOMNodesTranslator;
+	private readonly domNodesTranslator: DOMNodesTranslator;
 	// if dependency is not passed, then the node will not be translated lazy
 	private readonly lazyDOMTranslator: IntersectionObserverWithFilter | null;
 
 	constructor({
 		isTranslatableNode,
-		domTranslator,
+		domTranslator: domNodesTranslator,
 		lazyDOMTranslator,
 	}: {
 		isTranslatableNode: TranslatableNodePredicate;
@@ -24,16 +24,16 @@ export class TranslationDispatcher {
 		lazyDOMTranslator?: IntersectionObserverWithFilter;
 	}) {
 		this.isTranslatableNode = isTranslatableNode;
-		this.domTranslator = domTranslator;
+		this.domNodesTranslator = domNodesTranslator;
 		this.lazyDOMTranslator = lazyDOMTranslator || null;
 	}
 
 	public updateNode(node: Node) {
-		this.domTranslator.updateNode(node);
+		this.domNodesTranslator.updateNode(node);
 	}
 
 	public hasNode(node: Node) {
-		return this.domTranslator.hasNode(node);
+		return this.domNodesTranslator.hasNode(node);
 	}
 
 	public translateNode(node: Node) {
@@ -68,7 +68,7 @@ export class TranslationDispatcher {
 			}
 		}
 
-		this.domTranslator.translateNode(node);
+		this.domNodesTranslator.translateNode(node);
 	}
 
 	/**
@@ -83,7 +83,7 @@ export class TranslationDispatcher {
 			});
 		}
 
-		this.domTranslator.restoreNode(node);
+		this.domNodesTranslator.restoreNode(node);
 
 		if (this.lazyDOMTranslator && node instanceof Element) {
 			this.lazyDOMTranslator.detach(node);

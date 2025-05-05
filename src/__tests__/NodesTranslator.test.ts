@@ -39,7 +39,7 @@ function buildTranslationServices(
 	const isTranslatableNode =
 		config.isTranslatableNode ?? configureTranslatableNodePredicate();
 
-	const domNodeTranslator = new DOMNodesTranslator({
+	const domNodesTranslator = new DOMNodesTranslator({
 		isTranslatableNode: isTranslatableNode,
 		translateCallback,
 	});
@@ -48,18 +48,18 @@ function buildTranslationServices(
 	const intersectionObserverWithFilter = config.lazyTranslate
 		? new IntersectionObserverWithFilter({
 			filter: isTranslatableNode,
-			onIntersected: domNodeTranslator.translateNode,
+			onIntersected: domNodesTranslator.translateNode,
 		  })
 		: undefined;
 
 	const translatorDispatcher = new TranslationDispatcher({
 		isTranslatableNode,
-		domTranslator: domNodeTranslator,
+		domTranslator: domNodesTranslator,
 		lazyDOMTranslator: intersectionObserverWithFilter,
 	});
 
 	return {
-		domNodeTranslator,
+		domNodesTranslator,
 		translatorDispatcher,
 	};
 }
@@ -77,15 +77,10 @@ describe('basic usage', () => {
 			const parsedHTML = document.documentElement.outerHTML;
 
 			// Translate document
-			const { translatorDispatcher, domNodeTranslator } = buildTranslationServices(
-				translator,
-				{
-					lazyTranslate,
-				},
-			);
 			const domTranslator = new NodesTranslator({
-				translatorDispatcher,
-				domTranslator: domNodeTranslator,
+				...buildTranslationServices(translator, {
+					lazyTranslate,
+				}),
 			});
 			domTranslator.observe(document.documentElement);
 
@@ -135,11 +130,8 @@ describe('basic usage', () => {
 				const parsedHTML = document.documentElement.outerHTML;
 
 				// Translate document
-				const { translatorDispatcher, domNodeTranslator } =
-					buildTranslationServices(translator, options);
 				const domTranslator = new NodesTranslator({
-					translatorDispatcher,
-					domTranslator: domNodeTranslator,
+					...buildTranslationServices(translator, options),
 				});
 				domTranslator.observe(document.documentElement);
 
@@ -155,11 +147,8 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const { translatorDispatcher, domNodeTranslator } =
-					buildTranslationServices(translator, options);
 				const domTranslator = new NodesTranslator({
-					translatorDispatcher,
-					domTranslator: domNodeTranslator,
+					...buildTranslationServices(translator, options),
 				});
 				domTranslator.observe(document.documentElement);
 
@@ -214,11 +203,8 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const { translatorDispatcher, domNodeTranslator } =
-					buildTranslationServices(translator, options);
 				const domTranslator = new NodesTranslator({
-					translatorDispatcher,
-					domTranslator: domNodeTranslator,
+					...buildTranslationServices(translator, options),
 				});
 
 				const pElm = document.querySelector('p');
@@ -265,7 +251,7 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const { translatorDispatcher, domNodeTranslator } =
+				const { translatorDispatcher, domNodesTranslator } =
 					buildTranslationServices(translator, {
 						...options,
 						isTranslatableNode: configureTranslatableNodePredicate({
@@ -279,7 +265,7 @@ describe('basic usage', () => {
 					});
 				const domTranslator = new NodesTranslator({
 					translatorDispatcher,
-					domTranslator: domNodeTranslator,
+					domNodesTranslator,
 				});
 				domTranslator.observe(document.documentElement);
 

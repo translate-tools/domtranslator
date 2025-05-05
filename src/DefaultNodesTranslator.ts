@@ -26,7 +26,7 @@ export class DefaultNodesTranslator extends NodesTranslator {
 				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
 		};
 
-		const domTranslator = new DOMNodesTranslator({
+		const domNodesTranslator = new DOMNodesTranslator({
 			isTranslatableNode: innerConfig.isTranslatableNode,
 			translateCallback,
 		});
@@ -35,17 +35,17 @@ export class DefaultNodesTranslator extends NodesTranslator {
 		const lazyDOMTranslator = innerConfig.lazyTranslate
 			? new IntersectionObserverWithFilter({
 				filter: innerConfig.isTranslatableNode,
-				onIntersected: domTranslator.translateNode,
+				onIntersected: domNodesTranslator.translateNode,
 			  })
 			: undefined;
 
 		super({
 			translatorDispatcher: new TranslationDispatcher({
 				isTranslatableNode: innerConfig.isTranslatableNode,
-				domTranslator,
+				domTranslator: domNodesTranslator,
 				lazyDOMTranslator,
 			}),
-			domTranslator,
+			domNodesTranslator,
 		});
 	}
 }
