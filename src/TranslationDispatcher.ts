@@ -11,7 +11,7 @@ export type TranslatableNodePredicate = (node: Node) => boolean;
 export class TranslationDispatcher {
 	private readonly config;
 	private readonly domTranslator: DOMNodesTranslator;
-	private readonly lazyDOMTranslator: IntersectionObserverWithFilter;
+	private readonly lazyDOMTranslator: IntersectionObserverWithFilter | null;
 
 	constructor({
 		config,
@@ -20,14 +20,13 @@ export class TranslationDispatcher {
 	}: {
 		config: {
 			isTranslatableNode: TranslatableNodePredicate;
-			lazyTranslate: boolean;
 		};
 		domTranslator: DOMNodesTranslator;
-		lazyDOMTranslator: IntersectionObserverWithFilter;
+		lazyDOMTranslator?: IntersectionObserverWithFilter;
 	}) {
 		this.config = config;
 		this.domTranslator = domTranslator;
-		this.lazyDOMTranslator = lazyDOMTranslator;
+		this.lazyDOMTranslator = lazyDOMTranslator || null;
 	}
 
 	public updateNode(node: Node) {
@@ -52,7 +51,7 @@ export class TranslationDispatcher {
 		}
 
 		// translate later or immediately
-		if (this.config.lazyTranslate) {
+		if (this.lazyDOMTranslator) {
 			// Lazy translate when own element intersect viewport
 			// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
 			const isAttachedToDOM = node.getRootNode() !== node;
@@ -87,7 +86,7 @@ export class TranslationDispatcher {
 
 		this.domTranslator.restoreNode(node);
 
-		if (node instanceof Element) {
+		if (this.lazyDOMTranslator && node instanceof Element) {
 			this.lazyDOMTranslator.detach(node);
 		}
 	}

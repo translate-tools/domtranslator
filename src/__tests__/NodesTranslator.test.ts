@@ -32,31 +32,35 @@ const fillDocument = (text: string) => {
 	document.write(text);
 };
 
-function buildClass(translateCallback: TranslatorInterface, config?: Config) {
-	const innerConfig = {
-		...config,
-		isTranslatableNode:
-			config?.isTranslatableNode ?? configureTranslatableNodePredicate(),
-		lazyTranslate: config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
-	};
+function buildTranslationServices(
+	translateCallback: TranslatorInterface,
+	config: { lazyTranslate: boolean; isTranslatableNode?: (node: Node) => boolean },
+) {
+	const isTranslatableNode =
+		config.isTranslatableNode ?? configureTranslatableNodePredicate();
 
-	const domTranslator = new DOMNodesTranslator({
-		isTranslatableNode: innerConfig.isTranslatableNode,
+	const domNodeTranslator = new DOMNodesTranslator({
+		isTranslatableNode: isTranslatableNode,
 		translateCallback,
 	});
 
-	const lazyDOMTranslator = new IntersectionObserverWithFilter({
-		filter: innerConfig.isTranslatableNode,
-		onIntersected: domTranslator.translateNode,
+	// enable intersectionObserver if the lazyTranslate parameter is passed
+	const intersectionObserverWithFilter = config.lazyTranslate
+		? new IntersectionObserverWithFilter({
+			filter: isTranslatableNode,
+			onIntersected: domNodeTranslator.translateNode,
+		  })
+		: undefined;
+
+	const translatorDispatcher = new TranslationDispatcher({
+		config: { isTranslatableNode },
+		domTranslator: domNodeTranslator,
+		lazyDOMTranslator: intersectionObserverWithFilter,
 	});
 
 	return {
-		domNodeTranslator: domTranslator,
-		translatorDispatcher: new TranslationDispatcher({
-			config: innerConfig,
-			domTranslator: domTranslator,
-			lazyDOMTranslator: lazyDOMTranslator,
-		}),
+		domNodeTranslator,
+		translatorDispatcher,
 	};
 }
 
@@ -73,9 +77,12 @@ describe('basic usage', () => {
 			const parsedHTML = document.documentElement.outerHTML;
 
 			// Translate document
-			const { translatorDispatcher, domNodeTranslator } = buildClass(translator, {
-				lazyTranslate,
-			});
+			const { translatorDispatcher, domNodeTranslator } = buildTranslationServices(
+				translator,
+				{
+					lazyTranslate,
+				},
+			);
 			const domTranslator = new NodesTranslator({
 				translatorDispatcher,
 				domTranslator: domNodeTranslator,
@@ -128,10 +135,8 @@ describe('basic usage', () => {
 				const parsedHTML = document.documentElement.outerHTML;
 
 				// Translate document
-				const { translatorDispatcher, domNodeTranslator } = buildClass(
-					translator,
-					options,
-				);
+				const { translatorDispatcher, domNodeTranslator } =
+					buildTranslationServices(translator, options);
 				const domTranslator = new NodesTranslator({
 					translatorDispatcher,
 					domTranslator: domNodeTranslator,
@@ -150,10 +155,8 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const { translatorDispatcher, domNodeTranslator } = buildClass(
-					translator,
-					options,
-				);
+				const { translatorDispatcher, domNodeTranslator } =
+					buildTranslationServices(translator, options);
 				const domTranslator = new NodesTranslator({
 					translatorDispatcher,
 					domTranslator: domNodeTranslator,
@@ -211,10 +214,8 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const { translatorDispatcher, domNodeTranslator } = buildClass(
-					translator,
-					options,
-				);
+				const { translatorDispatcher, domNodeTranslator } =
+					buildTranslationServices(translator, options);
 				const domTranslator = new NodesTranslator({
 					translatorDispatcher,
 					domTranslator: domNodeTranslator,
@@ -264,9 +265,8 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const { translatorDispatcher, domNodeTranslator } = buildClass(
-					translator,
-					{
+				const { translatorDispatcher, domNodeTranslator } =
+					buildTranslationServices(translator, {
 						...options,
 						isTranslatableNode: configureTranslatableNodePredicate({
 							...filterOptions,
@@ -276,8 +276,7 @@ describe('basic usage', () => {
 								'.custom-elements :checked',
 							],
 						}),
-					},
-				);
+					});
 				const domTranslator = new NodesTranslator({
 					translatorDispatcher,
 					domTranslator: domNodeTranslator,

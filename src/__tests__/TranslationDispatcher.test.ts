@@ -14,34 +14,21 @@ beforeEach(() => {
 	vi.clearAllMocks();
 });
 
-function createClassDependency(
-	isTranslatableNode: (node: Node) => boolean,
-	translateCallback: (text: string) => Promise<string>,
-) {
-	const domTranslator = new DOMNodesTranslator({
-		isTranslatableNode: isTranslatableNode,
-		translateCallback,
-	});
-	const intersectionObserver = new IntersectionObserverWithFilter({
-		filter: isTranslatableNode,
-		onIntersected: domTranslator.translateNode,
-	});
-	return { intersectionObserver, domTranslator };
-}
+const isTranslatableNode = () => true;
 
 test('Not call intersectionObserver for not intersectedle node', async () => {
-	const config = {
-		isTranslatableNode: () => true,
-		lazyTranslate: true,
-	};
-	const { domTranslator, intersectionObserver } = createClassDependency(
-		config.isTranslatableNode,
-		translator,
-	);
+	const domTranslator = new DOMNodesTranslator({
+		isTranslatableNode: isTranslatableNode,
+		translateCallback: translator,
+	});
 	const translationDispatcher = new TranslationDispatcher({
-		config,
+		config: { isTranslatableNode },
 		domTranslator: domTranslator,
-		lazyDOMTranslator: intersectionObserver,
+
+		lazyDOMTranslator: new IntersectionObserverWithFilter({
+			filter: isTranslatableNode,
+			onIntersected: domTranslator.translateNode,
+		}),
 	});
 
 	// OPTION node is not intersectible, node can`t translate 'lazy'
@@ -57,18 +44,18 @@ test('Not call intersectionObserver for not intersectedle node', async () => {
 });
 
 test('Call IntersectionObserver for deferred translation of intersecting node', async () => {
-	const config = {
-		isTranslatableNode: () => true,
-		lazyTranslate: true,
-	};
-	const { domTranslator, intersectionObserver } = createClassDependency(
-		config.isTranslatableNode,
-		translator,
-	);
+	const domTranslator = new DOMNodesTranslator({
+		isTranslatableNode: isTranslatableNode,
+		translateCallback: translator,
+	});
 	const translationDispatcher = new TranslationDispatcher({
-		config,
+		config: { isTranslatableNode },
 		domTranslator: domTranslator,
-		lazyDOMTranslator: intersectionObserver,
+
+		lazyDOMTranslator: new IntersectionObserverWithFilter({
+			filter: isTranslatableNode,
+			onIntersected: domTranslator.translateNode,
+		}),
 	});
 
 	const div = document.createElement('div');
@@ -83,18 +70,13 @@ test('Call IntersectionObserver for deferred translation of intersecting node', 
 });
 
 test('Not use lazy strategy with falsy lazyTranslate param', async () => {
-	const config = {
-		isTranslatableNode: () => true,
-		lazyTranslate: false,
-	};
-	const { domTranslator, intersectionObserver } = createClassDependency(
-		config.isTranslatableNode,
-		translator,
-	);
+	const domTranslator = new DOMNodesTranslator({
+		isTranslatableNode: isTranslatableNode,
+		translateCallback: translator,
+	});
 	const translationDispatcher = new TranslationDispatcher({
-		config,
+		config: { isTranslatableNode },
 		domTranslator: domTranslator,
-		lazyDOMTranslator: intersectionObserver,
 	});
 
 	const div = document.createElement('div');
