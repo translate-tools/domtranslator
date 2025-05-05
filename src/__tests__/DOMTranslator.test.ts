@@ -1,8 +1,8 @@
-import { DOMTranslator } from '../DOMTranslator';
+import { DOMNodesTranslator } from '../DOMNodesTranslator';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
 
 test('Translate and restore original node text', async () => {
-	const domTranslator = new DOMTranslator({
+	const domTranslator = new DOMNodesTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
 	});
@@ -23,7 +23,7 @@ test('Translate and restore original node text', async () => {
 });
 
 test('Returns original text node after translation', async () => {
-	const domTranslator = new DOMTranslator({
+	const domTranslator = new DOMNodesTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
 	});
@@ -42,7 +42,7 @@ test('Returns original text node after translation', async () => {
 });
 
 test('Translated node has in the storage', async () => {
-	const domTranslator = new DOMTranslator({
+	const domTranslator = new DOMNodesTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
 	});
@@ -60,12 +60,12 @@ test('Translated node has in the storage', async () => {
 });
 
 test('Calls updateNode when node content is updated', async () => {
-	const domTranslator = new DOMTranslator({
+	const domTranslator = new DOMNodesTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
 	});
 	// spy on the updateNode method
-	const updateNodesSpy = vi.spyOn(domTranslator as DOMTranslator, 'updateNode');
+	const updateNodesSpy = vi.spyOn(domTranslator as DOMNodesTranslator, 'updateNode');
 
 	const text = 'Hello world!';
 	const div = document.createElement('div');
@@ -94,7 +94,7 @@ test('Calls updateNode when node content is updated', async () => {
 });
 
 test('Restored node contain the most recent content after few translate', async () => {
-	const domTranslator = new DOMTranslator({
+	const domTranslator = new DOMNodesTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
 	});

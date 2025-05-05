@@ -60,7 +60,7 @@ function getNodePriority(node: Node) {
  * Manages a translation state of DOM nodes, registers nodes and initiates translation.
  * Updates the translation when a node is modified or deleted
  */
-export class DOMTranslator {
+export class DOMNodesTranslator {
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 

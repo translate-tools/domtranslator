@@ -1,5 +1,5 @@
 export * from './NodesTranslator';
 export * from './TranslationDispatcher';
-export * from './DOMTranslator';
+export * from './DOMNodesTranslator';
 export * from './IntersectionObserverWithFilter';
 export * from './DefaultNodesTranslator';

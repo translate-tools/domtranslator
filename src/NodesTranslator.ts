@@ -1,4 +1,4 @@
-import { DOMTranslator } from './DOMTranslator';
+import { DOMNodesTranslator } from './DOMNodesTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationDispatcher } from './TranslationDispatcher';
 
@@ -18,7 +18,7 @@ export class NodesTranslator {
 		domTranslator,
 	}: {
 		translatorDispatcher: TranslationDispatcher;
-		domTranslator: DOMTranslator;
+		domTranslator: DOMNodesTranslator;
 	}) {
 		this.translatorDispatcher = translatorDispatcher;
 		this.domTranslator = domTranslator;

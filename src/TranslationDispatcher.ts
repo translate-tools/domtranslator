@@ -1,4 +1,4 @@
-import { DOMTranslator } from './DOMTranslator';
+import { DOMNodesTranslator } from './DOMNodesTranslator';
 import { IntersectionObserverWithFilter } from './IntersectionObserverWithFilter';
 import { isIntersectableNode } from './utils/isIntersectableNode';
 import { visitWholeTree } from './utils/visitWholeTree';
@@ -10,7 +10,7 @@ export type TranslatableNodePredicate = (node: Node) => boolean;
  */
 export class TranslationDispatcher {
 	private readonly config;
-	private readonly domTranslator: DOMTranslator;
+	private readonly domTranslator: DOMNodesTranslator;
 	private readonly lazyDOMTranslator: IntersectionObserverWithFilter;
 
 	constructor({
@@ -22,7 +22,7 @@ export class TranslationDispatcher {
 			isTranslatableNode: TranslatableNodePredicate;
 			lazyTranslate: boolean;
 		};
-		domTranslator: DOMTranslator;
+		domTranslator: DOMNodesTranslator;
 		lazyDOMTranslator: IntersectionObserverWithFilter;
 	}) {
 		this.config = config;

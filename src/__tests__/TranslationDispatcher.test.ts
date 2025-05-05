@@ -1,4 +1,4 @@
-import { DOMTranslator } from '../DOMTranslator';
+import { DOMNodesTranslator } from '../DOMNodesTranslator';
 import { IntersectionObserverWithFilter } from '../IntersectionObserverWithFilter';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
@@ -18,7 +18,7 @@ function createClassDependency(
 	isTranslatableNode: (node: Node) => boolean,
 	translateCallback: (text: string) => Promise<string>,
 ) {
-	const domTranslator = new DOMTranslator({
+	const domTranslator = new DOMNodesTranslator({
 		isTranslatableNode: isTranslatableNode,
 		translateCallback,
 	});
