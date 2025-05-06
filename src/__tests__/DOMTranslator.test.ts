@@ -19,7 +19,7 @@ test('Translate and restore original node text', async () => {
 	expect(div.textContent).toBe(nodeText);
 });
 
-test('Returns original text node after translation', async () => {
+test('Returns original text node', async () => {
 	const domTranslator = new DOMNodesTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
@@ -29,6 +29,7 @@ test('Returns original text node after translation', async () => {
 	const div = document.createElement('div');
 	div.textContent = nodeText;
 
+	// node not translated, original text is null
 	expect(domTranslator.getOriginalNodeText(div.childNodes[0])).toBe(null);
 
 	domTranslator.translateNode(div.childNodes[0]);
