@@ -7,19 +7,16 @@ test('Translate and restore original node text', async () => {
 		translateCallback: translator,
 	});
 
-	const originElementText = 'Hello world!';
+	const nodeText = 'Hello world!';
 	const div = document.createElement('div');
-	div.innerHTML = originElementText;
+	div.textContent = nodeText;
 
 	domTranslator.translateNode(div.childNodes[0]);
 	await awaitTranslation();
+	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	expect(div.innerHTML).toMatch(containsRegex(TRANSLATION_SYMBOL));
-
-	// disable translation
 	domTranslator.restoreNode(div.childNodes[0]);
-	expect(div.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div.innerHTML).toMatch(originElementText);
+	expect(div.textContent).toBe(nodeText);
 });
 
 test('Returns original text node after translation', async () => {
@@ -28,17 +25,23 @@ test('Returns original text node after translation', async () => {
 		translateCallback: translator,
 	});
 
-	const originElementText = 'Hello world!';
+	const nodeText = 'Hello world!';
 	const div = document.createElement('div');
-	div.innerHTML = originElementText;
+	div.textContent = nodeText;
 
-	// translate
+	expect(domTranslator.getOriginalNodeText(div.childNodes[0])).toBe(null);
+
 	domTranslator.translateNode(div.childNodes[0]);
 	await awaitTranslation();
 
-	expect(domTranslator.getOriginalNodeText(div.childNodes[0])).toEqual(
-		originElementText,
-	);
+	// node has been translated
+	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(domTranslator.getOriginalNodeText(div.childNodes[0])).toEqual(nodeText);
+
+	// reset translated
+	domTranslator.restoreNode(div.childNodes[0]);
+	expect(div.textContent).toBe(nodeText);
+	expect(domTranslator.getOriginalNodeText(div.childNodes[0])).toBe(null);
 });
 
 test('Translated node has in the storage', async () => {
@@ -47,14 +50,13 @@ test('Translated node has in the storage', async () => {
 		translateCallback: translator,
 	});
 	const div = document.createElement('div');
-	div.innerHTML = 'Hello world!';
-
+	div.textContent = 'Hello world!';
 	domTranslator.translateNode(div.childNodes[0]);
 	await awaitTranslation();
 
+	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(domTranslator.hasNode(div.childNodes[0])).toBe(true);
 
-	//delete element
 	domTranslator.restoreNode(div.childNodes[0]);
 	expect(domTranslator.hasNode(div.childNodes[0])).toBe(false);
 });
