@@ -38,13 +38,13 @@ beforeEach(() => {
 		x: 0,
 		y: 0,
 	});
-	document.body.innerHTML = '';
+	document.body.textContent = '';
 	vi.clearAllMocks();
 });
 
 test('Call onIntersected for node from viewport', async () => {
 	const div = document.createElement('div');
-	div.innerHTML = 'Hello, World!';
+	div.textContent = 'Hello, World!';
 	document.body.appendChild(div);
 
 	const lazyTranslator = new IntersectionObserverWithFilter({
@@ -68,7 +68,7 @@ test('Call onIntersected for a node only when it becomes intersectable', async (
 
 	// node not attach to DOM, it not intersectable, not translate it
 	const div = document.createElement('div');
-	div.innerHTML = 'Hello, world';
+	div.textContent = 'Hello, world';
 
 	lazyTranslator.attach(div);
 	await awaitTranslation();
@@ -101,7 +101,7 @@ test('Not call onIntersected after node is detached', async () => {
 
 	// create node with display=none, it not intersectible
 	const div = document.createElement('div');
-	div.innerHTML = 'Hello world!';
+	div.textContent = 'Hello world!';
 	div.style.display = 'none';
 	document.body.appendChild(div);
 
@@ -128,7 +128,7 @@ test('Call onIntersected only after node intersect viewport', async () => {
 		onIntersected: translator,
 	});
 	const div = document.createElement('div');
-	div.innerHTML = 'Hello world!';
+	div.textContent = 'Hello world!';
 	document.body.appendChild(div);
 
 	mockBoundingClientRect(document.body, {
@@ -176,7 +176,7 @@ test('Not call a onIntersected for node that not intersect viewport after scroll
 		onIntersected: translator,
 	});
 	const div = document.createElement('div');
-	div.innerHTML = 'Hello world!';
+	div.textContent = 'Hello world!';
 	document.body.appendChild(div);
 
 	mockBoundingClientRect(document.body, {
