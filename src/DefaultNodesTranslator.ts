@@ -42,7 +42,7 @@ export class DefaultNodesTranslator extends NodesTranslator {
 		super({
 			translatorDispatcher: new TranslationDispatcher({
 				isTranslatableNode: innerConfig.isTranslatableNode,
-				domTranslator: domNodesTranslator,
+				domNodesTranslator,
 				lazyDOMTranslator,
 			}),
 			domNodesTranslator,

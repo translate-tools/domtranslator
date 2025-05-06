@@ -16,11 +16,11 @@ export class TranslationDispatcher {
 
 	constructor({
 		isTranslatableNode,
-		domTranslator: domNodesTranslator,
+		domNodesTranslator: domNodesTranslator,
 		lazyDOMTranslator,
 	}: {
 		isTranslatableNode: TranslatableNodePredicate;
-		domTranslator: DOMNodesTranslator;
+		domNodesTranslator: DOMNodesTranslator;
 		lazyDOMTranslator?: IntersectionObserverWithFilter;
 	}) {
 		this.isTranslatableNode = isTranslatableNode;
@@ -81,12 +81,12 @@ export class TranslationDispatcher {
 			visitWholeTree(node, (node) => {
 				this.restoreNode(node, true);
 			});
+
+			if (this.lazyDOMTranslator) {
+				this.lazyDOMTranslator.detach(node);
+			}
 		}
 
 		this.domNodesTranslator.restoreNode(node);
-
-		if (this.lazyDOMTranslator && node instanceof Element) {
-			this.lazyDOMTranslator.detach(node);
-		}
 	}
 }

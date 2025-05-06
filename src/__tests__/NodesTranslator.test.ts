@@ -40,7 +40,7 @@ function buildTranslationServices(
 		config.isTranslatableNode ?? configureTranslatableNodePredicate();
 
 	const domNodesTranslator = new DOMNodesTranslator({
-		isTranslatableNode: isTranslatableNode,
+		isTranslatableNode,
 		translateCallback,
 	});
 
@@ -54,7 +54,7 @@ function buildTranslationServices(
 
 	const translatorDispatcher = new TranslationDispatcher({
 		isTranslatableNode,
-		domTranslator: domNodesTranslator,
+		domNodesTranslator,
 		lazyDOMTranslator: intersectionObserverWithFilter,
 	});
 
@@ -119,7 +119,6 @@ describe('basic usage', () => {
 					'textarea',
 				],
 			} satisfies NodesFilterOptions;
-
 			const options = {
 				lazyTranslate: isLazyTranslation,
 				isTranslatableNode: configureTranslatableNodePredicate(filterOptions),
