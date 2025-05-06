@@ -80,8 +80,9 @@ test('Translate the node after updating its text', async () => {
 	expect(div.attributes[0].textContent).toMatch(text);
 	expect(div.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// the first call updateNode will update the updateId state, but the node won’t be translated because the internal check
-	// (updateId <= translateContext) will return true and stop the recursion translation
+	// the first call updateNode will update the updateId state, but the node won’t be translated
+	// because the internal state updateId will be equal to translateContext
+	// this approach prevent recursion translation
 	domNodesTranslator.updateNode(div.attributes[0]);
 	await awaitTranslation();
 	const text1 = 'title text is update';
