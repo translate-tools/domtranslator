@@ -64,41 +64,34 @@ test('Translated node exist in the storage', async () => {
 	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(false);
 });
 
-test('Calls updateNode when node content is updated', async () => {
+test('Translate the node after updating its text', async () => {
 	const domNodesTranslator = new DOMNodesTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
 	});
-	// spy on the updateNode method
-	const updateNodesSpy = vi.spyOn(
-		domNodesTranslator as DOMNodesTranslator,
-		'updateNode',
-	);
 
-	const text = 'Hello world!';
-	const div = document.createElement('div');
-	div.innerHTML = text;
+	const text = 'title text';
+	const div = document.createElement('a');
+	div.setAttribute('title', text);
 
 	// translate element
-	domNodesTranslator.translateNode(div.childNodes[0]);
+	domNodesTranslator.translateNode(div.attributes[0]);
 	await awaitTranslation();
+	expect(div.attributes[0].textContent).toMatch(text);
+	expect(div.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// In the actual code the sequence of calls is as follows:
-	// Node is translated -> the node's content is changed ->
-	// Node update event is triggered -> the updateNode method is called with new translated content
-	domNodesTranslator.updateNode(div.childNodes[0]);
+	// the first call updateNode will update the updateId state, but the node won’t be translated because the internal check
+	// (updateId <= translateContext) will return true and stop the recursion translation
+	domNodesTranslator.updateNode(div.attributes[0]);
 	await awaitTranslation();
+	const text1 = 'title text is update';
+	div.setAttribute('title', text1);
 
-	// update calls one time
-	expect(updateNodesSpy).toBeCalledTimes(1);
-	expect(updateNodesSpy.mock.calls).toEqual([[div.childNodes[0]]]);
-	expect(updateNodesSpy.mock.calls).toEqual([
-		[
-			expect.objectContaining({
-				nodeValue: expect.stringMatching(containsRegex(TRANSLATION_SYMBOL)),
-			}),
-		],
-	]);
+	// this call will translate node text
+	domNodesTranslator.updateNode(div.attributes[0]);
+	await awaitTranslation();
+	expect(div.attributes[0].textContent).toMatch(text1);
+	expect(div.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
 test('Restored node contains the most recent content after several translations', async () => {
