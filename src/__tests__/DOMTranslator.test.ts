@@ -39,22 +39,24 @@ test('Returns original text node', async () => {
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(domTranslator.getOriginalNodeText(div.childNodes[0])).toEqual(nodeText);
 
-	// reset translated
+	// reset translation
 	domTranslator.restoreNode(div.childNodes[0]);
 	expect(div.textContent).toBe(nodeText);
 	expect(domTranslator.getOriginalNodeText(div.childNodes[0])).toBe(null);
 });
 
-test('Translated node has in the storage', async () => {
+test('Translated node exist in the storage', async () => {
 	const domTranslator = new DOMNodesTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
 	});
 	const div = document.createElement('div');
 	div.textContent = 'Hello world!';
+	// not exists before translate
+	expect(domTranslator.hasNode(div.childNodes[0])).toBe(false);
+
 	domTranslator.translateNode(div.childNodes[0]);
 	await awaitTranslation();
-
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(domTranslator.hasNode(div.childNodes[0])).toBe(true);
 
