@@ -10,10 +10,22 @@ const translator = vi.fn().mockImplementation(async (node: Node) => {
 // jsdom does not actually modify element coordinates
 // Create a mock that sets the real values for the coordinates
 // DOMRect interface requires the toJSON property, this is not necessary for our tests, so use Omit utility type
-const mockBoundingClientRect = (element: HTMLElement, rect: Omit<DOMRect, 'toJSON'>) => {
+const mockBoundingClientRect = (
+	element: HTMLElement,
+	rect: {
+		width: number;
+		height: number;
+		x: number;
+		y: number;
+	},
+) => {
 	Object.defineProperty(element, 'getBoundingClientRect', {
 		configurable: true,
 		value: () => ({
+			top: rect.y,
+			left: rect.x,
+			bottom: rect.height + rect.y,
+			right: rect.width + rect.x,
 			...rect,
 		}),
 	});
@@ -21,10 +33,6 @@ const mockBoundingClientRect = (element: HTMLElement, rect: Omit<DOMRect, 'toJSO
 
 beforeEach(() => {
 	mockBoundingClientRect(document.body, {
-		top: 0,
-		left: 0,
-		bottom: 0,
-		right: 0,
 		width: 0,
 		height: 0,
 		x: 0,
@@ -106,6 +114,7 @@ test('Not call onIntersected after node is detached', async () => {
 
 	// node is detached
 	lazyTranslator.detach(div);
+	await awaitTranslation();
 	// becomes visible and intersectable, but is still not translated after detach
 	div.style.display = 'block';
 
@@ -123,10 +132,6 @@ test('Call onIntersected only after node intersect viewport', async () => {
 	document.body.appendChild(div);
 
 	mockBoundingClientRect(document.body, {
-		top: 0,
-		left: 0,
-		bottom: 300,
-		right: 300,
 		width: 300,
 		height: 300,
 		x: 0,
@@ -135,14 +140,10 @@ test('Call onIntersected only after node intersect viewport', async () => {
 
 	// element out of viewport, it not intersect container
 	mockBoundingClientRect(div, {
-		top: 400,
-		left: 0,
-		bottom: 500,
-		right: 100,
 		width: 100,
 		height: 100,
 		x: 0,
-		y: 0,
+		y: 500,
 	});
 
 	lazyTranslator.attach(div);
@@ -154,19 +155,15 @@ test('Call onIntersected only after node intersect viewport', async () => {
 
 	// change coordinates, now node in viewport
 	mockBoundingClientRect(div, {
-		top: 0,
-		left: 0,
-		bottom: 200,
-		right: 100,
 		width: 100,
 		height: 100,
 		x: 0,
 		y: 0,
 	});
 
-	// simulates the scroll event; the polyfill listens for the "scroll" event in the document
-	// the scroll event triggers an intersection check
-	document.dispatchEvent(new Event('scroll', { bubbles: true }));
+	// simulates the scroll event; polyfill listens for the "scroll" event on the document
+	// The polyfill will start recalculating the element position to find intersections only after the event
+	document.dispatchEvent(new Event('scroll'));
 	await awaitTranslation();
 
 	expect(translator.mock.calls).toEqual([[div.childNodes[0]]]);
@@ -183,10 +180,6 @@ test('Not call a onIntersected for node that not intersect viewport after scroll
 	document.body.appendChild(div);
 
 	mockBoundingClientRect(document.body, {
-		top: 0,
-		left: 0,
-		bottom: 300,
-		right: 300,
 		width: 300,
 		height: 300,
 		x: 0,
@@ -195,14 +188,10 @@ test('Not call a onIntersected for node that not intersect viewport after scroll
 
 	// node out of viewport, it not intersect container
 	mockBoundingClientRect(div, {
-		top: 400,
-		left: 0,
-		bottom: 500,
-		right: 100,
 		width: 100,
 		height: 100,
 		x: 0,
-		y: 0,
+		y: 400,
 	});
 
 	lazyTranslator.attach(div);
@@ -214,19 +203,15 @@ test('Not call a onIntersected for node that not intersect viewport after scroll
 
 	// change coordinates, node still not in viewport
 	mockBoundingClientRect(div, {
-		top: 330,
-		left: 0,
-		bottom: 200,
-		right: 100,
 		width: 100,
 		height: 100,
 		x: 0,
-		y: 0,
+		y: 330,
 	});
 
-	// simulates the scroll event, and the polyfill listens for the "scroll" event in the document
-	// the scroll event triggers an intersection check
-	document.dispatchEvent(new Event('scroll', { bubbles: true }));
+	// simulates the scroll event; polyfill listens for the "scroll" event on the document
+	// The polyfill will start recalculating the element position to find intersections only after the event
+	document.dispatchEvent(new Event('scroll'));
 	await awaitTranslation();
 
 	// still have not translate
