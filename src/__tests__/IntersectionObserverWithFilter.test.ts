@@ -9,7 +9,6 @@ const translator = vi.fn().mockImplementation(async (node: Node) => {
 
 // jsdom does not actually modify element coordinates
 // Create a mock that sets the real values for the coordinates
-// DOMRect interface requires the toJSON property, this is not necessary for our tests, so use Omit utility type
 const mockBoundingClientRect = (
 	element: HTMLElement,
 	rect: {
@@ -114,9 +113,9 @@ test('Not call onIntersected after node is detached', async () => {
 
 	// node is detached
 	lazyTranslator.detach(div);
-	await awaitTranslation();
 	// becomes visible and intersectable, but is still not translated after detach
 	div.style.display = 'block';
+	await awaitTranslation();
 
 	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
