@@ -96,26 +96,30 @@ test('Calls updateNode when node content is updated', async () => {
 	]);
 });
 
-test('Restored node contain the most recent content after few translate', async () => {
+test('Restored node contains the most recent content after several translations', async () => {
 	const domTranslator = new DOMNodesTranslator({
 		isTranslatableNode: Boolean,
 		translateCallback: translator,
 	});
 	const div = document.createElement('div');
-	div.innerHTML = 'Hello world!';
+	const nodeText = 'Hello world!';
+	div.textContent = nodeText;
 
 	// translate
 	domTranslator.translateNode(div.childNodes[0]);
 	await awaitTranslation();
+	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).toMatch(nodeText);
 
-	// translate again
-	const newText = 'Hello world 1234!';
-	div.innerHTML = newText;
+	// translate again with changed text
+	const nodeText1 = 'My name is Jake';
+	div.textContent = nodeText1;
 	domTranslator.translateNode(div.childNodes[0]);
 	await awaitTranslation();
+	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).toMatch(nodeText1);
 
 	// restore, elements have the last updated text and have not translated
 	domTranslator.restoreNode(div.childNodes[0]);
-	expect(div.innerHTML).toMatch(newText);
-	expect(div.innerHTML).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).toBe(nodeText1);
 });
