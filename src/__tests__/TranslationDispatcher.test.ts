@@ -5,18 +5,16 @@ import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from 
 
 require('intersection-observer');
 
-const intersectionObserverSpy = vi.spyOn(
-	IntersectionObserverWithFilter.prototype,
-	'attach',
-);
+const lazyTranslatorSpy = vi.spyOn(IntersectionObserverWithFilter.prototype, 'attach');
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	document.body.innerHTML = '';
 });
 
 const isTranslatableNode = () => true;
 
-test('Not call intersectionObserver for not intersectedle node', async () => {
+test('Do not lazily translate not-intersectable node', async () => {
 	const domTranslator = new DOMNodesTranslator({
 		isTranslatableNode: isTranslatableNode,
 		translateCallback: translator,
@@ -31,19 +29,22 @@ test('Not call intersectionObserver for not intersectedle node', async () => {
 		}),
 	});
 
-	// OPTION node is not intersectible, node can`t translate 'lazy'
-	const node = document.createElement('option');
-	node.innerHTML = 'Hello, world!';
-	document.body.appendChild(node);
-	translationDispatcher.translateNode(node);
+	// OPTION node is not intersectable, node can`t translate 'lazy'
+	const select = document.createElement('select');
+	const option = document.createElement('option');
+	option.textContent = 'Hello, world!';
+	select.appendChild(option);
+	document.body.appendChild(option);
+
+	translationDispatcher.translateNode(option);
 	await awaitTranslation();
 
 	// lazy translator not called
-	expect(intersectionObserverSpy).toBeCalledTimes(0);
-	expect(node.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(lazyTranslatorSpy).toBeCalledTimes(0);
+	expect(option.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Call IntersectionObserver for deferred translation of intersecting node', async () => {
+test('Lazily translate node', async () => {
 	const domTranslator = new DOMNodesTranslator({
 		isTranslatableNode: isTranslatableNode,
 		translateCallback: translator,
@@ -59,17 +60,26 @@ test('Call IntersectionObserver for deferred translation of intersecting node', 
 	});
 
 	const div = document.createElement('div');
-	div.innerHTML = 'Hello, world!';
+	div.textContent = 'Hello, world!';
 	document.body.appendChild(div);
 	translationDispatcher.translateNode(div);
 	await awaitTranslation();
 
 	// lazy translator called
-	expect(intersectionObserverSpy.mock.calls).toEqual([[div]]);
+	expect(lazyTranslatorSpy.mock.calls).toEqual([[div]]);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Not use lazy strategy with falsy lazyTranslate param', async () => {
+test('Restore translation for element', async () => {
+	const div = document.createElement('div');
+	const text = 'Would you like a cup of tea?';
+	div.textContent = text;
+	const div1 = document.createElement('div');
+	const text1 = 'Hi! yes i would';
+	div1.textContent = text1;
+	div.appendChild(div1);
+	document.body.appendChild(div);
+
 	const domTranslator = new DOMNodesTranslator({
 		isTranslatableNode: isTranslatableNode,
 		translateCallback: translator,
@@ -79,13 +89,13 @@ test('Not use lazy strategy with falsy lazyTranslate param', async () => {
 		domTranslator: domTranslator,
 	});
 
-	const div = document.createElement('div');
-	div.innerHTML = 'Hello, world!';
-	document.body.appendChild(div);
 	translationDispatcher.translateNode(div);
 	await awaitTranslation();
-
-	// lazy translator not called
-	expect(intersectionObserverSpy.mock.calls).toEqual([]);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div1.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+
+	translationDispatcher.restoreNode(div);
+	await awaitTranslation();
+	expect(div.childNodes[0].textContent).toBe(text);
+	expect(div1.childNodes[0].textContent).toBe(text1);
 });
