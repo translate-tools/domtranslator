@@ -1,8 +1,7 @@
 import { walkNode } from './walkNode';
 
 /**
- * Handle all translatable nodes from element
- * Element, Attr, Text
+ * Handle all translatable nodes from elements
  */
 
 export function visitWholeTree(node: Element, callback: (node: Node) => void) {
