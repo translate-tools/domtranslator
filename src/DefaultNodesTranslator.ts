@@ -39,12 +39,14 @@ export class DefaultNodesTranslator extends NodesTranslator {
 			  })
 			: undefined;
 
+		const translatorDispatcher = new TranslationDispatcher({
+			isTranslatableNode: innerConfig.isTranslatableNode,
+			domNodesTranslator,
+			lazyDOMTranslator,
+		});
+
 		super({
-			translatorDispatcher: new TranslationDispatcher({
-				isTranslatableNode: innerConfig.isTranslatableNode,
-				domNodesTranslator,
-				lazyDOMTranslator,
-			}),
+			translatorDispatcher,
 			domNodesTranslator,
 		});
 	}
