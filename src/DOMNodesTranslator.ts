@@ -87,6 +87,9 @@ export class DOMNodesTranslator {
 		return nodeData ? nodeData.originalText : null;
 	}
 
+	/**
+	 * Translate text-containing nodes (Text, Attr, etc)
+	 */
 	public translateNode = (node: Node) => {
 		if (this.hasNode(node)) return;
 
@@ -112,9 +115,8 @@ export class DOMNodesTranslator {
 	 */
 	public restoreNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-		if (nodeData == undefined) {
-			return;
-		}
+		if (nodeData == undefined) return;
+
 		// Restore original text if text been replaced
 		if (nodeData.originalText !== null) {
 			node.nodeValue = nodeData.originalText;
@@ -127,9 +129,8 @@ export class DOMNodesTranslator {
 	 */
 	public updateNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-		if (nodeData == undefined) {
-			return;
-		}
+		if (nodeData == undefined) return;
+
 		nodeData.updateId++;
 		this.translateNodeContent(node);
 	}
