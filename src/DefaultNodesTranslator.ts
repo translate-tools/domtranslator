@@ -19,28 +19,26 @@ export interface Config {
  */
 export class DefaultNodesTranslator extends NodesTranslator {
 	constructor(translateCallback: TranslatorInterface, config?: Config) {
-		const innerConfig = {
-			isTranslatableNode:
-				config?.isTranslatableNode ?? configureTranslatableNodePredicate(),
-			lazyTranslate:
-				config?.lazyTranslate !== undefined ? config?.lazyTranslate : true,
-		};
+		const isTranslatableNode =
+			config?.isTranslatableNode ?? configureTranslatableNodePredicate();
+		const lazyTranslate =
+			config?.lazyTranslate !== undefined ? config?.lazyTranslate : true;
 
 		const domNodesTranslator = new DOMNodesTranslator({
-			isTranslatableNode: innerConfig.isTranslatableNode,
+			isTranslatableNode,
 			translateCallback,
 		});
 
 		// not create instance if param lazyTranslate falsy
-		const lazyDOMTranslator = innerConfig.lazyTranslate
+		const lazyDOMTranslator = lazyTranslate
 			? new IntersectionObserverWithFilter({
-				filter: innerConfig.isTranslatableNode,
+				filter: isTranslatableNode,
 				onIntersected: domNodesTranslator.translateNode,
 			  })
 			: undefined;
 
 		const translatorDispatcher = new TranslationDispatcher({
-			isTranslatableNode: innerConfig.isTranslatableNode,
+			isTranslatableNode,
 			domNodesTranslator,
 			lazyDOMTranslator,
 		});
