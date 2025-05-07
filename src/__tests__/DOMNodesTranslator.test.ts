@@ -71,28 +71,28 @@ test('Translate the node after updating its text', async () => {
 	});
 
 	const text = 'title text';
-	const div = document.createElement('a');
-	div.setAttribute('title', text);
+	const node = document.createElement('a');
+	node.setAttribute('title', text);
 
 	// translate element
-	domNodesTranslator.translateNode(div.attributes[0]);
+	domNodesTranslator.translateNode(node.attributes[0]);
 	await awaitTranslation();
-	expect(div.attributes[0].textContent).toMatch(text);
-	expect(div.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(node.attributes[0].textContent).toMatch(text);
+	expect(node.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 	// the first call updateNode will update the updateId state, but the node won’t be translated
 	// because the internal state updateId will be equal to translateContext
 	// this approach prevent recursion translation
-	domNodesTranslator.updateNode(div.attributes[0]);
+	domNodesTranslator.updateNode(node.attributes[0]);
 	await awaitTranslation();
 	const text1 = 'title text is update';
-	div.setAttribute('title', text1);
+	node.setAttribute('title', text1);
 
 	// this call will translate node text
-	domNodesTranslator.updateNode(div.attributes[0]);
+	domNodesTranslator.updateNode(node.attributes[0]);
 	await awaitTranslation();
-	expect(div.attributes[0].textContent).toMatch(text1);
-	expect(div.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(node.attributes[0].textContent).toMatch(text1);
+	expect(node.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
 test('Restored node contains the most recent content after several translations', async () => {
