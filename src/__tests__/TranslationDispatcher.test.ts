@@ -33,13 +33,14 @@ test('Do not lazily translate not-intersectable node', async () => {
 	const option = document.createElement('option');
 	option.textContent = 'Hello, world!';
 	select.appendChild(option);
-	document.body.appendChild(option);
+	document.body.appendChild(select);
 
-	translationDispatcher.translateNode(option);
+	translationDispatcher.translateNode(select);
 	await awaitTranslation();
 
 	// lazy translator not called
 	expect(lazyTranslatorSpy).toBeCalledTimes(0);
+	// translate immediately
 	expect(option.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
