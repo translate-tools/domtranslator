@@ -69,7 +69,7 @@ test('Lazily translate node', async () => {
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Restores original text content of element and its children', async () => {
+test('Translates and restores the original text content of an element and its child elements', async () => {
 	const div = document.createElement('div');
 	const text = 'Would you like a cup of tea?';
 	div.textContent = text;
