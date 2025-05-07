@@ -35,7 +35,9 @@ export class TranslationDispatcher {
 	public hasNode(node: Node) {
 		return this.domNodesTranslator.hasNode(node);
 	}
-
+	/**
+	 * Translates nodes contained in an element (text nodes and attributes of current and inner elements)
+	 */
 	public translateNode(node: Node) {
 		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
 		if (node instanceof Element) {
