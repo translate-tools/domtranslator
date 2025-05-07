@@ -6,7 +6,8 @@ import { visitWholeTree } from './utils/visitWholeTree';
 export type TranslatableNodePredicate = (node: Node) => boolean;
 
 /**
- * Class coordinates the processing of DOM nodes for translation. Choose translation strategy: lazy or immediate.
+ * Class coordinates the processing of DOM nodes for translation.
+ * If lazyDOMTranslator is passed, it selects the translation strategy: lazy or immediate.
  */
 export class TranslationDispatcher {
 	private readonly isTranslatableNode;
