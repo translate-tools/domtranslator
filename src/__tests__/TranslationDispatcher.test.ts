@@ -39,7 +39,7 @@ test('Do not lazily translate not-intersectable node', async () => {
 	await awaitTranslation();
 
 	// lazy translator not called
-	expect(lazyTranslatorSpy).toBeCalledTimes(0);
+	expect(lazyTranslatorSpy.mock.calls).toEqual([]);
 	// translate immediately
 	expect(option.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
@@ -69,7 +69,7 @@ test('Lazily translate node', async () => {
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Restore translation for element', async () => {
+test('Restores original text content of element and its children', async () => {
 	const div = document.createElement('div');
 	const text = 'Would you like a cup of tea?';
 	div.textContent = text;
