@@ -57,7 +57,7 @@ function getNodePriority(node: Node) {
 }
 
 /**
- * Manages a translation state of DOM nodes. Translating text-containing nodes (Text, Attr, etc).
+ * Manages a translation state of DOM nodes. Translates text-containing nodes (Text, Attr, etc).
  * Registers nodes and initiates translation, updates the translation when a node is modified or deleted.
  */
 export class DOMNodesTranslator {
