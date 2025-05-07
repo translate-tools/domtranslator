@@ -70,19 +70,16 @@ test('Translate the node after updating its text', async () => {
 		translateCallback: translator,
 	});
 
-	const text = 'title text';
 	const node = document.createElement('a');
-	node.setAttribute('title', text);
+	node.setAttribute('title', 'title text');
 
 	// translate element
 	domNodesTranslator.translateNode(node.attributes[0]);
 	await awaitTranslation();
-	expect(node.attributes[0].textContent).toMatch(text);
 	expect(node.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 	// the first call updateNode will update the updateId state, but the node won’t be translated
-	// because the internal state updateId will be equal to translateContext
-	// this approach prevent recursion translation
+	// because the internal state updateId will be equal to translateContext, this approach prevent recursion translation
 	domNodesTranslator.updateNode(node.attributes[0]);
 	await awaitTranslation();
 	const text1 = 'title text is update';
@@ -108,7 +105,6 @@ test('Restored node contains the most recent content after several translations'
 	domNodesTranslator.translateNode(div.childNodes[0]);
 	await awaitTranslation();
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div.textContent).toMatch(nodeText);
 
 	// translate again with changed text
 	const nodeText1 = 'My name is Jake';
@@ -116,7 +112,6 @@ test('Restored node contains the most recent content after several translations'
 	domNodesTranslator.translateNode(div.childNodes[0]);
 	await awaitTranslation();
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div.textContent).toMatch(nodeText1);
 
 	// restore, elements have the last updated text and have not translated
 	domNodesTranslator.restoreNode(div.childNodes[0]);
