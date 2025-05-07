@@ -6,8 +6,8 @@ import { visitWholeTree } from './utils/visitWholeTree';
 export type TranslatableNodePredicate = (node: Node) => boolean;
 
 /**
- * Class coordinates the processing of DOM nodes for translation.
- * If intersectionObserverWithFilter is passed, class selects the translation strategy: lazy or immediate.
+ * Coordinates the processing of DOM nodes for translation.
+ * Uses intersectionObserverWithFilter to choose between lazy and immediate translation; defaults to immediate if not provided.
  */
 export class TranslationDispatcher {
 	private readonly isTranslatableNode;
@@ -37,7 +37,7 @@ export class TranslationDispatcher {
 		return this.domNodesTranslator.hasNode(node);
 	}
 	/**
-	 * Translates nodes contained in an element (text nodes and attributes of current and inner elements)
+	 * Translates the given node and all its nested translatable nodes (text and attribute nodes)
 	 */
 	public translateNode(node: Node) {
 		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
