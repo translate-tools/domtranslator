@@ -9,14 +9,14 @@ export type TranslatableNodePredicate = (node: Node) => boolean;
  * Class coordinates the processing of DOM nodes for translation. Choose translation strategy: lazy or immediate.
  */
 export class TranslationDispatcher {
-	private readonly isTranslatableNode: TranslatableNodePredicate;
-	private readonly domNodesTranslator: DOMNodesTranslator;
+	private readonly isTranslatableNode;
+	private readonly domNodesTranslator;
 	// if dependency is not passed, then the node will not be translated lazy
-	private readonly lazyDOMTranslator: IntersectionObserverWithFilter | null;
+	private readonly lazyDOMTranslator;
 
 	constructor({
 		isTranslatableNode,
-		domNodesTranslator: domNodesTranslator,
+		domNodesTranslator,
 		lazyDOMTranslator,
 	}: {
 		isTranslatableNode: TranslatableNodePredicate;
