@@ -22,7 +22,7 @@ test('Do not lazily translate not-intersectable node', async () => {
 	const translationDispatcher = new TranslationDispatcher({
 		isTranslatableNode,
 		domNodesTranslator,
-		lazyDOMTranslator: new IntersectionObserverWithFilter({
+		intersectionObserverWithFilter: new IntersectionObserverWithFilter({
 			filter: isTranslatableNode,
 			onIntersected: domNodesTranslator.translateNode,
 		}),
@@ -52,7 +52,7 @@ test('Lazily translate node', async () => {
 	const translationDispatcher = new TranslationDispatcher({
 		isTranslatableNode,
 		domNodesTranslator,
-		lazyDOMTranslator: new IntersectionObserverWithFilter({
+		intersectionObserverWithFilter: new IntersectionObserverWithFilter({
 			filter: isTranslatableNode,
 			onIntersected: domNodesTranslator.translateNode,
 		}),

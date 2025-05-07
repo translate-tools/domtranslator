@@ -30,7 +30,7 @@ export class DefaultNodesTranslator extends NodesTranslator {
 		});
 
 		// not create instance if param lazyTranslate falsy
-		const lazyDOMTranslator = lazyTranslate
+		const intersectionObserverWithFilter = lazyTranslate
 			? new IntersectionObserverWithFilter({
 				filter: isTranslatableNode,
 				onIntersected: domNodesTranslator.translateNode,
@@ -40,7 +40,7 @@ export class DefaultNodesTranslator extends NodesTranslator {
 		const translatorDispatcher = new TranslationDispatcher({
 			isTranslatableNode,
 			domNodesTranslator,
-			lazyDOMTranslator,
+			intersectionObserverWithFilter,
 		});
 
 		super({

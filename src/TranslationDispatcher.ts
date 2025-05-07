@@ -7,26 +7,26 @@ export type TranslatableNodePredicate = (node: Node) => boolean;
 
 /**
  * Class coordinates the processing of DOM nodes for translation.
- * If lazyDOMTranslator is passed, it selects the translation strategy: lazy or immediate.
+ * If intersectionObserverWithFilter is passed, class selects the translation strategy: lazy or immediate.
  */
 export class TranslationDispatcher {
 	private readonly isTranslatableNode;
 	private readonly domNodesTranslator;
 	// if dependency is not passed, then the node will not be translated lazy
-	private readonly lazyDOMTranslator;
+	private readonly intersectionObserverWithFilter;
 
 	constructor({
 		isTranslatableNode,
 		domNodesTranslator,
-		lazyDOMTranslator,
+		intersectionObserverWithFilter,
 	}: {
 		isTranslatableNode: TranslatableNodePredicate;
 		domNodesTranslator: DOMNodesTranslator;
-		lazyDOMTranslator?: IntersectionObserverWithFilter;
+		intersectionObserverWithFilter?: IntersectionObserverWithFilter;
 	}) {
 		this.isTranslatableNode = isTranslatableNode;
 		this.domNodesTranslator = domNodesTranslator;
-		this.lazyDOMTranslator = lazyDOMTranslator || null;
+		this.intersectionObserverWithFilter = intersectionObserverWithFilter || null;
 	}
 
 	public updateNode(node: Node) {
@@ -53,7 +53,7 @@ export class TranslationDispatcher {
 		}
 
 		// translate later or immediately
-		if (this.lazyDOMTranslator) {
+		if (this.intersectionObserverWithFilter) {
 			// Lazy translate when own element intersect viewport
 			// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
 			const isAttachedToDOM = node.getRootNode() !== node;
@@ -66,7 +66,7 @@ export class TranslationDispatcher {
 				observableNode !== null &&
 				isIntersectableNode(observableNode)
 			) {
-				this.lazyDOMTranslator.attach(observableNode);
+				this.intersectionObserverWithFilter.attach(observableNode);
 				return;
 			}
 		}
@@ -85,8 +85,8 @@ export class TranslationDispatcher {
 				this.restoreNode(node, true);
 			});
 
-			if (this.lazyDOMTranslator) {
-				this.lazyDOMTranslator.detach(node);
+			if (this.intersectionObserverWithFilter) {
+				this.intersectionObserverWithFilter.detach(node);
 			}
 		}
 

@@ -55,7 +55,7 @@ function buildTranslationServices(
 	const translatorDispatcher = new TranslationDispatcher({
 		isTranslatableNode,
 		domNodesTranslator,
-		lazyDOMTranslator: intersectionObserverWithFilter,
+		intersectionObserverWithFilter,
 	});
 
 	return {
