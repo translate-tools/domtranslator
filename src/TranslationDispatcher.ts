@@ -40,14 +40,14 @@ export class TranslationDispatcher {
 	 * Translates the given node and all its nested translatable nodes (text and attribute nodes)
 	 */
 	public translateNode(node: Node) {
+		// Skip not translatable nodes
+		if (!this.isTranslatableNode(node)) return;
+
 		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
 		if (node instanceof Element) {
 			visitWholeTree(node, (node) => {
 				if (node instanceof Element) return;
-
-				if (this.isTranslatableNode(node)) {
-					this.translateNode(node);
-				}
+				this.translateNode(node);
 			});
 			return;
 		}
@@ -70,7 +70,7 @@ export class TranslationDispatcher {
 				return;
 			}
 		}
-
+		// translate immediately
 		this.domNodesTranslator.translateNode(node);
 	}
 

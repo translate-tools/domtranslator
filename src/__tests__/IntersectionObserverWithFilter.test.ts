@@ -47,7 +47,6 @@ test('Call onIntersected for node from viewport', async () => {
 	document.body.appendChild(div);
 
 	const lazyTranslator = new IntersectionObserverWithFilter({
-		filter: Boolean,
 		onIntersected: translator,
 	});
 
@@ -61,7 +60,6 @@ test('Call onIntersected for node from viewport', async () => {
 
 test('Call onIntersected for a node only when it becomes intersectable', async () => {
 	const lazyTranslator = new IntersectionObserverWithFilter({
-		filter: Boolean,
 		onIntersected: translator,
 	});
 
@@ -94,7 +92,6 @@ test('Call onIntersected for a node only when it becomes intersectable', async (
 
 test('Not call onIntersected after node is detached', async () => {
 	const lazyTranslator = new IntersectionObserverWithFilter({
-		filter: Boolean,
 		onIntersected: translator,
 	});
 
@@ -123,7 +120,6 @@ test('Not call onIntersected after node is detached', async () => {
 
 test('Call onIntersected only after node intersect viewport', async () => {
 	const lazyTranslator = new IntersectionObserverWithFilter({
-		filter: Boolean,
 		onIntersected: translator,
 	});
 	const div = document.createElement('div');
@@ -171,7 +167,6 @@ test('Call onIntersected only after node intersect viewport', async () => {
 
 test('Not call a onIntersected for node that not intersect viewport after scrolling', async () => {
 	const lazyTranslator = new IntersectionObserverWithFilter({
-		filter: Boolean,
 		onIntersected: translator,
 	});
 	const div = document.createElement('div');
