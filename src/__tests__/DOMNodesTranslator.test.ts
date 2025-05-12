@@ -2,10 +2,7 @@ import { DOMNodesTranslator } from '../DOMNodesTranslator';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
 
 test('Translate and restore original node text', async () => {
-	const domNodesTranslator = new DOMNodesTranslator({
-		isTranslatableNode: Boolean,
-		translateCallback: translator,
-	});
+	const domNodesTranslator = new DOMNodesTranslator(translator);
 
 	const nodeText = 'Hello world!';
 	const div = document.createElement('div');
@@ -20,10 +17,7 @@ test('Translate and restore original node text', async () => {
 });
 
 test('Stores original text on translation and clears it on restoration', async () => {
-	const domNodesTranslator = new DOMNodesTranslator({
-		isTranslatableNode: Boolean,
-		translateCallback: translator,
-	});
+	const domNodesTranslator = new DOMNodesTranslator(translator);
 
 	const nodeText = 'Hello world!';
 	const div = document.createElement('div');
@@ -46,10 +40,8 @@ test('Stores original text on translation and clears it on restoration', async (
 });
 
 test('Translated node exist in the storage', async () => {
-	const domNodesTranslator = new DOMNodesTranslator({
-		isTranslatableNode: Boolean,
-		translateCallback: translator,
-	});
+	const domNodesTranslator = new DOMNodesTranslator(translator);
+
 	const div = document.createElement('div');
 	div.textContent = 'Hello world!';
 	// not exists before translate
@@ -65,10 +57,7 @@ test('Translated node exist in the storage', async () => {
 });
 
 test('Translate the node after updating its text', async () => {
-	const domNodesTranslator = new DOMNodesTranslator({
-		isTranslatableNode: Boolean,
-		translateCallback: translator,
-	});
+	const domNodesTranslator = new DOMNodesTranslator(translator);
 
 	const node = document.createElement('a');
 	node.setAttribute('title', 'title text');
@@ -93,10 +82,8 @@ test('Translate the node after updating its text', async () => {
 });
 
 test('Restored node contains the most recent content after several translations', async () => {
-	const domNodesTranslator = new DOMNodesTranslator({
-		isTranslatableNode: Boolean,
-		translateCallback: translator,
-	});
+	const domNodesTranslator = new DOMNodesTranslator(translator);
+
 	const div = document.createElement('div');
 	const nodeText = 'Hello world!';
 	div.textContent = nodeText;

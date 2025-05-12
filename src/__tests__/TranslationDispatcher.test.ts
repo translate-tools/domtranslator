@@ -15,10 +15,7 @@ beforeEach(() => {
 const isTranslatableNode = () => true;
 
 test('Do not lazily translate not-intersectable node', async () => {
-	const domNodesTranslator = new DOMNodesTranslator({
-		isTranslatableNode,
-		translateCallback: translator,
-	});
+	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const translationDispatcher = new TranslationDispatcher({
 		isTranslatableNode,
 		domNodesTranslator,
@@ -44,10 +41,7 @@ test('Do not lazily translate not-intersectable node', async () => {
 });
 
 test('Lazily translate node', async () => {
-	const domNodesTranslator = new DOMNodesTranslator({
-		isTranslatableNode,
-		translateCallback: translator,
-	});
+	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const translationDispatcher = new TranslationDispatcher({
 		isTranslatableNode,
 		domNodesTranslator,
@@ -77,10 +71,7 @@ test('Translates and restores the original text content of an element and its ch
 	div.appendChild(div1);
 	document.body.appendChild(div);
 
-	const domNodesTranslator = new DOMNodesTranslator({
-		isTranslatableNode,
-		translateCallback: translator,
-	});
+	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const translationDispatcher = new TranslationDispatcher({
 		isTranslatableNode,
 		domNodesTranslator,

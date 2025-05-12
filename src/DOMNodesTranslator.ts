@@ -1,4 +1,3 @@
-import { TranslatableNodePredicate } from './TranslationDispatcher';
 import { isInViewport } from './utils/isInViewport';
 
 export type TranslatorInterface = (text: string, priority: number) => Promise<string>;
@@ -64,17 +63,9 @@ export class DOMNodesTranslator {
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 
-	private readonly isTranslatableNode;
 	private readonly translateCallback;
 
-	constructor({
-		isTranslatableNode,
-		translateCallback,
-	}: {
-		isTranslatableNode: TranslatableNodePredicate;
-		translateCallback: TranslatorInterface;
-	}) {
-		this.isTranslatableNode = isTranslatableNode;
+	constructor(translateCallback: TranslatorInterface) {
 		this.translateCallback = translateCallback;
 	}
 
@@ -95,9 +86,6 @@ export class DOMNodesTranslator {
 
 		// Skip empty text
 		if (node.nodeValue === null || node.nodeValue.trim().length == 0) return;
-
-		// Skip not translatable nodes
-		if (!this.isTranslatableNode(node)) return;
 
 		this.nodeStorage.set(node, {
 			id: this.idCounter++,

@@ -39,10 +39,7 @@ function buildTranslationServices(
 	const isTranslatableNode =
 		config.isTranslatableNode ?? configureTranslatableNodePredicate();
 
-	const domNodesTranslator = new DOMNodesTranslator({
-		isTranslatableNode,
-		translateCallback,
-	});
+	const domNodesTranslator = new DOMNodesTranslator(translateCallback);
 
 	// not create instance if param lazyTranslate falsy
 	const intersectionObserverWithFilter = config.lazyTranslate
