@@ -3,7 +3,7 @@ import { NodesTranslator } from './NodesTranslator';
 import { configureTranslatableNodePredicate } from './utils/nodes';
 import {
 	DOMNodesTranslator,
-	IntersectionObserverWithFilter,
+	IntersectingNodeObserver,
 	TranslatableNodePredicate,
 	TranslationDispatcher,
 } from '.';
@@ -27,8 +27,8 @@ export class DefaultNodesTranslator extends NodesTranslator {
 		const domNodesTranslator = new DOMNodesTranslator(translateCallback);
 
 		// not create instance if param lazyTranslate falsy
-		const intersectionObserverWithFilter = lazyTranslate
-			? new IntersectionObserverWithFilter({
+		const intersectingNodeObserver = lazyTranslate
+			? new IntersectingNodeObserver({
 				onIntersected: domNodesTranslator.translateNode,
 			  })
 			: undefined;
@@ -36,7 +36,7 @@ export class DefaultNodesTranslator extends NodesTranslator {
 		const translatorDispatcher = new TranslationDispatcher({
 			isTranslatableNode,
 			domNodesTranslator,
-			intersectionObserverWithFilter,
+			intersectionObserverWithFilter: intersectingNodeObserver,
 		});
 
 		super({

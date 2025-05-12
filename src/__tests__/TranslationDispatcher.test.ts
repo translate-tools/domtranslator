@@ -1,11 +1,11 @@
 import { DOMNodesTranslator } from '../DOMNodesTranslator';
-import { IntersectionObserverWithFilter } from '../IntersectionObserverWithFilter';
+import { IntersectingNodeObserver } from '../IntersectingNodeObserver';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
 
 require('intersection-observer');
 
-const lazyTranslatorSpy = vi.spyOn(IntersectionObserverWithFilter.prototype, 'attach');
+const lazyTranslatorSpy = vi.spyOn(IntersectingNodeObserver.prototype, 'attach');
 
 beforeEach(() => {
 	vi.clearAllMocks();
@@ -19,7 +19,7 @@ test('Do not lazily translate not-intersectable node', async () => {
 	const translationDispatcher = new TranslationDispatcher({
 		isTranslatableNode,
 		domNodesTranslator,
-		intersectionObserverWithFilter: new IntersectionObserverWithFilter({
+		intersectionObserverWithFilter: new IntersectingNodeObserver({
 			onIntersected: domNodesTranslator.translateNode,
 		}),
 	});
@@ -45,7 +45,7 @@ test('Lazily translate node', async () => {
 	const translationDispatcher = new TranslationDispatcher({
 		isTranslatableNode,
 		domNodesTranslator,
-		intersectionObserverWithFilter: new IntersectionObserverWithFilter({
+		intersectionObserverWithFilter: new IntersectingNodeObserver({
 			onIntersected: domNodesTranslator.translateNode,
 		}),
 	});
