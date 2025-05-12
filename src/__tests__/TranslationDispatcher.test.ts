@@ -17,9 +17,9 @@ const isTranslatableNode = () => true;
 test('Do not lazily translate not-intersectable node', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const translationDispatcher = new TranslationDispatcher({
-		isTranslatableNode,
-		domNodesTranslator,
-		intersectionObserverWithFilter: new IntersectingNodeObserver({
+		filter: isTranslatableNode,
+		nodeTranslator: domNodesTranslator,
+		lazyTranslator: new IntersectingNodeObserver({
 			onIntersected: domNodesTranslator.translateNode,
 		}),
 	});
@@ -43,9 +43,9 @@ test('Do not lazily translate not-intersectable node', async () => {
 test('Lazily translate node', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const translationDispatcher = new TranslationDispatcher({
-		isTranslatableNode,
-		domNodesTranslator,
-		intersectionObserverWithFilter: new IntersectingNodeObserver({
+		filter: isTranslatableNode,
+		nodeTranslator: domNodesTranslator,
+		lazyTranslator: new IntersectingNodeObserver({
 			onIntersected: domNodesTranslator.translateNode,
 		}),
 	});
@@ -73,8 +73,8 @@ test('Translates and restores the original text content of an element and its ch
 
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const translationDispatcher = new TranslationDispatcher({
-		isTranslatableNode,
-		domNodesTranslator,
+		filter: isTranslatableNode,
+		nodeTranslator: domNodesTranslator,
 	});
 
 	translationDispatcher.translateNode(div);

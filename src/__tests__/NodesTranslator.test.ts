@@ -49,9 +49,9 @@ function buildTranslationServices(
 		: undefined;
 
 	const translatorDispatcher = new TranslationDispatcher({
-		isTranslatableNode,
-		domNodesTranslator,
-		intersectionObserverWithFilter: intersectingNodeObserver,
+		filter: isTranslatableNode,
+		nodeTranslator: domNodesTranslator,
+		lazyTranslator: intersectingNodeObserver,
 	});
 
 	return {
