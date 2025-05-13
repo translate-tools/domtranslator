@@ -40,19 +40,18 @@ export class TranslationDispatcher {
 	 * Translates the node and all its nested translatable nodes (text and attribute nodes)
 	 */
 	public translateNode(node: Node) {
-		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
+		// Translate all nodes which element contains (text nodes and attributes of current and inner elements)
 		if (node instanceof Element) {
 			visitWholeTree(node, (node) => {
 				if (node instanceof Element) return;
-
 				this.translateNode(node);
 			});
 			return;
 		}
+		// Handle text nodes and attributes
+
 		// Skip node if it does not satisfy the filter
 		if (!this.filter(node)) return;
-
-		// translate later or immediately
 		if (this.lazyTranslator) {
 			// Lazy translate when own element intersect viewport
 			// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)

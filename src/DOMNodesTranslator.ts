@@ -63,11 +63,7 @@ export class DOMNodesTranslator {
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 
-	private readonly translateCallback;
-
-	constructor(translateCallback: TranslatorInterface) {
-		this.translateCallback = translateCallback;
-	}
+	constructor(private readonly translateCallback: TranslatorInterface) {}
 
 	public hasNode(node: Node) {
 		return this.nodeStorage.has(node);

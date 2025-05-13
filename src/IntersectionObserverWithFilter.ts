@@ -44,7 +44,8 @@ export class IntersectionObserverWithFilter {
 
 	/**
 	 * Starts observing the element for intersection.
-	 * The element will be automatically removed from observation after the call onIntersected callback.
+	 * When the element intersects the viewport, the `onIntersected` callback is invoked,
+	 * and the element is automatically removed from observation.
 	 */
 	public attach(node: Element) {
 		if (this.nodesObservedForIntersection.has(node)) return;
@@ -61,7 +62,7 @@ export class IntersectionObserverWithFilter {
 	}
 
 	/**
-	 * The element may contain nodes that are not translatable.
+	 * The element may contain nodes that are should not to translate.
 	 * These should be filtered before calls onIntersected.
 	 */
 	private handlerIntersectNode(node: Element) {
