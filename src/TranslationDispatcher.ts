@@ -1,5 +1,5 @@
 import { DOMNodesTranslator } from './DOMNodesTranslator';
-import { IntersectingNodeObserver } from './IntersectingNodeObserver';
+import { IntersectionObserverWithFilter } from './IntersectionObserverWithFilter';
 import { isIntersectableNode } from './utils/isIntersectableNode';
 import { visitWholeTree } from './utils/visitWholeTree';
 
@@ -22,7 +22,7 @@ export class TranslationDispatcher {
 	}: {
 		filter: TranslatableNodePredicate;
 		nodeTranslator: DOMNodesTranslator;
-		lazyTranslator?: IntersectingNodeObserver;
+		lazyTranslator?: IntersectionObserverWithFilter;
 	}) {
 		this.filter = filter;
 		this.nodeTranslator = nodeTranslator;

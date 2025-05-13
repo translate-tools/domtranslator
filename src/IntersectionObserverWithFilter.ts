@@ -1,7 +1,7 @@
 /**
- * Observes DOM nodes and calls a callback when they intersect with the viewport
+ * Observe DOM nodes and call a callback for filtered nodes when they intersect the viewport
  */
-export class IntersectingNodeObserver {
+export class IntersectionObserverWithFilter {
 	// Store the nodes that is under observing for intersection
 	private readonly nodesObservedForIntersection = new WeakSet<Node>();
 	private readonly intersectionObserver: IntersectionObserver;

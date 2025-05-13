@@ -1,4 +1,4 @@
-import { IntersectingNodeObserver } from '../IntersectingNodeObserver';
+import { IntersectionObserverWithFilter } from '../IntersectionObserverWithFilter';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL } from './utils';
 
 require('intersection-observer');
@@ -46,7 +46,7 @@ test('Call onIntersected for node from viewport', async () => {
 	div.textContent = 'Hello, World!';
 	document.body.appendChild(div);
 
-	const lazyTranslator = new IntersectingNodeObserver({
+	const lazyTranslator = new IntersectionObserverWithFilter({
 		onIntersected: translator,
 	});
 
@@ -59,7 +59,7 @@ test('Call onIntersected for node from viewport', async () => {
 });
 
 test('Call onIntersected for a node only when it becomes intersectable', async () => {
-	const lazyTranslator = new IntersectingNodeObserver({
+	const lazyTranslator = new IntersectionObserverWithFilter({
 		onIntersected: translator,
 	});
 
@@ -91,7 +91,7 @@ test('Call onIntersected for a node only when it becomes intersectable', async (
 });
 
 test('Not call onIntersected after node is detached', async () => {
-	const lazyTranslator = new IntersectingNodeObserver({
+	const lazyTranslator = new IntersectionObserverWithFilter({
 		onIntersected: translator,
 	});
 
@@ -119,7 +119,7 @@ test('Not call onIntersected after node is detached', async () => {
 });
 
 test('Call onIntersected only after node intersect viewport', async () => {
-	const lazyTranslator = new IntersectingNodeObserver({
+	const lazyTranslator = new IntersectionObserverWithFilter({
 		onIntersected: translator,
 	});
 	const div = document.createElement('div');
@@ -166,7 +166,7 @@ test('Call onIntersected only after node intersect viewport', async () => {
 });
 
 test('Not call a onIntersected for node that not intersect viewport after scrolling', async () => {
-	const lazyTranslator = new IntersectingNodeObserver({
+	const lazyTranslator = new IntersectionObserverWithFilter({
 		onIntersected: translator,
 	});
 	const div = document.createElement('div');
