@@ -41,7 +41,7 @@ export class DefaultNodesTranslator extends NodesTranslator {
 		});
 
 		super({
-			translatorDispatcher,
+			dispatcher: translatorDispatcher,
 			domNodesTranslator,
 		});
 	}

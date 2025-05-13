@@ -57,7 +57,7 @@ function buildTranslationServices(
 
 	return {
 		domNodesTranslator,
-		translatorDispatcher,
+		dispatcher: translatorDispatcher,
 	};
 }
 
@@ -247,8 +247,9 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const { translatorDispatcher, domNodesTranslator } =
-					buildTranslationServices(translator, {
+				const { dispatcher, domNodesTranslator } = buildTranslationServices(
+					translator,
+					{
 						...options,
 						isTranslatableNode: configureTranslatableNodePredicate({
 							...filterOptions,
@@ -258,9 +259,10 @@ describe('basic usage', () => {
 								'.custom-elements :checked',
 							],
 						}),
-					});
+					},
+				);
 				const domTranslator = new NodesTranslator({
-					translatorDispatcher,
+					dispatcher,
 					domNodesTranslator,
 				});
 				domTranslator.observe(document.documentElement);
