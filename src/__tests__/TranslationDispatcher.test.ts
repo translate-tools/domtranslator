@@ -82,8 +82,8 @@ test('Translates and restores the original text content of an element and its ch
 
 	translationDispatcher.translateNode(div);
 	await awaitTranslation();
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div1.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div1.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 	translationDispatcher.restoreNode(div);
 	await awaitTranslation();
