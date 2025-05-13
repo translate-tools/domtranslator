@@ -15,7 +15,7 @@ beforeEach(() => {
 
 const isTranslatableNode = () => true;
 
-test('Do not lazily translate not-intersectable node', async () => {
+test('Translate immediately if node is not eligible for lazy translation', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
@@ -59,12 +59,12 @@ test('Lazily translate intersectable node', async () => {
 	translationDispatcher.translateNode(div);
 	await awaitTranslation();
 
-	// lazy translator called
+	// lazy translator called and translated element
 	expect(lazyTranslatorSpy.mock.calls).toEqual([[div]]);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Translates and restores the original text content of an element and its child elements', async () => {
+test('Translates and restores the element and its child elements', async () => {
 	const div = document.createElement('div');
 	const text = 'Would you like a cup of tea?';
 	div.textContent = text;
@@ -82,6 +82,7 @@ test('Translates and restores the original text content of an element and its ch
 
 	translationDispatcher.translateNode(div);
 	await awaitTranslation();
+	// check text on the element itself
 	expect(div.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(div1.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
@@ -91,18 +92,17 @@ test('Translates and restores the original text content of an element and its ch
 	expect(div1.childNodes[0].textContent).toBe(text1);
 });
 
-test('Do not translated ignored comment node inside observed element', async () => {
-	const isTranslatableNode = configureTranslatableNodePredicate({
+test('Do not translate ignored node inside element during lazyTranslation', async () => {
+	const filter = configureTranslatableNodePredicate({
 		ignoredSelectors: ['comment'],
 	});
-
-	const domNodesTranslator = new DOMNodesTranslator(translator);
+	const nodeTranslator = new DOMNodesTranslator(translator);
 	const translationDispatcher = new TranslationDispatcher({
-		filter: isTranslatableNode,
-		nodeTranslator: domNodesTranslator,
+		filter,
+		nodeTranslator,
 		lazyTranslator: new IntersectionObserverWithFilter({
-			filter: isTranslatableNode,
-			onIntersected: domNodesTranslator.translateNode,
+			filter,
+			onIntersected: nodeTranslator.translateNode,
 		}),
 	});
 
@@ -120,5 +120,5 @@ test('Do not translated ignored comment node inside observed element', async () 
 	expect(lazyTranslatorSpy.mock.calls).toEqual([[div]]);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	// comment not translated
-	expect(div.childNodes[1].textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(comment.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
