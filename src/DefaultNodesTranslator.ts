@@ -42,7 +42,7 @@ export class DefaultNodesTranslator extends NodesTranslator {
 
 		super({
 			dispatcher: translatorDispatcher,
-			domNodesTranslator,
+			nodeTranslator: domNodesTranslator,
 		});
 	}
 }

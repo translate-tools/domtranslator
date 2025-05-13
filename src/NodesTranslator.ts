@@ -1,6 +1,6 @@
-import { DOMNodesTranslator } from './DOMNodesTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationDispatcher } from './TranslationDispatcher';
+import { DOMNodesTranslator } from '.';
 
 // TODO: consider local language definitions (and implement `from`, `to` parameters for translator to specify default or locale languages)
 // TODO: scan nodes lazy - defer scan to `requestIdleCallback` instead of instant scan
@@ -11,17 +11,17 @@ import { TranslationDispatcher } from './TranslationDispatcher';
  */
 export class NodesTranslator {
 	private readonly dispatcher;
-	private readonly domNodesTranslator;
+	private readonly nodeTranslator;
 
 	constructor({
 		dispatcher,
-		domNodesTranslator,
+		nodeTranslator,
 	}: {
 		dispatcher: TranslationDispatcher;
-		domNodesTranslator: DOMNodesTranslator;
+		nodeTranslator: DOMNodesTranslator;
 	}) {
 		this.dispatcher = dispatcher;
-		this.domNodesTranslator = domNodesTranslator;
+		this.nodeTranslator = nodeTranslator;
 	}
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
@@ -74,6 +74,6 @@ export class NodesTranslator {
 	}
 
 	public getNodeData(node: Node) {
-		return this.domNodesTranslator.getOriginalNodeText(node);
+		return this.nodeTranslator.getOriginalNodeText(node);
 	}
 }

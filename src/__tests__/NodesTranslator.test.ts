@@ -56,7 +56,7 @@ function buildTranslationServices(
 	});
 
 	return {
-		domNodesTranslator,
+		nodeTranslator: domNodesTranslator,
 		dispatcher: translatorDispatcher,
 	};
 }
@@ -247,7 +247,7 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const { dispatcher, domNodesTranslator } = buildTranslationServices(
+				const { dispatcher, nodeTranslator } = buildTranslationServices(
 					translator,
 					{
 						...options,
@@ -263,7 +263,7 @@ describe('basic usage', () => {
 				);
 				const domTranslator = new NodesTranslator({
 					dispatcher,
-					domNodesTranslator,
+					nodeTranslator,
 				});
 				domTranslator.observe(document.documentElement);
 
