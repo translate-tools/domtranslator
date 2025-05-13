@@ -37,20 +37,20 @@ export class TranslationDispatcher {
 		return this.nodeTranslator.hasNode(node);
 	}
 	/**
-	 * Translates the given node and all its nested translatable nodes (text and attribute nodes)
+	 * Translates the node and all its nested translatable nodes (text and attribute nodes)
 	 */
 	public translateNode(node: Node) {
-		// Skip not translatable nodes
-		if (!this.filter(node)) return;
-
 		// handle all nodes contained within the element (text nodes and attributes of the current and nested elements)
 		if (node instanceof Element) {
 			visitWholeTree(node, (node) => {
 				if (node instanceof Element) return;
+
 				this.translateNode(node);
 			});
 			return;
 		}
+		// Skip node if it does not satisfy the filter
+		if (!this.filter(node)) return;
 
 		// translate later or immediately
 		if (this.lazyTranslator) {
