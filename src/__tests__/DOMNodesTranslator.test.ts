@@ -43,7 +43,8 @@ test('Translated node exist in the storage', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 
 	const div = document.createElement('div');
-	div.textContent = 'Hello world!';
+	const nodeText = 'Hello world!';
+	div.textContent = nodeText;
 	// not exists before translate
 	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(false);
 
@@ -53,6 +54,7 @@ test('Translated node exist in the storage', async () => {
 	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(true);
 
 	domNodesTranslator.restoreNode(div.childNodes[0]);
+	expect(div.textContent).toBe(nodeText);
 	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(false);
 });
 
