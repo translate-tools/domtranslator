@@ -1,3 +1,5 @@
+import { TranslatableNodePredicate } from './TranslationDispatcher';
+
 /**
  * Observe DOM nodes and call a callback for filtered nodes when they intersect the viewport
  */
@@ -6,17 +8,21 @@ export class IntersectionObserverWithFilter {
 	private readonly nodesObservedForIntersection = new WeakSet<Node>();
 	private readonly intersectionObserver: IntersectionObserver;
 
+	private readonly filter;
 	private readonly onIntersected;
 
 	constructor({
+		filter,
 		onIntersected,
 		config,
 	}: {
+		filter: TranslatableNodePredicate;
 		onIntersected: (node: Node) => void;
 		config?: {
 			intersectionConfig?: IntersectionObserverInit;
 		};
 	}) {
+		this.filter = filter;
 		this.onIntersected = onIntersected;
 
 		this.intersectionObserver = new IntersectionObserver((entries, observer) => {
@@ -37,19 +43,12 @@ export class IntersectionObserverWithFilter {
 		}, config?.intersectionConfig);
 	}
 
-	/**
-	 * Starts observing the node for intersection.
-	 * After the callback is called, the node will be removed from observation.
-	 */
 	public attach(node: Element) {
 		if (this.nodesObservedForIntersection.has(node)) return;
 		this.nodesObservedForIntersection.add(node);
 		this.intersectionObserver.observe(node);
 	}
 
-	/**
-	 * Stop observing a node.
-	 */
 	public detach(node: Element) {
 		this.nodesObservedForIntersection.delete(node);
 		this.intersectionObserver.unobserve(node);
@@ -59,7 +58,9 @@ export class IntersectionObserverWithFilter {
 		// Translate child text nodes and attributes of target node
 		// WARNING: we shall not touch inner nodes, because its may still not intersected
 		node.childNodes.forEach((node) => {
-			if (node instanceof Element) return;
+			if (node instanceof Element || !this.filter(node)) {
+				return;
+			}
 			this.onIntersected(node);
 		});
 	}
