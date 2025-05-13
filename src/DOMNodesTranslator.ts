@@ -99,7 +99,7 @@ export class DOMNodesTranslator {
 	 */
 	public restoreNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-		if (nodeData == undefined) return;
+		if (!nodeData) return;
 
 		// Restore original text if text been replaced
 		if (nodeData.originalText !== null) {
@@ -113,7 +113,7 @@ export class DOMNodesTranslator {
 	 */
 	public updateNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-		if (nodeData == undefined) return;
+		if (!nodeData) return;
 
 		nodeData.updateId++;
 		this.translateNodeContent(node);
