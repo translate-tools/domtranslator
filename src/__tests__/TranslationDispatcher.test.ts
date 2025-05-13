@@ -42,7 +42,7 @@ test('Do not lazily translate not-intersectable node', async () => {
 	expect(option.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Lazily translate node', async () => {
+test('Lazily translate intersectable node', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
@@ -91,7 +91,7 @@ test('Translates and restores the original text content of an element and its ch
 	expect(div1.childNodes[0].textContent).toBe(text1);
 });
 
-test('IntersectionObserver does not translate ignored node inside target', async () => {
+test('Do not translated ignored comment node inside observed element', async () => {
 	const isTranslatableNode = configureTranslatableNodePredicate({
 		ignoredSelectors: ['comment'],
 	});
@@ -108,7 +108,6 @@ test('IntersectionObserver does not translate ignored node inside target', async
 
 	const div = document.createElement('div');
 	div.textContent = 'I`m block i have four corners';
-	// Comment element should not be translated
 	const comment = document.createComment('I`m comment node, not translate me please');
 	div.appendChild(comment);
 	document.body.appendChild(div);

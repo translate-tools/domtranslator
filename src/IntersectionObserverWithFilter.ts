@@ -62,12 +62,11 @@ export class IntersectionObserverWithFilter {
 	}
 
 	/**
-	 * The element may contain nodes that are should not to translate.
-	 * These should be filtered before calls onIntersected.
+	 * Translate child text nodes and attributes of target node
 	 */
 	private handlerIntersectNode(node: Element) {
-		// Translate child text nodes and attributes of target node
 		// WARNING: we shall not touch inner nodes, because its may still not intersected
+		// The element may contain nodes that are should not to translate. Filtered before calls onIntersected.
 		node.childNodes.forEach((node) => {
 			if (node instanceof Element || !this.filter(node)) return;
 			this.onIntersected(node);

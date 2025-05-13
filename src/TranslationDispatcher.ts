@@ -6,7 +6,7 @@ import { visitWholeTree } from './utils/visitWholeTree';
 export type TranslatableNodePredicate = (node: Node) => boolean;
 
 /**
- * Coordinates the processing of DOM nodes for translation.
+ * Coordinates the DOM nodes translation process.
  * Chooses between lazy and immediate translation; defaults to immediate if not provided.
  */
 export class TranslationDispatcher {
