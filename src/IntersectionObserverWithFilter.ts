@@ -1,7 +1,7 @@
 import { TranslatableNodePredicate } from './TranslationDispatcher';
 
 /**
- * Observe DOM nodes and call a callback for filtered nodes when they intersect the viewport
+ * Observes DOM elements and calls a callback for filtered child nodes when they intersect the viewport.
  */
 export class IntersectionObserverWithFilter {
 	// Store the nodes that is under observing for intersection
@@ -37,30 +37,38 @@ export class IntersectionObserverWithFilter {
 				// This makes it possible to observe the node again later if needed
 				this.nodesObservedForIntersection.delete(node);
 				observer.unobserve(node);
-
 				this.handlerIntersectNode(node);
 			});
 		}, config?.intersectionConfig);
 	}
 
+	/**
+	 * Starts observing the element for intersection.
+	 * The element will be automatically removed from observation after the call onIntersected callback.
+	 */
 	public attach(node: Element) {
 		if (this.nodesObservedForIntersection.has(node)) return;
 		this.nodesObservedForIntersection.add(node);
 		this.intersectionObserver.observe(node);
 	}
 
+	/**
+	 * Stops observing the element. It is removes from observation.
+	 */
 	public detach(node: Element) {
 		this.nodesObservedForIntersection.delete(node);
 		this.intersectionObserver.unobserve(node);
 	}
 
-	private handlerIntersectNode(node: Node) {
+	/**
+	 * The element may contain nodes that are not translatable.
+	 * These should be filtered before calls onIntersected.
+	 */
+	private handlerIntersectNode(node: Element) {
 		// Translate child text nodes and attributes of target node
 		// WARNING: we shall not touch inner nodes, because its may still not intersected
 		node.childNodes.forEach((node) => {
-			if (node instanceof Element || !this.filter(node)) {
-				return;
-			}
+			if (node instanceof Element || !this.filter(node)) return;
 			this.onIntersected(node);
 		});
 	}
