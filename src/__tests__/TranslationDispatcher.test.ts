@@ -1,5 +1,5 @@
 import { DOMNodesTranslator } from '../DOMNodesTranslator';
-import { IntersectionObserverWithFilter } from '../IntersectionObserverWithFilter';
+import { NodesIntersectionObserver } from '../NodesIntersectionObserver';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { configureTranslatableNodePredicate } from '../utils/nodes';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
@@ -21,7 +21,7 @@ test('Translate immediately if node is not eligible for lazy translation', async
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
 		nodeTranslator: domNodesTranslator,
-		lazyTranslator: new IntersectionObserverWithFilter(),
+		lazyTranslator: new NodesIntersectionObserver(),
 	});
 
 	// OPTION node is not intersectable, node can`t translate 'lazy'
@@ -45,7 +45,7 @@ test('Lazily translate intersectable node', async () => {
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
 		nodeTranslator: domNodesTranslator,
-		lazyTranslator: new IntersectionObserverWithFilter(),
+		lazyTranslator: new NodesIntersectionObserver(),
 	});
 
 	const div = document.createElement('div');
@@ -95,7 +95,7 @@ test('Do not translate ignored node inside element during lazyTranslation', asyn
 	const translationDispatcher = new TranslationDispatcher({
 		filter,
 		nodeTranslator,
-		lazyTranslator: new IntersectionObserverWithFilter(),
+		lazyTranslator: new NodesIntersectionObserver(),
 	});
 
 	const div = document.createElement('div');

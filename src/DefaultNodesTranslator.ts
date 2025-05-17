@@ -3,7 +3,7 @@ import { NodesTranslator } from './NodesTranslator';
 import { configureTranslatableNodePredicate } from './utils/nodes';
 import {
 	DOMNodesTranslator,
-	IntersectionObserverWithFilter,
+	NodesIntersectionObserver,
 	TranslatableNodePredicate,
 	TranslationDispatcher,
 } from '.';
@@ -28,7 +28,7 @@ export class DefaultNodesTranslator extends NodesTranslator {
 
 		// not create instance if param lazyTranslate falsy
 		const intersectionObserverWithFilter = lazyTranslate
-			? new IntersectionObserverWithFilter()
+			? new NodesIntersectionObserver()
 			: undefined;
 
 		const translatorDispatcher = new TranslationDispatcher({

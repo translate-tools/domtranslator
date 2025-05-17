@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 
 import { Config } from '../DefaultNodesTranslator';
 import { DOMNodesTranslator, TranslatorInterface } from '../DOMNodesTranslator';
-import { IntersectionObserverWithFilter } from '../IntersectionObserverWithFilter';
+import { NodesIntersectionObserver } from '../NodesIntersectionObserver';
 import { NodesTranslator } from '../NodesTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
@@ -43,7 +43,7 @@ function buildTranslationServices(
 
 	// not create instance if param lazyTranslate falsy
 	const intersectionObserverWithFilter = config.lazyTranslate
-		? new IntersectionObserverWithFilter()
+		? new NodesIntersectionObserver()
 		: undefined;
 
 	const translatorDispatcher = new TranslationDispatcher({

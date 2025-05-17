@@ -8,9 +8,9 @@ export function getElementOwnedNode(node: Node) {
 }
 
 /**
- * Observes DOM elements and calls a callback for filtered child nodes when they intersect the viewport.
+ * Observes DOM nodes for intersection with the viewport and triggers callbacks when they become visible.
  */
-export class IntersectionObserverWithFilter {
+export class NodesIntersectionObserver {
 	private readonly intersectionObserver: IntersectionObserver;
 
 	// Store the nodes and his parent element that is under observing for intersection
@@ -43,7 +43,7 @@ export class IntersectionObserverWithFilter {
 	 * When the element that owns the node intersects the viewport, the callback is invoked.
 	 * Then the owner element and all its tracked nodes are automatically removed from observation.
 	 */
-	public attach(node: Node, callback: (node: Node) => void) {
+	public observe(node: Node, callback: (node: Node) => void) {
 		const ownerElement = getElementOwnedNode(node);
 
 		// if node have not parent (virtual node) or not intersecteble calls callback immediately
@@ -68,7 +68,7 @@ export class IntersectionObserverWithFilter {
 	/**
 	 * Stops observing the node. It is removes from observation.
 	 */
-	public detach(node: Node) {
+	public unobserve(node: Node) {
 		const ownerElement = getElementOwnedNode(node);
 		if (!ownerElement) return;
 

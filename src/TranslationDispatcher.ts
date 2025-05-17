@@ -1,5 +1,5 @@
 import { DOMNodesTranslator } from './DOMNodesTranslator';
-import { IntersectionObserverWithFilter } from './IntersectionObserverWithFilter';
+import { NodesIntersectionObserver } from './NodesIntersectionObserver';
 import { visitWholeTree } from './utils/visitWholeTree';
 
 export type TranslatableNodePredicate = (node: Node) => boolean;
@@ -21,7 +21,7 @@ export class TranslationDispatcher {
 	}: {
 		filter: TranslatableNodePredicate;
 		nodeTranslator: DOMNodesTranslator;
-		lazyTranslator?: IntersectionObserverWithFilter;
+		lazyTranslator?: NodesIntersectionObserver;
 	}) {
 		this.filter = filter;
 		this.nodeTranslator = nodeTranslator;
@@ -57,7 +57,7 @@ export class TranslationDispatcher {
 			// if node is outside of body (utility tags like meta or title) translate immediately
 			const isAttachedToDOM = node.getRootNode() !== node;
 			if (isAttachedToDOM) {
-				this.lazyTranslator.attach(node, (node: Node) => {
+				this.lazyTranslator.observe(node, (node: Node) => {
 					this.nodeTranslator.translateNode(node);
 				});
 				return;
@@ -79,7 +79,7 @@ export class TranslationDispatcher {
 			});
 
 			if (this.lazyTranslator) {
-				this.lazyTranslator.detach(node);
+				this.lazyTranslator.unobserve(node);
 			}
 		}
 
