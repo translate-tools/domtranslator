@@ -19,7 +19,7 @@ test('Translate node that is not suitable for delayed translation', async () => 
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
 		nodeTranslator: domNodesTranslator,
-		lazyTranslator: new NodesIntersectionObserver(),
+		nodeIntersectionObserver: new NodesIntersectionObserver(),
 	});
 
 	// OPTION node is not intersectable, node can`t translate latter
@@ -41,7 +41,7 @@ test('Translate node from shadowDom ', async () => {
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
 		nodeTranslator: domNodesTranslator,
-		lazyTranslator: new NodesIntersectionObserver(),
+		nodeIntersectionObserver: new NodesIntersectionObserver(),
 	});
 
 	const host = document.createElement('div');
@@ -99,7 +99,7 @@ test('Do not translate ignored node inside element', async () => {
 	const translationDispatcher = new TranslationDispatcher({
 		filter,
 		nodeTranslator,
-		lazyTranslator: new NodesIntersectionObserver(),
+		nodeIntersectionObserver: new NodesIntersectionObserver(),
 	});
 
 	const div = document.createElement('div');

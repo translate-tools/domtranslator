@@ -12,20 +12,20 @@ export class TranslationDispatcher {
 	private readonly filter;
 	private readonly nodeTranslator;
 	// if dependency is not passed, then the node will not be translated lazy
-	private readonly lazyTranslator;
+	private readonly nodeIntersectionObserver;
 
 	constructor({
 		filter,
 		nodeTranslator,
-		lazyTranslator,
+		nodeIntersectionObserver,
 	}: {
 		filter: TranslatableNodePredicate;
 		nodeTranslator: DOMNodesTranslator;
-		lazyTranslator?: NodesIntersectionObserver;
+		nodeIntersectionObserver?: NodesIntersectionObserver;
 	}) {
 		this.filter = filter;
 		this.nodeTranslator = nodeTranslator;
-		this.lazyTranslator = lazyTranslator || null;
+		this.nodeIntersectionObserver = nodeIntersectionObserver || null;
 	}
 
 	public updateNode(node: Node) {
@@ -53,11 +53,12 @@ export class TranslationDispatcher {
 
 		// Handle text nodes and attributes
 
-		if (this.lazyTranslator) {
+		// translate latter if possible
+		if (this.nodeIntersectionObserver) {
 			// if node is outside of body (utility tags like meta or title) translate immediately
 			const isAttachedToDOM = node.getRootNode() !== node;
 			if (isAttachedToDOM) {
-				this.lazyTranslator.observe(node, (node: Node) => {
+				this.nodeIntersectionObserver.observe(node, (node: Node) => {
 					this.nodeTranslator.translateNode(node);
 				});
 				return;
@@ -77,10 +78,9 @@ export class TranslationDispatcher {
 			visitWholeTree(node, (node) => {
 				this.restoreNode(node, true);
 			});
-
-			if (this.lazyTranslator) {
-				this.lazyTranslator.unobserve(node);
-			}
+		}
+		if (this.nodeIntersectionObserver) {
+			this.nodeIntersectionObserver.unobserve(node);
 		}
 
 		this.nodeTranslator.restoreNode(node);

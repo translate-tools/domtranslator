@@ -49,7 +49,7 @@ function buildTranslationServices(
 	const translatorDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
 		nodeTranslator: domNodesTranslator,
-		lazyTranslator: intersectionObserverWithFilter,
+		nodeIntersectionObserver: intersectionObserverWithFilter,
 	});
 
 	return {
