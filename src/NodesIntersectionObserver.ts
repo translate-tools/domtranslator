@@ -54,11 +54,10 @@ export class NodesIntersectionObserver {
 
 		const entry = { node, callback };
 		const observedNodes = this.nodesObservedForIntersection.get(ownerElement);
-
 		if (observedNodes) {
 			// add node to array only if not exist yet
-			const isNodeAlreadyObserve = observedNodes.some((n) => n.node === node);
-			if (isNodeAlreadyObserve) return;
+			const isNodeExist = observedNodes.some((n) => n.node === node);
+			if (isNodeExist) return;
 			observedNodes?.push(entry);
 		} else {
 			this.nodesObservedForIntersection.set(ownerElement, [entry]);
@@ -72,7 +71,6 @@ export class NodesIntersectionObserver {
 	public unobserve(node: Node) {
 		const ownerElement = getElementOwnedNode(node);
 		if (!ownerElement) return;
-
 		const observedNodes = this.nodesObservedForIntersection.get(ownerElement);
 		if (!observedNodes) return;
 
