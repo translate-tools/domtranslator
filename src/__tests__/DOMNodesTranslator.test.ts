@@ -71,10 +71,10 @@ test('Translate the node after updating its text', async () => {
 
 	// the first call updateNode will update the updateId state, but the node won’t be translated
 	// because the internal state updateId will be equal to translateContext, this approach prevent recursion translation
-	domNodesTranslator.updateNode(node.attributes[0]);
-	await awaitTranslation();
 	const text1 = 'title text is update';
 	node.setAttribute('title', text1);
+	domNodesTranslator.updateNode(node.attributes[0]);
+	await awaitTranslation();
 
 	// this call will translate node text
 	domNodesTranslator.updateNode(node.attributes[0]);
