@@ -46,23 +46,23 @@ export class NodesIntersectionObserver {
 	public observe(node: Node, callback: (node: Node) => void) {
 		const ownerElement = getElementOwnedNode(node);
 
-		// if node have not parent (virtual node) or not intersecteble calls callback immediately
+		// immediately invoke callback if node has no owner or is not intersectable
 		if (!ownerElement || !isIntersectableNode(ownerElement)) {
 			callback(node);
 			return;
 		}
 
 		// add observableNode if not exist
-		const observedNodes = this.nodesObservedForIntersection.get(ownerElement);
 		const entry = { node, callback };
+		const observedNodes = this.nodesObservedForIntersection.get(ownerElement);
+
 		if (observedNodes) {
 			observedNodes?.push(entry);
 		} else {
 			this.nodesObservedForIntersection.set(ownerElement, [entry]);
+			// start observe element for intersection
+			this.intersectionObserver.observe(ownerElement);
 		}
-
-		// start observe element for intersection
-		this.intersectionObserver.observe(ownerElement);
 	}
 
 	/**
@@ -73,9 +73,10 @@ export class NodesIntersectionObserver {
 		if (!ownerElement) return;
 
 		const observedNodes = this.nodesObservedForIntersection.get(ownerElement);
+		if (!observedNodes) return;
 
 		const filtered = observedNodes?.filter((entry) => entry.node !== node);
-		if (filtered) {
+		if (filtered.length > 0) {
 			// delete only the received node from storage
 			this.nodesObservedForIntersection.set(ownerElement, filtered);
 		} else {
