@@ -42,14 +42,14 @@ function buildTranslationServices(
 	const domNodesTranslator = new DOMNodesTranslator(translateCallback);
 
 	// not create instance if param lazyTranslate falsy
-	const intersectionObserverWithFilter = config.lazyTranslate
+	const nodeIntersectionObserver = config.lazyTranslate
 		? new NodesIntersectionObserver()
 		: undefined;
 
 	const translatorDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
 		nodeTranslator: domNodesTranslator,
-		nodeIntersectionObserver: intersectionObserverWithFilter,
+		nodeIntersectionObserver,
 	});
 
 	return {
