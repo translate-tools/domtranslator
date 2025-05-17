@@ -13,7 +13,7 @@ export function getElementOwnedNode(node: Node) {
 export class NodesIntersectionObserver {
 	private readonly intersectionObserver: IntersectionObserver;
 
-	// Store the nodes and his parent element that is under observing for intersection
+	// Store the nodes and his owner element that is under observing for intersection
 	private readonly nodesObservedForIntersection = new WeakMap<
 		Element,
 		{ node: Node; callback: (node: Node) => void }[]
@@ -75,8 +75,8 @@ export class NodesIntersectionObserver {
 		const observedNodes = this.nodesObservedForIntersection.get(ownerElement);
 
 		const filtered = observedNodes?.filter((entry) => entry.node !== node);
-
-		if (filtered && filtered?.length > 0) {
+		if (filtered) {
+			// delete only the received node from storage
 			this.nodesObservedForIntersection.set(ownerElement, filtered);
 		} else {
 			this.nodesObservedForIntersection.delete(ownerElement);
@@ -85,10 +85,9 @@ export class NodesIntersectionObserver {
 	}
 
 	/**
-	 * Calls callback for child text nodes and attributes of target element
+	 * Calls callbacks for all observed nodes associated with the specified element
 	 */
 	private triggerChildTextNodes(node: Element) {
-		// WARNING: we shall not touch inner nodes, because its may still not intersected
 		const intersectedNode = this.nodesObservedForIntersection.get(node);
 		intersectedNode?.forEach(({ node, callback }) => {
 			callback(node);
