@@ -3,7 +3,7 @@ import { isIntersectableNode } from './utils/isIntersectableNode';
 /**
  * @returns Returns the node owner element.
  */
-export function getElementOwnedNode(node: Node) {
+export function getElementOfNode(node: Node) {
 	return node instanceof Attr ? node.ownerElement : node.parentElement;
 }
 
@@ -44,7 +44,7 @@ export class NodesIntersectionObserver {
 	 * Then the owner element and all its tracked nodes are automatically removed from observation.
 	 */
 	public observe(node: Node, callback: Callback) {
-		const ownerElement = getElementOwnedNode(node);
+		const ownerElement = getElementOfNode(node);
 
 		// immediately invoke callback if node has no owner or is not intersectable
 		if (!ownerElement || !isIntersectableNode(ownerElement)) {
@@ -74,7 +74,7 @@ export class NodesIntersectionObserver {
 	 * Stops observing the node. It is removes from observation.
 	 */
 	public unobserve(node: Node) {
-		const ownerElement = getElementOwnedNode(node);
+		const ownerElement = getElementOfNode(node);
 		if (!ownerElement) return;
 		const observedNodes = this.elementNodesMap.get(ownerElement);
 		if (!observedNodes) return;
