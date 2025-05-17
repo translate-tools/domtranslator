@@ -6,8 +6,6 @@ import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from 
 
 require('intersection-observer');
 
-// const lazyTranslatorSpy = vi.spyOn(IntersectionObserverWithFilter.prototype, 'attach');
-
 beforeEach(() => {
 	vi.clearAllMocks();
 	document.body.innerHTML = '';
@@ -15,7 +13,7 @@ beforeEach(() => {
 
 const isTranslatableNode = () => true;
 
-test('Translate immediately if node is not eligible for lazy translation', async () => {
+test('Translate node that is not suitable for delayed translation', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 
 	const translationDispatcher = new TranslationDispatcher({
@@ -24,7 +22,7 @@ test('Translate immediately if node is not eligible for lazy translation', async
 		lazyTranslator: new NodesIntersectionObserver(),
 	});
 
-	// OPTION node is not intersectable, node can`t translate 'lazy'
+	// OPTION node is not intersectable, node can`t translate latter
 	const select = document.createElement('select');
 	const option = document.createElement('option');
 	option.textContent = 'Hello, world!';
@@ -34,29 +32,35 @@ test('Translate immediately if node is not eligible for lazy translation', async
 	translationDispatcher.translateNode(select);
 	await awaitTranslation();
 
-	// lazy translator not called
-	// expect(lazyTranslatorSpy.mock.calls).toEqual([]);
-	// translate immediately
 	expect(option.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Lazily translate intersectable node', async () => {
+test('Translate node from shadowDom ', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
+
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
 		nodeTranslator: domNodesTranslator,
 		lazyTranslator: new NodesIntersectionObserver(),
 	});
 
-	const div = document.createElement('div');
-	div.textContent = 'Hello, world!';
-	document.body.appendChild(div);
-	translationDispatcher.translateNode(div);
-	await awaitTranslation();
+	const host = document.createElement('div');
+	document.body.appendChild(host);
+	const shadowRoot = host.attachShadow({ mode: 'open' });
 
-	// lazy translator called and translated element
-	// expect(lazyTranslatorSpy.mock.calls).toEqual([[div]]);
+	// this node not attached to DOM, but should be translated
+	const div = document.createElement('div');
+	const text = 'I`m from shadow';
+	div.textContent = text;
+	shadowRoot.appendChild(div);
+
+	translationDispatcher.translateNode(host);
+	await awaitTranslation();
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+
+	// restore
+	translationDispatcher.restoreNode(host);
+	expect(div.textContent).toBe(text);
 });
 
 test('Translates and restores the element and its child elements', async () => {
@@ -87,7 +91,7 @@ test('Translates and restores the element and its child elements', async () => {
 	expect(div1.childNodes[0].textContent).toBe(text1);
 });
 
-test('Do not translate ignored node inside element during lazyTranslation', async () => {
+test('Do not translate ignored node inside element', async () => {
 	const filter = configureTranslatableNodePredicate({
 		ignoredSelectors: ['comment'],
 	});
@@ -101,16 +105,17 @@ test('Do not translate ignored node inside element during lazyTranslation', asyn
 	const div = document.createElement('div');
 	div.textContent = 'I`m block i have four corners';
 	const comment = document.createComment('I`m comment node, not translate me please');
+	const p = document.createElement('p');
+	p.textContent = 'I have text, i would be translated';
+	div.appendChild(p);
 	div.appendChild(comment);
 	document.body.appendChild(div);
 
-	// IntersectionObserverWithFilter receives a div element containing a comment that should not be translated
 	translationDispatcher.translateNode(div);
 	await awaitTranslation();
 
-	// call IntersectionObserverWithFilter with element
-	// expect(lazyTranslatorSpy.mock.calls).toEqual([[div]]);
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(p.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	// comment not translated
 	expect(comment.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
