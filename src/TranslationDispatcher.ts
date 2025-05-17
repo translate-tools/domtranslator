@@ -1,6 +1,5 @@
 import { DOMNodesTranslator } from './DOMNodesTranslator';
 import { IntersectionObserverWithFilter } from './IntersectionObserverWithFilter';
-import { isIntersectableNode } from './utils/isIntersectableNode';
 import { visitWholeTree } from './utils/visitWholeTree';
 
 export type TranslatableNodePredicate = (node: Node) => boolean;
@@ -55,19 +54,12 @@ export class TranslationDispatcher {
 		// Handle text nodes and attributes
 
 		if (this.lazyTranslator) {
-			// Lazy translate when own element intersect viewport
-			// But translate at once if node have not parent (virtual node) or parent node is outside of body (utility tags like meta or title)
+			// if node is outside of body (utility tags like meta or title) translate immediately
 			const isAttachedToDOM = node.getRootNode() !== node;
-			const observableNode =
-				node instanceof Attr ? node.ownerElement : node.parentElement;
-
-			// Ignore lazy translation for non-intersecting nodes and translate it immediately
-			if (
-				isAttachedToDOM &&
-				observableNode !== null &&
-				isIntersectableNode(observableNode)
-			) {
-				this.lazyTranslator.attach(observableNode);
+			if (isAttachedToDOM) {
+				this.lazyTranslator.attach(node, (node: Node) => {
+					this.nodeTranslator.translateNode(node);
+				});
 				return;
 			}
 		}
