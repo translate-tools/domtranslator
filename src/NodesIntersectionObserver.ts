@@ -54,15 +54,15 @@ export class NodesIntersectionObserver {
 
 		const entry = { node, callback };
 		const observedNodes = this.nodesObservedForIntersection.get(ownerElement);
+		// add node to array only if not exist yet
 		if (observedNodes) {
-			// add node to array only if not exist yet
-			const isNodeExist = observedNodes.some((n) => n.node === node);
-			if (isNodeExist) return;
+			const isNodeAlreadyObserve = observedNodes.some((n) => n.node === node);
+			if (isNodeAlreadyObserve) return;
 			observedNodes?.push(entry);
-		} else {
-			this.nodesObservedForIntersection.set(ownerElement, [entry]);
-			this.intersectionObserver.observe(ownerElement);
+			return;
 		}
+		this.nodesObservedForIntersection.set(ownerElement, [entry]);
+		this.intersectionObserver.observe(ownerElement);
 	}
 
 	/**
@@ -75,14 +75,14 @@ export class NodesIntersectionObserver {
 		if (!observedNodes) return;
 
 		const filtered = observedNodes.filter((entry) => entry.node !== node);
+		// delete only the received node
 		if (filtered.length > 0) {
-			// delete only the received node
 			this.nodesObservedForIntersection.set(ownerElement, filtered);
-		} else {
-			// if no more nodes are tracked under this ownerElement, stop observing the ownerElement
-			this.nodesObservedForIntersection.delete(ownerElement);
-			this.intersectionObserver.unobserve(ownerElement);
+			return;
 		}
+		// if no more nodes are tracked under this ownerElement, stop observing the ownerElement
+		this.nodesObservedForIntersection.delete(ownerElement);
+		this.intersectionObserver.unobserve(ownerElement);
 	}
 
 	/**
