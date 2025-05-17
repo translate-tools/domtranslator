@@ -13,7 +13,7 @@ export function getElementOwnedNode(node: Node) {
 export class NodesIntersectionObserver {
 	private readonly intersectionObserver: IntersectionObserver;
 
-	// Store the nodes and his owner element that is under observing for intersection
+	// Stores the nodes and callback for this node, and his owner element that is under observing for intersection
 	private readonly nodesObservedForIntersection = new WeakMap<
 		Element,
 		{ node: Node; callback: (node: Node) => void }[]
@@ -52,15 +52,16 @@ export class NodesIntersectionObserver {
 			return;
 		}
 
-		// add observableNode if not exist
 		const entry = { node, callback };
 		const observedNodes = this.nodesObservedForIntersection.get(ownerElement);
 
 		if (observedNodes) {
+			// add node to array only if not exist yet
+			const isNodeAlreadyObserve = observedNodes.some((n) => n.node === node);
+			if (isNodeAlreadyObserve) return;
 			observedNodes?.push(entry);
 		} else {
 			this.nodesObservedForIntersection.set(ownerElement, [entry]);
-			// start observe element for intersection
 			this.intersectionObserver.observe(ownerElement);
 		}
 	}
@@ -75,11 +76,12 @@ export class NodesIntersectionObserver {
 		const observedNodes = this.nodesObservedForIntersection.get(ownerElement);
 		if (!observedNodes) return;
 
-		const filtered = observedNodes?.filter((entry) => entry.node !== node);
+		const filtered = observedNodes.filter((entry) => entry.node !== node);
 		if (filtered.length > 0) {
-			// delete only the received node from storage
+			// delete only the received node
 			this.nodesObservedForIntersection.set(ownerElement, filtered);
 		} else {
+			// if no more nodes are tracked under this ownerElement, stop observing the ownerElement
 			this.nodesObservedForIntersection.delete(ownerElement);
 			this.intersectionObserver.unobserve(ownerElement);
 		}
