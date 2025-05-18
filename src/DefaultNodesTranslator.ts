@@ -26,7 +26,6 @@ export class DefaultNodesTranslator extends NodesTranslator {
 
 		const domNodesTranslator = new DOMNodesTranslator(translateCallback);
 
-		// not create instance if param lazyTranslate falsy
 		const nodeIntersectionObserver = lazyTranslate
 			? new NodesIntersectionObserver()
 			: undefined;

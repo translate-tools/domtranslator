@@ -41,7 +41,6 @@ function buildTranslationServices(
 
 	const domNodesTranslator = new DOMNodesTranslator(translateCallback);
 
-	// not create instance if param lazyTranslate falsy
 	const nodeIntersectionObserver = config.lazyTranslate
 		? new NodesIntersectionObserver()
 		: undefined;
