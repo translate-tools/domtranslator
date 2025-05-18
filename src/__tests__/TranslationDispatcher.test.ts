@@ -2,7 +2,13 @@ import { DOMNodesTranslator } from '../DOMNodesTranslator';
 import { NodesIntersectionObserver } from '../NodesIntersectionObserver';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { configureTranslatableNodePredicate } from '../utils/nodes';
-import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
+import {
+	awaitTranslation,
+	containsRegex,
+	mockBoundingClientRect,
+	TRANSLATION_SYMBOL,
+	translator,
+} from './utils';
 
 require('intersection-observer');
 
@@ -13,11 +19,10 @@ beforeEach(() => {
 
 const isTranslatableNode = () => true;
 
-test('Translate node that is not suitable for delayed translation', async () => {
-	const domNodesTranslator = new DOMNodesTranslator(translator);
+test('Node translates immediately in lazy-translation mode if it is not intersectable', async () => {
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
-		nodeTranslator: domNodesTranslator,
+		nodeTranslator: new DOMNodesTranslator(translator),
 		nodeIntersectionObserver: new NodesIntersectionObserver(),
 	});
 
@@ -28,9 +33,15 @@ test('Translate node that is not suitable for delayed translation', async () => 
 	select.appendChild(option);
 	document.body.appendChild(select);
 
+	mockBoundingClientRect(document.body, { width: 100, height: 200, x: 0, y: 0 });
+	// options not intersect viewport
+	// IntersectionObserver should not invoke the callback until the node appears in the viewport
+	mockBoundingClientRect(option, { width: 50, height: 100, x: 0, y: 300 });
+
 	translationDispatcher.translateNode(select);
 	await awaitTranslation();
 
+	// element is translated regardless of its viewport intersection
 	expect(option.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
