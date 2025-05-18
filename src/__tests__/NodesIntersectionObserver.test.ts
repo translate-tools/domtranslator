@@ -1,34 +1,16 @@
 import { NodesIntersectionObserver } from '../NodesIntersectionObserver';
-import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL } from './utils';
+import {
+	awaitTranslation,
+	containsRegex,
+	mockBoundingClientRect,
+	TRANSLATION_SYMBOL,
+} from './utils';
 
 require('intersection-observer');
 
 const translator = vi.fn().mockImplementation(async (node: Node) => {
 	node.textContent += TRANSLATION_SYMBOL;
 });
-
-// jsdom does not actually modify element coordinates
-// Create a mock that sets the real values for the coordinates
-const mockBoundingClientRect = (
-	element: HTMLElement,
-	rect: {
-		width: number;
-		height: number;
-		x: number;
-		y: number;
-	},
-) => {
-	Object.defineProperty(element, 'getBoundingClientRect', {
-		configurable: true,
-		value: () => ({
-			top: rect.y,
-			left: rect.x,
-			bottom: rect.height + rect.y,
-			right: rect.width + rect.x,
-			...rect,
-		}),
-	});
-};
 
 beforeEach(() => {
 	mockBoundingClientRect(document.body, {
