@@ -84,7 +84,6 @@ export class NodesIntersectionObserver {
 		// if no more nodes are tracked under this ownerElement, stop observing it
 		if (observedNodes.size === 0) {
 			this.elementNodesMap.delete(ownerElement);
-			this.nodeCallbacksMap.delete(node);
 			this.intersectionObserver.unobserve(ownerElement);
 		}
 	}
