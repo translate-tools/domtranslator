@@ -87,8 +87,8 @@ test('Translates and restores the element and its child elements', async () => {
 	expect(div1.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 	translationDispatcher.restoreNode(div);
-	expect(div.textContent).toBe(text);
-	expect(div1.textContent).toBe(text1);
+	expect(div.childNodes[0].textContent).toBe(text);
+	expect(div1.childNodes[0].textContent).toBe(text1);
 });
 
 test('Does not translate ignored node', async () => {

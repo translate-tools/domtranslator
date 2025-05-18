@@ -62,20 +62,22 @@ test('Translates the attribute node text after its value is changed', async () =
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 
 	const node = document.createElement('a');
-	node.setAttribute('title', 'title text');
+	const text = 'title text';
+	node.setAttribute('title', text);
 
 	// translate the attribute node
 	domNodesTranslator.translateNode(node.attributes[0]);
 	await awaitTranslation();
 	expect(node.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// the first call to updateNode updates the internal updateId state,
-	// but the node won't be translated immediately because the updateId matches the translate context.
-	// this prevents recursive translation calls.
+	// the first call to updateNode updates the internal updateId state
+	// but the node won't be translated immediately because the updateId matches the translate context
+	// this prevents recursive translation calls
 	const text1 = 'title text is update';
 	node.setAttribute('title', text1);
 	domNodesTranslator.updateNode(node.attributes[0]);
 	await awaitTranslation();
+	expect(node.attributes[0].textContent).toBe(text1);
 
 	// the second call to updateNode triggers the actual translation of the node text
 	domNodesTranslator.updateNode(node.attributes[0]);
