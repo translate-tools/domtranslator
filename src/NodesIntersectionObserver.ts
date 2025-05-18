@@ -97,8 +97,8 @@ export class NodesIntersectionObserver {
 	 * Calls callbacks for all observed nodes associated with the specified element
 	 */
 	private triggerNestedNodes(node: Element) {
-		const intersectedNodes = this.elementNodesMap.get(node);
-		intersectedNodes?.forEach((node) => {
+		const ownedNodes = this.elementNodesMap.get(node);
+		ownedNodes?.forEach((node) => {
 			const callback = this.nodeCallbacksMap.get(node);
 			if (callback) callback(node);
 		});
