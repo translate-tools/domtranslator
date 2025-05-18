@@ -11,10 +11,10 @@ type Callback = (node: Node) => void;
 
 /**
  * Observes DOM nodes for intersection with the viewport and triggers callbacks when they become visible.
+ * WARNING: Class works with nodes, not elements directly
  */
 export class NodesIntersectionObserver {
 	private readonly intersectionObserver: IntersectionObserver;
-
 	private readonly nodeCallbacksMap = new WeakMap<Node, Callback>();
 	// Stores the nodes and his owner element that is under observing for intersection
 	private readonly elementNodesMap = new WeakMap<Element, Set<Node>>();
@@ -85,12 +85,11 @@ export class NodesIntersectionObserver {
 			this.nodeCallbacksMap.delete(node);
 			this.intersectionObserver.unobserve(ownerElement);
 		} else {
-			if (observedNodes.has(node)) {
-				// delete only the received node
-				observedNodes.delete(node);
-				this.nodeCallbacksMap.delete(node);
-				return;
-			}
+			// delete only the received node
+			if (!observedNodes.has(node)) return;
+
+			observedNodes.delete(node);
+			this.nodeCallbacksMap.delete(node);
 		}
 	}
 
