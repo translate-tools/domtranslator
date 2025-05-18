@@ -11,7 +11,7 @@ type Callback = (node: Node) => void;
 
 /**
  * Observes DOM nodes for intersection with the viewport and triggers callbacks when they become visible.
- * WARNING: Class works with nodes, not elements directly
+ * WARNING: This class works with nodes (Text, Attr, etc.), not directly with elements.
  */
 export class NodesIntersectionObserver {
 	private readonly intersectionObserver: IntersectionObserver;
