@@ -33,7 +33,6 @@ export class NodesIntersectionObserver {
 				// Process the element once and stop observing it
 				// This allows re-observing the element later if needed
 				this.elementNodesMap.delete(node);
-				this.nodeCallbacksMap.delete(node);
 				observer.unobserve(node);
 			});
 		}, intersectionConfig);
@@ -89,13 +88,15 @@ export class NodesIntersectionObserver {
 	}
 
 	/**
-	 * Calls callbacks for all observed nodes associated with the specified element
+	 * Calls callbacks for all observed nodes associated with the specified element and removes their callbacks from storage
 	 */
 	private triggerNestedNodes(node: Element) {
 		const ownedNodes = this.elementNodesMap.get(node);
 		ownedNodes?.forEach((node) => {
 			const callback = this.nodeCallbacksMap.get(node);
 			if (callback) callback(node);
+
+			this.nodeCallbacksMap.delete(node);
 		});
 	}
 }
