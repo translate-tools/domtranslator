@@ -11,7 +11,6 @@ export type TranslatableNodePredicate = (node: Node) => boolean;
 export class TranslationDispatcher {
 	private readonly filter;
 	private readonly nodeTranslator;
-	// if dependency is not passed, then the node will not be translated lazy
 	private readonly nodeIntersectionObserver;
 
 	constructor({
@@ -21,6 +20,9 @@ export class TranslationDispatcher {
 	}: {
 		filter: TranslatableNodePredicate;
 		nodeTranslator: DOMNodesTranslator;
+		/**
+		 * If nodeIntersectionObserver is passed then node can be translate delayed - after intersect viewport
+		 */
 		nodeIntersectionObserver?: NodesIntersectionObserver;
 	}) {
 		this.filter = filter;
