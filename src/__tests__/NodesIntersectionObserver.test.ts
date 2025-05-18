@@ -23,7 +23,7 @@ beforeEach(() => {
 	vi.clearAllMocks();
 });
 
-test('Calls callback for node from viewport', async () => {
+test('Triggers callback for node in viewport', async () => {
 	const div = document.createElement('div');
 	div.textContent = 'Hello, World!';
 	document.body.appendChild(div);
@@ -38,11 +38,11 @@ test('Calls callback for node from viewport', async () => {
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Calls callback for a node only when it becomes intersectable', async () => {
+test('Triggers callback for a node only when it becomes intersectable', async () => {
 	const lazyTranslator = new NodesIntersectionObserver();
 
 	// node with display = 'none' is not intersectable
-	// node with the visible='hidden' property is considered intersectable, so use the display=none property instead
+	// node with visibility: 'hidden' is considered intersectable, so use display: 'none' instead
 	const div = document.createElement('div');
 	div.textContent = 'Hello, world';
 	div.style.display = 'none';
@@ -62,10 +62,10 @@ test('Calls callback for a node only when it becomes intersectable', async () =>
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Not calls callback after node is detached', async () => {
+test('Does not trigger callback after node is detached', async () => {
 	const lazyTranslator = new NodesIntersectionObserver();
 
-	// create node with display=none, it not intersectible
+	// node with display: none is not intersectable
 	const div = document.createElement('div');
 	div.textContent = 'Hello world!';
 	div.style.display = 'none';
@@ -74,21 +74,21 @@ test('Not calls callback after node is detached', async () => {
 	lazyTranslator.observe(div.childNodes[0], translator);
 	await awaitTranslation();
 
-	// not translate because node not visible
+	// does not translate because node is not visible
 	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 	// node is detached
 	lazyTranslator.unobserve(div.childNodes[0]);
-	// becomes visible and intersectable, but is still not translated after detach
+
+	// becomes visible and intersectable, but still does not translate after being detached
 	div.style.display = 'block';
 	await awaitTranslation();
-
 	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Calls callback only after node intersect viewport', async () => {
+test('Triggers callback only after node intersects viewport', async () => {
 	const lazyTranslator = new NodesIntersectionObserver();
 	const div = document.createElement('div');
 	div.textContent = 'Hello world!';
@@ -101,7 +101,7 @@ test('Calls callback only after node intersect viewport', async () => {
 		y: 0,
 	});
 
-	// element out of viewport, it not intersect container
+	// element is outside the viewport and does not intersect the container
 	mockBoundingClientRect(div, {
 		width: 100,
 		height: 100,
@@ -112,11 +112,11 @@ test('Calls callback only after node intersect viewport', async () => {
 	lazyTranslator.observe(div.childNodes[0], translator);
 	await awaitTranslation();
 
-	// don't translate because the node doesn't intersect the container
+	// does not translate because the node does not intersect the container
 	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// change coordinates, now node in viewport
+	// change coordinates, the node is now inside the viewport
 	mockBoundingClientRect(div, {
 		width: 100,
 		height: 100,
@@ -124,16 +124,15 @@ test('Calls callback only after node intersect viewport', async () => {
 		y: 0,
 	});
 
-	// simulates the scroll event; polyfill listens for the "scroll" event on the document
-	// The polyfill will start recalculating the element position to find intersections only after the event
+	// simulate a scroll event; the polyfill listens for the "scroll" event on the document
+	// The polyfill starts recalculating element positions only after the event
 	document.dispatchEvent(new Event('scroll'));
 	await awaitTranslation();
-
 	expect(translator.mock.calls).toEqual([[div.childNodes[0]]]);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Not calls a callback for node that not intersect viewport after scrolling', async () => {
+test('Does not triggers callback for node that does not intersect viewport after scrolling', async () => {
 	const lazyTranslator = new NodesIntersectionObserver();
 	const div = document.createElement('div');
 	div.textContent = 'Hello world!';
@@ -146,7 +145,7 @@ test('Not calls a callback for node that not intersect viewport after scrolling'
 		y: 0,
 	});
 
-	// node out of viewport, it not intersect container
+	// node is outside the viewport and does not intersect the container
 	mockBoundingClientRect(div, {
 		width: 100,
 		height: 100,
@@ -157,11 +156,11 @@ test('Not calls a callback for node that not intersect viewport after scrolling'
 	lazyTranslator.observe(div.childNodes[0], translator);
 	await awaitTranslation();
 
-	// don't translate because the element doesn't intersect the container
+	// does not translate because the element does not intersect the container
 	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// change coordinates, node still not in viewport
+	// change coordinates, the node is still outside the viewport
 	mockBoundingClientRect(div, {
 		width: 100,
 		height: 100,
@@ -169,12 +168,12 @@ test('Not calls a callback for node that not intersect viewport after scrolling'
 		y: 330,
 	});
 
-	// simulates the scroll event; polyfill listens for the "scroll" event on the document
-	// The polyfill will start recalculating the element position to find intersections only after the event
+	// simulate a scroll event; the polyfill listens for the "scroll" event on the document
+	// The polyfill starts recalculating element positions only after the event
 	document.dispatchEvent(new Event('scroll'));
 	await awaitTranslation();
 
-	// still have not translate
+	// still not translated
 	expect(translator.mock.calls).toEqual([]);
 	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
 });

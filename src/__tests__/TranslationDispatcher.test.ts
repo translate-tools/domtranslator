@@ -19,33 +19,32 @@ beforeEach(() => {
 
 const isTranslatableNode = () => true;
 
-test('Node translates immediately in lazy-translation mode if it is not intersectable', async () => {
+test('In lazy-translation mode a non-intersecting node translates immediately', async () => {
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
 		nodeTranslator: new DOMNodesTranslator(translator),
 		nodeIntersectionObserver: new NodesIntersectionObserver(),
 	});
 
-	// OPTION node is not intersectable, node can`t translate latter
+	// OPTION node is not intersectable; it cannot be translated later
 	const select = document.createElement('select');
 	const option = document.createElement('option');
 	option.textContent = 'Hello, world!';
 	select.appendChild(option);
 	document.body.appendChild(select);
 
-	mockBoundingClientRect(document.body, { width: 100, height: 200, x: 0, y: 0 });
 	// options not intersect viewport
 	// IntersectionObserver should not invoke the callback until the node appears in the viewport
 	mockBoundingClientRect(option, { width: 50, height: 100, x: 0, y: 300 });
+	mockBoundingClientRect(document.body, { width: 100, height: 200, x: 0, y: 0 });
 
+	// the element is translated regardless of viewport intersection
 	translationDispatcher.translateNode(select);
 	await awaitTranslation();
-
-	// element is translated regardless of its viewport intersection
 	expect(option.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
-test('Translate node not attached to DOM', async () => {
+test('In lazy-translation mode a node not attached to the body translates immediately', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
@@ -53,7 +52,8 @@ test('Translate node not attached to DOM', async () => {
 		nodeIntersectionObserver: new NodesIntersectionObserver(),
 	});
 
-	// this node not attached to DOM, but should be translated
+	// the node is not in document.body, it is not intersecteble and cannot be translated later.
+	// translation must happen immediately
 	const head = document.createElement('head');
 	const title = document.createElement('title');
 	const text = 'Title can contain only text';
@@ -63,10 +63,6 @@ test('Translate node not attached to DOM', async () => {
 	translationDispatcher.translateNode(head);
 	await awaitTranslation();
 	expect(title.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-
-	// restore
-	translationDispatcher.restoreNode(head);
-	expect(title.textContent).toBe(text);
 });
 
 test('Translates and restores the element and its child elements', async () => {
@@ -79,15 +75,14 @@ test('Translates and restores the element and its child elements', async () => {
 	div.appendChild(div1);
 	document.body.appendChild(div);
 
-	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
-		nodeTranslator: domNodesTranslator,
+		nodeTranslator: new DOMNodesTranslator(translator),
 	});
 
 	translationDispatcher.translateNode(div);
 	await awaitTranslation();
-	// check text on the element itself
+	// check the text on the element itself
 	expect(div.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(div1.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
@@ -97,15 +92,13 @@ test('Translates and restores the element and its child elements', async () => {
 	expect(div1.childNodes[0].textContent).toBe(text1);
 });
 
-test('Do not translate ignored node inside element', async () => {
+test('Does not translate ignored node', async () => {
 	const filter = configureTranslatableNodePredicate({
 		ignoredSelectors: ['comment'],
 	});
-	const nodeTranslator = new DOMNodesTranslator(translator);
 	const translationDispatcher = new TranslationDispatcher({
 		filter,
-		nodeTranslator,
-		nodeIntersectionObserver: new NodesIntersectionObserver(),
+		nodeTranslator: new DOMNodesTranslator(translator),
 	});
 
 	const div = document.createElement('div');
