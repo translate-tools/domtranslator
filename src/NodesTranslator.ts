@@ -24,26 +24,37 @@ export class NodesTranslator {
 		this.nodeTranslator = nodeTranslator;
 	}
 
-	private readonly expected = new WeakMap<Node, string | null>();
+	/**
+	 * Stores the last value of a node (text or attribute). Used to detect recursive processing triggered by previous translations.
+	 * A `null` node value indicates that the last change was intentional,
+	 * and the next change should trigger processing again
+	 */
+	private lastNodesValue: WeakMap<Node, string | null> | undefined = new WeakMap();
 
+	/**
+	 * Executes the provided callback only if the node's current value differs from the previous value.
+	 * This prevents recursive translation.
+	 */
 	private callHandler = (node: Node, callback: (node: Node) => void) => {
-		const actualValue = node instanceof Attr ? node.value : node.nodeValue;
-		const exp = this.getValue(node);
+		const actualValue = node.nodeValue;
+		const expectedValue = this.getLastNodeValue(node);
 
-		if (exp !== undefined && actualValue == exp) {
-			this.expected.set(node, null);
+		// If the value hasn't changed, skip the callback and clear the store
+		if (expectedValue !== undefined && actualValue === expectedValue) {
+			this.setLastNodeValue(node, null);
 			return;
 		}
 
 		callback(node);
 
-		this.setValue(node, node.nodeValue);
+		// Save the new value for future change detection
+		this.setLastNodeValue(node, node.nodeValue);
 	};
 
-	private setValue = (node: Node, value: string | null) =>
-		this.expected.set(node, value);
-	private getValue = (node: Node) => this.expected.get(node);
-	private deleteValue = (node: Node) => this.expected.delete(node);
+	private setLastNodeValue = (node: Node, value: string | null) =>
+		this.lastNodesValue?.set(node, value);
+	private getLastNodeValue = (node: Node) => this.lastNodesValue?.get(node);
+	private deleteLastNodeValue = (node: Node) => this.lastNodesValue?.delete(node);
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 	public observe(node: Element) {
@@ -61,13 +72,14 @@ export class NodesTranslator {
 			});
 		});
 		observer.addHandler('elementRemoved', ({ target }) => {
-			this.deleteValue(target);
+			this.deleteLastNodeValue(target);
 			this.callHandler(target, () => {
 				this.dispatcher.restoreNode(target);
 			});
 		});
 		observer.addHandler('characterData', ({ target }) => {
-			this.setValue(target, target.nodeValue);
+			console.log('characterData', target.nodeName, target.nodeValue);
+			this.setLastNodeValue(target, target.nodeValue);
 			this.callHandler(target, () => {
 				this.dispatcher.updateNode(target);
 			});
@@ -80,8 +92,9 @@ export class NodesTranslator {
 
 			if (attribute === null) return;
 
-			if (this.getValue(attribute) !== null) {
-				this.setValue(attribute, attribute.value);
+			// If the value is null, it means the node has just been processed, and we should only handle the next changes.
+			if (this.getLastNodeValue(attribute) !== null) {
+				this.setLastNodeValue(attribute, attribute.value);
 			}
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
@@ -90,6 +103,7 @@ export class NodesTranslator {
 					this.dispatcher.translateNode(attribute);
 				});
 			} else {
+				console.log('changeAttribute update', attribute.name, attribute.value);
 				this.callHandler(attribute, () => {
 					this.dispatcher.updateNode(attribute);
 				});
@@ -109,6 +123,7 @@ export class NodesTranslator {
 		this.dispatcher.restoreNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
+		// this.lastNodesValue = null;
 	}
 
 	public getNodeData(node: Node) {
