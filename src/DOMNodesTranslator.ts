@@ -130,11 +130,6 @@ export class DOMNodesTranslator {
 
 		if (node.nodeValue === null) return;
 
-		// Recursion prevention
-		if (nodeData.updateId <= nodeData.translateContext) {
-			return;
-		}
-
 		const nodeId = nodeData.id;
 		const nodeContext = nodeData.updateId;
 		return this.translateCallback(node.nodeValue, nodeData.priority).then((text) => {

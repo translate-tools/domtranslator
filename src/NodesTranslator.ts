@@ -24,6 +24,27 @@ export class NodesTranslator {
 		this.nodeTranslator = nodeTranslator;
 	}
 
+	private readonly expected = new WeakMap<Node, string | null>();
+
+	private callHandler = (node: Node, callback: (node: Node) => void) => {
+		const actualValue = node instanceof Attr ? node.value : node.nodeValue;
+		const exp = this.getValue(node);
+
+		if (exp !== undefined && actualValue == exp) {
+			this.expected.set(node, null);
+			return;
+		}
+
+		callback(node);
+
+		this.setValue(node, node.nodeValue);
+	};
+
+	private setValue = (node: Node, value: string | null) =>
+		this.expected.set(node, value);
+	private getValue = (node: Node) => this.expected.get(node);
+	private deleteValue = (node: Node) => this.expected.delete(node);
+
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 	public observe(node: Element) {
 		if (this.observedNodesStorage.has(node)) {
@@ -34,14 +55,22 @@ export class NodesTranslator {
 		const observer = new XMutationObserver();
 		this.observedNodesStorage.set(node, observer);
 
-		observer.addHandler('elementAdded', ({ target }) =>
-			this.dispatcher.translateNode(target),
-		);
-		observer.addHandler('elementRemoved', ({ target }) =>
-			this.dispatcher.restoreNode(target),
-		);
+		observer.addHandler('elementAdded', ({ target }) => {
+			this.callHandler(target, () => {
+				this.dispatcher.translateNode(target);
+			});
+		});
+		observer.addHandler('elementRemoved', ({ target }) => {
+			this.deleteValue(target);
+			this.callHandler(target, () => {
+				this.dispatcher.restoreNode(target);
+			});
+		});
 		observer.addHandler('characterData', ({ target }) => {
-			this.dispatcher.updateNode(target);
+			this.setValue(target, target.nodeValue);
+			this.callHandler(target, () => {
+				this.dispatcher.updateNode(target);
+			});
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
 			if (attributeName === undefined || attributeName === null) return;
@@ -51,15 +80,24 @@ export class NodesTranslator {
 
 			if (attribute === null) return;
 
+			if (this.getValue(attribute) !== null) {
+				this.setValue(attribute, attribute.value);
+			}
+
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
 			if (!this.dispatcher.hasNode(attribute)) {
-				this.dispatcher.translateNode(attribute);
+				this.callHandler(attribute, () => {
+					this.dispatcher.translateNode(attribute);
+				});
 			} else {
-				this.dispatcher.updateNode(attribute);
+				this.callHandler(attribute, () => {
+					this.dispatcher.updateNode(attribute);
+				});
 			}
 		});
 
 		observer.observe(node);
+
 		this.dispatcher.translateNode(node);
 	}
 

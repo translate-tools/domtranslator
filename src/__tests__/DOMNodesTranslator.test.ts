@@ -58,32 +58,25 @@ test('Stores node during translation and removes it upon restoration', async () 
 	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(false);
 });
 
-test('Translates the attribute node text after its value is changed', async () => {
+test('Updates translation when attribute value changes', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 
 	const node = document.createElement('a');
 	const text = 'title text';
 	node.setAttribute('title', text);
 
-	// translate the attribute node
+	// translate
 	domNodesTranslator.translateNode(node.attributes[0]);
 	await awaitTranslation();
 	expect(node.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// the first call to updateNode updates the internal updateId state
-	// but the node won't be translated immediately because the updateId matches the translate context
-	// this prevents recursive translation calls
+	// update value
 	const text1 = 'title text is update';
 	node.setAttribute('title', text1);
 	domNodesTranslator.updateNode(node.attributes[0]);
 	await awaitTranslation();
-	expect(node.attributes[0].textContent).toBe(text1);
-
-	// the second call to updateNode triggers the actual translation of the node text
-	domNodesTranslator.updateNode(node.attributes[0]);
-	await awaitTranslation();
-	expect(node.attributes[0].textContent).toMatch(text1);
 	expect(node.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(node.attributes[0].textContent).toMatch(text);
 });
 
 test('Restores the most recent original text after multiple translations', async () => {
