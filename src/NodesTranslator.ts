@@ -8,7 +8,7 @@ import { DOMNodesTranslator } from '.';
 // TODO: describe nodes life cycle
 
 /**
- * Module for dynamic translate a DOM nodes
+ * Module for dynamic translate a DOM nodes.
  */
 export class NodesTranslator {
 	private readonly dispatcher;
@@ -26,45 +26,10 @@ export class NodesTranslator {
 	}
 
 	/**
-	 * Stores the last value of a node (text or attribute). Used to detect recursive processing triggered by previous translations.
-	 * A `null` node value indicates that the last change was intentional,
-	 * and the next change should trigger processing again
+	 * Stores the last node value to prevent redundant reprocessing.
+	 * node value `null` marks intentional changes that shouldn't trigger processing.
 	 */
 	private lastNodesValue = new WeakMap<Node, string | null>();
-
-	/**
-	 * Executes the provided callback only if the node's current value differs from the previous value.
-	 * This prevents recursive translation.
-	 */
-	private callHandler = (node: Node, callback: (node: Node) => void) => {
-		const actualValue = node.nodeValue;
-		const expectedValue = this.getLastNodeValue(node);
-
-		// If the value hasn't changed, skip the callback and clear the store
-		if (expectedValue !== undefined && actualValue === expectedValue) {
-			this.setLastNodeValue(node, null);
-			return;
-		}
-
-		callback(node);
-
-		// Save the new value for future change detection
-		this.setLastNodeValue(node, node.nodeValue);
-	};
-
-	private setLastNodeValue = (node: Node, value: string | null) =>
-		this.lastNodesValue?.set(node, value);
-	private getLastNodeValue = (node: Node) => this.lastNodesValue?.get(node);
-	private deleteLastNodeValue = (node: Node) => this.lastNodesValue?.delete(node);
-	private clearLastNodesValueStorage(node: Element) {
-		visitWholeTree(node, () => {
-			if (node instanceof Element) return;
-			this.clearLastNodesValueStorage(node);
-		});
-		if (this.lastNodesValue.has(node)) {
-			this.deleteLastNodeValue(node);
-		}
-	}
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 	public observe(node: Element) {
@@ -77,19 +42,19 @@ export class NodesTranslator {
 		this.observedNodesStorage.set(node, observer);
 
 		observer.addHandler('elementAdded', ({ target }) => {
-			this.callHandler(target, () => {
+			this.processNodeChanges(target, () => {
 				this.dispatcher.translateNode(target);
 			});
 		});
 		observer.addHandler('elementRemoved', ({ target }) => {
 			this.deleteLastNodeValue(target);
-			this.callHandler(target, () => {
+			this.processNodeChanges(target, () => {
 				this.dispatcher.restoreNode(target);
 			});
 		});
 		observer.addHandler('characterData', ({ target }) => {
 			this.setLastNodeValue(target, target.nodeValue);
-			this.callHandler(target, () => {
+			this.processNodeChanges(target, () => {
 				this.dispatcher.updateNode(target);
 			});
 		});
@@ -101,18 +66,19 @@ export class NodesTranslator {
 
 			if (attribute === null) return;
 
-			// If the value is null, it means the node has just been processed, and we should only handle the next changes.
+			// If the value is null, it means the node has just been processed,
+			// we should only handle the next changes
 			if (this.getLastNodeValue(attribute) !== null) {
 				this.setLastNodeValue(attribute, attribute.value);
 			}
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
 			if (!this.dispatcher.hasNode(attribute)) {
-				this.callHandler(attribute, () => {
+				this.processNodeChanges(attribute, () => {
 					this.dispatcher.translateNode(attribute);
 				});
 			} else {
-				this.callHandler(attribute, () => {
+				this.processNodeChanges(attribute, () => {
 					this.dispatcher.updateNode(attribute);
 				});
 			}
@@ -136,5 +102,35 @@ export class NodesTranslator {
 
 	public getNodeData(node: Node) {
 		return this.nodeTranslator.getOriginalNodeText(node);
+	}
+
+	// Runs callback only if node value has changed to prevent recursion.
+	private processNodeChanges = (node: Node, callback: (node: Node) => void) => {
+		const actualValue = node.nodeValue;
+		const expectedValue = this.getLastNodeValue(node);
+
+		// If the value has not changed, skip the callback
+		if (expectedValue !== undefined && actualValue === expectedValue) {
+			this.setLastNodeValue(node, null);
+			return;
+		}
+		callback(node);
+
+		// save the new value for future change detection
+		this.setLastNodeValue(node, node.nodeValue);
+	};
+
+	private setLastNodeValue = (node: Node, value: string | null) =>
+		this.lastNodesValue.set(node, value);
+	private getLastNodeValue = (node: Node) => this.lastNodesValue.get(node);
+	private deleteLastNodeValue = (node: Node) => this.lastNodesValue.delete(node);
+
+	// removes all saved values for the given element
+	private clearLastNodesValueStorage(node: Element) {
+		visitWholeTree(node, () => {
+			if (node instanceof Element) return;
+			this.clearLastNodesValueStorage(node);
+		});
+		this.deleteLastNodeValue(node);
 	}
 }
