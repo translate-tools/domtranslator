@@ -1,5 +1,6 @@
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationDispatcher } from './TranslationDispatcher';
+import { visitWholeTree } from './utils/visitWholeTree';
 import { DOMNodesTranslator } from '.';
 
 // TODO: consider local language definitions (and implement `from`, `to` parameters for translator to specify default or locale languages)
@@ -55,6 +56,15 @@ export class NodesTranslator {
 		this.lastNodesValue?.set(node, value);
 	private getLastNodeValue = (node: Node) => this.lastNodesValue?.get(node);
 	private deleteLastNodeValue = (node: Node) => this.lastNodesValue?.delete(node);
+	private clearLastNodesValueStorage(node: Element) {
+		visitWholeTree(node, () => {
+			if (node instanceof Element) return;
+			this.clearLastNodesValueStorage(node);
+		});
+		if (this.lastNodesValue.has(node)) {
+			this.deleteLastNodeValue(node);
+		}
+	}
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 	public observe(node: Element) {
@@ -121,6 +131,7 @@ export class NodesTranslator {
 		this.dispatcher.restoreNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
+		this.clearLastNodesValueStorage(node);
 	}
 
 	public getNodeData(node: Node) {
