@@ -29,7 +29,7 @@ export class NodesTranslator {
 	 * A `null` node value indicates that the last change was intentional,
 	 * and the next change should trigger processing again
 	 */
-	private lastNodesValue: WeakMap<Node, string | null> | undefined = new WeakMap();
+	private lastNodesValue = new WeakMap<Node, string | null>();
 
 	/**
 	 * Executes the provided callback only if the node's current value differs from the previous value.
@@ -78,7 +78,6 @@ export class NodesTranslator {
 			});
 		});
 		observer.addHandler('characterData', ({ target }) => {
-			console.log('characterData', target.nodeName, target.nodeValue);
 			this.setLastNodeValue(target, target.nodeValue);
 			this.callHandler(target, () => {
 				this.dispatcher.updateNode(target);
@@ -103,7 +102,6 @@ export class NodesTranslator {
 					this.dispatcher.translateNode(attribute);
 				});
 			} else {
-				console.log('changeAttribute update', attribute.name, attribute.value);
 				this.callHandler(attribute, () => {
 					this.dispatcher.updateNode(attribute);
 				});
@@ -123,7 +121,6 @@ export class NodesTranslator {
 		this.dispatcher.restoreNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
-		// this.lastNodesValue = null;
 	}
 
 	public getNodeData(node: Node) {
