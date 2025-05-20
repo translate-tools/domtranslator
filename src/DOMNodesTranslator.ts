@@ -14,11 +14,6 @@ interface NodeData {
 	updateId: number;
 
 	/**
-	 * Contains `updateId` value at time when start node translation
-	 */
-	translateContext: number;
-
-	/**
 	 * Original node text, before start translation
 	 * Contains `null` for node that not been translated yet
 	 */
@@ -86,7 +81,6 @@ export class DOMNodesTranslator {
 		this.nodeStorage.set(node, {
 			id: this.idCounter++,
 			updateId: 1,
-			translateContext: 0,
 			originalText: null,
 			priority: getNodePriority(node),
 		});
@@ -142,7 +136,6 @@ export class DOMNodesTranslator {
 			}
 
 			actualNodeData.originalText = node.nodeValue !== null ? node.nodeValue : '';
-			actualNodeData.translateContext = actualNodeData.updateId + 1;
 			node.nodeValue = text;
 		});
 	}
