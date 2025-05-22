@@ -11,14 +11,14 @@ type Callback = (node: Node) => void;
 
 /**
  * Observes DOM nodes for intersection with the viewport and triggers callbacks when they become visible.
- * WARNING: This class works with nodes (Text, Attr, etc.), not directly with elements.
+ * WARNING: This class works with nodes (Text, Attr, etc.), not directly with Element nodes.
  */
 export class NodesIntersectionObserver {
 	private readonly intersectionObserver: IntersectionObserver;
-	private readonly nodeCallbacksMap = new WeakMap<Node, Callback>();
 
 	// Stores nodes and their owner element that are being observed for intersection
 	private readonly elementNodesMap = new WeakMap<Element, Set<Node>>();
+	private readonly nodeCallbacksMap = new WeakMap<Node, Callback>();
 
 	constructor(intersectionConfig?: IntersectionObserverInit) {
 		this.intersectionObserver = new IntersectionObserver((entries, observer) => {
@@ -31,7 +31,6 @@ export class NodesIntersectionObserver {
 				this.triggerNestedNodes(node);
 
 				// Process the element once and stop observing it
-				// This allows re-observing the element later if needed
 				this.elementNodesMap.delete(node);
 				observer.unobserve(node);
 			});
@@ -40,7 +39,7 @@ export class NodesIntersectionObserver {
 
 	/**
 	 * Starts observing the node for intersection.
-	 * When the element that owns the node intersects the viewport, the callback is invoked.
+	 * When the owner element of the node intersects the viewport, the callback is invoked.
 	 * Then the owner element and all its tracked nodes are automatically removed from observation.
 	 */
 	public observe(node: Node, callback: Callback) {
@@ -52,23 +51,19 @@ export class NodesIntersectionObserver {
 			return;
 		}
 
-		// set the callback for the node
 		this.nodeCallbacksMap.set(node, callback);
 
-		// add ownerElement if it doesn't exist in the map
 		const observedNodes = this.elementNodesMap.get(ownerElement);
-		if (!observedNodes) {
-			this.elementNodesMap.set(ownerElement, new Set<Node>().add(node));
+		if (observedNodes) {
+			observedNodes.add(node);
+		} else {
+			this.elementNodesMap.set(ownerElement, new Set<Node>([node]));
 			this.intersectionObserver.observe(ownerElement);
-			return;
 		}
-
-		// add the node to the set of observed nodes
-		observedNodes.add(node);
 	}
 
 	/**
-	 * Stops observing the node. It is removes from observation.
+	 *  Stops observing the node and removes it from observation
 	 */
 	public unobserve(node: Node) {
 		const ownerElement = getElementOfNode(node);
@@ -76,7 +71,7 @@ export class NodesIntersectionObserver {
 		const observedNodes = this.elementNodesMap.get(ownerElement);
 		if (!observedNodes || !observedNodes.has(node)) return;
 
-		// delete only the specified node
+		// remove only the specified node
 		observedNodes.delete(node);
 		this.nodeCallbacksMap.delete(node);
 
@@ -88,15 +83,17 @@ export class NodesIntersectionObserver {
 	}
 
 	/**
-	 * Calls callbacks for all observed nodes associated with the specified element and removes their callbacks from storage
+	 * Calls callbacks for all nodes associated with the specified element and removes their callbacks from storage
 	 */
 	private triggerNestedNodes(node: Element) {
 		const ownedNodes = this.elementNodesMap.get(node);
-		ownedNodes?.forEach((node) => {
-			const callback = this.nodeCallbacksMap.get(node);
-			if (callback) callback(node);
+		if (ownedNodes) {
+			ownedNodes.forEach((node) => {
+				const callback = this.nodeCallbacksMap.get(node);
+				if (callback) callback(node);
 
-			this.nodeCallbacksMap.delete(node);
-		});
+				this.nodeCallbacksMap.delete(node);
+			});
+		}
 	}
 }
