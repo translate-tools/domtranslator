@@ -47,7 +47,6 @@ export class NodesTranslator {
 			this.dispatcher.translateNode(target, this.saveTranslatedNode);
 		});
 		observer.addHandler('elementRemoved', ({ target }) => {
-			this.translatedNodes.delete(target);
 			this.dispatcher.restoreNode(target);
 		});
 		observer.addHandler('characterData', ({ target }) => {
