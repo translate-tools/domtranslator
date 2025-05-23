@@ -6,8 +6,6 @@ import { DOMNodesTranslator } from '.';
 // TODO: scan nodes lazy - defer scan to `requestIdleCallback` instead of instant scan
 // TODO: describe nodes life cycle
 
-export type NodeTranslationHandler = (node: Node) => void;
-
 /**
  * Module for dynamic translate a DOM nodes
  */

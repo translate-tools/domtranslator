@@ -1,5 +1,5 @@
+import { NodeTranslationHandler } from './TranslationDispatcher';
 import { isInViewport } from './utils/isInViewport';
-import { NodeTranslationHandler } from '.';
 
 export type TranslatorInterface = (text: string, priority: number) => Promise<string>;
 
