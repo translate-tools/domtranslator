@@ -26,17 +26,13 @@ export class NodesTranslator {
 		this.nodeTranslator = nodeTranslator;
 	}
 
-	private nodeTranslationMap = new WeakMap<Node, string>();
-	private processNodeChanges = (node: Node, callback: (node: Node) => void) => {
-		// skip this node
-		if (this.nodeTranslationMap.get(node) === node.nodeValue) {
-			this.nodeTranslationMap.delete(node);
-			return;
-		}
-		callback(node);
+	private translatedNodes = new WeakMap<Node, string>();
+	private shouldSkipNode = (node: Node) => {
+		return this.translatedNodes.get(node) === node.nodeValue;
 	};
+	/** Save node translation to storage */
 	private translationHandler = (node: Node) => {
-		if (node.nodeValue) this.nodeTranslationMap.set(node, node.nodeValue);
+		if (node.nodeValue) this.translatedNodes.set(node, node.nodeValue);
 	};
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
@@ -53,13 +49,15 @@ export class NodesTranslator {
 			this.dispatcher.translateNode(target, this.translationHandler);
 		});
 		observer.addHandler('elementRemoved', ({ target }) => {
-			this.nodeTranslationMap.delete(target);
+			this.translatedNodes.delete(target);
 			this.dispatcher.restoreNode(target);
 		});
 		observer.addHandler('characterData', ({ target }) => {
-			this.processNodeChanges(target, () => {
-				this.dispatcher.updateNode(target, this.translationHandler);
-			});
+			if (this.shouldSkipNode(target)) {
+				this.translatedNodes.delete(target);
+				return;
+			}
+			this.dispatcher.updateNode(target, this.translationHandler);
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName, oldValue }) => {
 			if (attributeName === undefined || attributeName === null) return;
@@ -72,14 +70,16 @@ export class NodesTranslator {
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
 			if (!this.dispatcher.hasNode(attribute)) {
 				// if node was replaces delete form storage
-				if (oldValue && oldValue === attribute.value) {
-					this.nodeTranslationMap.delete(attribute);
+				if (oldValue === attribute.value) {
+					this.translatedNodes.delete(attribute);
 				}
 				this.dispatcher.translateNode(attribute, this.translationHandler);
 			} else {
-				this.processNodeChanges(attribute, () => {
-					this.dispatcher.updateNode(attribute, this.translationHandler);
-				});
+				if (this.shouldSkipNode(attribute)) {
+					this.translatedNodes.delete(attribute);
+					return;
+				}
+				this.dispatcher.updateNode(attribute, this.translationHandler);
 			}
 		});
 
