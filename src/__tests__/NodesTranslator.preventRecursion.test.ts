@@ -1,14 +1,19 @@
 import { DOMNodesTranslator } from '../DOMNodesTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
-import { NodesTranslator } from '..';
+import { NodesTranslator, TranslatorInterface } from '..';
 
-test('Translating a node does not trigger recursive updateNode calls', async () => {
+function buildTranslationServices(translator: TranslatorInterface) {
 	const nodeTranslator = new DOMNodesTranslator(translator);
 	const dispatcher = new TranslationDispatcher({
 		filter: () => true,
 		nodeTranslator: nodeTranslator,
 	});
+	return { dispatcher, nodeTranslator };
+}
+
+test('Translating a node does not trigger recursive updateNode calls', async () => {
+	const { dispatcher, nodeTranslator } = buildTranslationServices(translator);
 	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
 	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
 
@@ -25,11 +30,7 @@ test('Translating a node does not trigger recursive updateNode calls', async () 
 });
 
 test('Translation of added nodes does not trigger recursive updateNode calls', async () => {
-	const nodeTranslator = new DOMNodesTranslator(translator);
-	const dispatcher = new TranslationDispatcher({
-		filter: () => true,
-		nodeTranslator: nodeTranslator,
-	});
+	const { dispatcher, nodeTranslator } = buildTranslationServices(translator);
 	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
 	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
 
@@ -65,12 +66,8 @@ test('Translation of added nodes does not trigger recursive updateNode calls', a
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 });
 
-test('Updating an attribute multiple times does not trigger recursive updateNode calls', async () => {
-	const nodeTranslator = new DOMNodesTranslator(translator);
-	const dispatcher = new TranslationDispatcher({
-		filter: () => true,
-		nodeTranslator: nodeTranslator,
-	});
+test('Updating node does not trigger recursive updateNode calls', async () => {
+	const { dispatcher, nodeTranslator } = buildTranslationServices(translator);
 	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
 	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
 
@@ -85,33 +82,24 @@ test('Updating an attribute multiple times does not trigger recursive updateNode
 	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 
-	// update content, node should be translated
+	// update content, node should be translated without triggering recursion
 	const text1 = 'new Text';
 	div.setAttribute('title', text1);
 	await awaitTranslation();
+	expect(updateNodeSpy.mock.calls[0][0]).toEqual(div.attributes[0]);
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(div.getAttribute('title')).toMatch(text1);
 
+	// no recursion
 	await awaitTranslation();
-	expect(updateNodeSpy.mock.calls[0][0]).toEqual(div.attributes[0]);
+	expect(updateNodeSpy).toBeCalledTimes(1);
 
-	// update content again, node should be translated
-	const text2 = 'new Text with new information';
-	div.setAttribute('title', text2);
-	await awaitTranslation();
-	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div.getAttribute('title')).toMatch(text2);
-
-	await awaitTranslation();
-	expect(updateNodeSpy.mock.calls[1][0]).toEqual(div.attributes[0]);
+	nodesTranslator.unobserve(div);
+	expect(div.getAttribute('title')).toBe(text1);
 });
 
 test('Updating a node with a translated-looking value triggers updateNode calls', async () => {
-	const nodeTranslator = new DOMNodesTranslator(translator);
-	const dispatcher = new TranslationDispatcher({
-		filter: () => true,
-		nodeTranslator: nodeTranslator,
-	});
+	const { dispatcher, nodeTranslator } = buildTranslationServices(translator);
 	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
 	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
 
@@ -128,16 +116,19 @@ test('Updating a node with a translated-looking value triggers updateNode calls'
 	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 
+	// update content, node should be translated without triggering recursion
 	const text1 = TRANSLATION_SYMBOL + 'title text';
 	div.setAttribute('title', text1);
 	await awaitTranslation();
-	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div.getAttribute('title')).toMatch(text1);
-
-	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls[0][0]).toEqual(div.attributes[0]);
+	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.getAttribute('title')).toMatch(TRANSLATION_SYMBOL + text1);
 
-	// restored node has the last set text
+	// no recursion
+	await awaitTranslation();
+	expect(updateNodeSpy).toHaveBeenCalledTimes(1);
+
+	// restored node has the latest text
 	nodesTranslator.unobserve(div);
 	expect(div.getAttribute('title')).toBe(text1);
 });
@@ -157,11 +148,7 @@ test('Only the latest translation will be applied to the node', async () => {
 					setTimeout(() => resolve((text += TRANSLATION_SYMBOL)), 100),
 				),
 		);
-	const nodeTranslator = new DOMNodesTranslator(translator);
-	const dispatcher = new TranslationDispatcher({
-		filter: () => true,
-		nodeTranslator: nodeTranslator,
-	});
+	const { dispatcher, nodeTranslator } = buildTranslationServices(translator);
 	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
 	const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -173,7 +160,7 @@ test('Only the latest translation will be applied to the node', async () => {
 
 	// this translation completes within 300 ms, do not wait for completion
 	await delay(100);
-	expect(translator).toBeCalledTimes(1);
+	expect(translator).toHaveBeenCalledTimes(1);
 	expect(div.getAttribute('title')).toBe(text);
 
 	const text1 = 'you must translate me';
@@ -181,7 +168,7 @@ test('Only the latest translation will be applied to the node', async () => {
 
 	// this translation completes in 100 ms, wait for it
 	await delay(110);
-	expect(translator).toBeCalledTimes(2);
+	expect(translator).toHaveBeenCalledTimes(2);
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(div.getAttribute('title')).toMatch(text1);
 
