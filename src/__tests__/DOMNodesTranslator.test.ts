@@ -8,7 +8,7 @@ test('Translates a node and restores the original node text', async () => {
 	const div = document.createElement('div');
 	div.textContent = nodeText;
 
-	domNodesTranslator.translateNode(div.childNodes[0]);
+	domNodesTranslator.translateNode(div.childNodes[0], () => {});
 	await awaitTranslation();
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
@@ -26,7 +26,7 @@ test('Stores original text on translation and clears it on restoration', async (
 	// before translation
 	expect(domNodesTranslator.getOriginalNodeText(div.childNodes[0])).toBe(null);
 
-	domNodesTranslator.translateNode(div.childNodes[0]);
+	domNodesTranslator.translateNode(div.childNodes[0], () => {});
 	await awaitTranslation();
 
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
@@ -48,7 +48,7 @@ test('Stores node during translation and removes it upon restoration', async () 
 	// not exists before translate
 	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(false);
 
-	domNodesTranslator.translateNode(div.childNodes[0]);
+	domNodesTranslator.translateNode(div.childNodes[0], () => {});
 	await awaitTranslation();
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(true);
@@ -66,14 +66,14 @@ test('Updates translation when attribute value changes', async () => {
 	node.setAttribute('title', text);
 
 	// translate
-	domNodesTranslator.translateNode(node.attributes[0]);
+	domNodesTranslator.translateNode(node.attributes[0], () => {});
 	await awaitTranslation();
 	expect(node.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 	// update value
 	const text1 = 'title text is update';
 	node.setAttribute('title', text1);
-	domNodesTranslator.updateNode(node.attributes[0]);
+	domNodesTranslator.updateNode(node.attributes[0], () => {});
 	await awaitTranslation();
 	expect(node.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(node.attributes[0].textContent).toMatch(text);
@@ -86,14 +86,14 @@ test('Restores the most recent original text after multiple translations', async
 	const nodeText = 'Hello world!';
 	div.textContent = nodeText;
 
-	domNodesTranslator.translateNode(div.childNodes[0]);
+	domNodesTranslator.translateNode(div.childNodes[0], () => {});
 	await awaitTranslation();
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 	// change text
 	const nodeText1 = 'My name is Jake';
 	div.textContent = nodeText1;
-	domNodesTranslator.translateNode(div.childNodes[0]);
+	domNodesTranslator.translateNode(div.childNodes[0], () => {});
 	await awaitTranslation();
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 

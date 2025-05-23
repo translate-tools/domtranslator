@@ -39,7 +39,7 @@ test('In lazy-translation mode a non-intersecting node translates immediately', 
 	mockBoundingClientRect(document.body, { width: 100, height: 200, x: 0, y: 0 });
 
 	// the element is translated regardless of viewport intersection
-	translationDispatcher.translateNode(select);
+	translationDispatcher.translateNode(select, () => {});
 	await awaitTranslation();
 	expect(option.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
@@ -60,7 +60,7 @@ test('In lazy-translation mode a node not attached to the body translates immedi
 	title.textContent = text;
 	head.appendChild(title);
 
-	translationDispatcher.translateNode(head);
+	translationDispatcher.translateNode(head, () => {});
 	await awaitTranslation();
 	expect(title.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
@@ -80,7 +80,7 @@ test('Translates and restores the element and its child elements', async () => {
 		nodeTranslator: new DOMNodesTranslator(translator),
 	});
 
-	translationDispatcher.translateNode(div);
+	translationDispatcher.translateNode(div, () => {});
 	await awaitTranslation();
 	// check the text on the element itself
 	expect(div.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
@@ -109,7 +109,7 @@ test('Does not translate ignored node', async () => {
 	div.appendChild(comment);
 	document.body.appendChild(div);
 
-	translationDispatcher.translateNode(div);
+	translationDispatcher.translateNode(div, () => {});
 	await awaitTranslation();
 
 	expect(div.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));

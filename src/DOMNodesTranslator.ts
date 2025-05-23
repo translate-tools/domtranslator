@@ -1,4 +1,5 @@
 import { isInViewport } from './utils/isInViewport';
+import { NodeTranslationHandler } from '.';
 
 export type TranslatorInterface = (text: string, priority: number) => Promise<string>;
 
@@ -70,9 +71,10 @@ export class DOMNodesTranslator {
 	}
 
 	/**
-	 * Translate text-containing nodes (Text, Attr, etc)
+	 * Translates nodes that contain text (e.g., Text, Attr)
+	 * After translation invokes a callback with the translated node
 	 */
-	public translateNode = (node: Node) => {
+	public translateNode = (node: Node, callback: NodeTranslationHandler) => {
 		if (this.hasNode(node)) return;
 
 		// Skip empty text
@@ -85,7 +87,7 @@ export class DOMNodesTranslator {
 			priority: getNodePriority(node),
 		});
 
-		this.translateNodeContent(node);
+		this.translateNodeContent(node, callback);
 	};
 
 	/**
@@ -104,19 +106,20 @@ export class DOMNodesTranslator {
 
 	/**
 	 * Translates node after it has been modified
+	 * After translation invokes a callback with the translated node
 	 */
-	public updateNode(node: Node) {
+	public updateNode(node: Node, callback: NodeTranslationHandler) {
 		const nodeData = this.nodeStorage.get(node);
 		if (!nodeData) return;
 
 		nodeData.updateId++;
-		this.translateNodeContent(node);
+		this.translateNodeContent(node, callback);
 	}
 
 	/**
 	 * Call only for new and updated nodes
 	 */
-	private translateNodeContent(node: Node) {
+	private translateNodeContent(node: Node, callback: NodeTranslationHandler) {
 		const nodeData = this.nodeStorage.get(node);
 		if (!nodeData) {
 			throw new Error('Node is not register');
@@ -137,6 +140,7 @@ export class DOMNodesTranslator {
 
 			actualNodeData.originalText = node.nodeValue !== null ? node.nodeValue : '';
 			node.nodeValue = text;
+			callback(node);
 		});
 	}
 }

@@ -1,6 +1,7 @@
 import { DOMNodesTranslator } from './DOMNodesTranslator';
 import { NodesIntersectionObserver } from './NodesIntersectionObserver';
 import { visitWholeTree } from './utils/visitWholeTree';
+import { NodeTranslationHandler } from '.';
 
 export type TranslatableNodePredicate = (node: Node) => boolean;
 
@@ -30,8 +31,8 @@ export class TranslationDispatcher {
 		this.nodeIntersectionObserver = nodeIntersectionObserver || null;
 	}
 
-	public updateNode(node: Node) {
-		this.nodeTranslator.updateNode(node);
+	public updateNode(node: Node, callback: NodeTranslationHandler) {
+		this.nodeTranslator.updateNode(node, callback);
 	}
 
 	public hasNode(node: Node) {
@@ -40,7 +41,7 @@ export class TranslationDispatcher {
 	/**
 	 * Translates the node and all its nested translatable nodes (text and attribute nodes)
 	 */
-	public translateNode(node: Node) {
+	public translateNode(node: Node, callback: NodeTranslationHandler) {
 		// Skip node if it does not satisfy the filter
 		if (!this.filter(node)) return;
 
@@ -48,7 +49,7 @@ export class TranslationDispatcher {
 		if (node instanceof Element) {
 			visitWholeTree(node, (node) => {
 				if (node instanceof Element) return;
-				this.translateNode(node);
+				this.translateNode(node, callback);
 			});
 			return;
 		}
@@ -61,13 +62,13 @@ export class TranslationDispatcher {
 			const isAttachedToDOM = node.getRootNode() !== node;
 			if (isAttachedToDOM) {
 				this.nodeIntersectionObserver.observe(node, (node: Node) => {
-					this.nodeTranslator.translateNode(node);
+					this.nodeTranslator.translateNode(node, callback);
 				});
 				return;
 			}
 		}
 		// translate immediately
-		this.nodeTranslator.translateNode(node);
+		this.nodeTranslator.translateNode(node, callback);
 	}
 
 	/**
