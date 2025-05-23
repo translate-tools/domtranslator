@@ -3,7 +3,7 @@ import { TranslationDispatcher } from '../TranslationDispatcher';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
 import { NodesTranslator } from '..';
 
-test('Translating a node does not trigger recursive updateNode calls.', async () => {
+test('Translating a node does not trigger recursive updateNode calls', async () => {
 	const nodeTranslator = new DOMNodesTranslator(translator);
 	const dispatcher = new TranslationDispatcher({
 		filter: () => true,
@@ -24,7 +24,7 @@ test('Translating a node does not trigger recursive updateNode calls.', async ()
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 });
 
-test('Translation of added nodes does not trigger recursive updateNode calls.', async () => {
+test('Translation of added nodes does not trigger recursive updateNode calls', async () => {
 	const nodeTranslator = new DOMNodesTranslator(translator);
 	const dispatcher = new TranslationDispatcher({
 		filter: () => true,
