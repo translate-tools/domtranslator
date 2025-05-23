@@ -13,7 +13,6 @@ import {
 require('intersection-observer');
 
 beforeEach(() => {
-	mockBoundingClientRect(document.body, { width: 0, height: 0, x: 0, y: 0 });
 	document.body.innerHTML = '';
 });
 
