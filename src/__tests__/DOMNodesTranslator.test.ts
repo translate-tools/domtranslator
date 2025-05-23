@@ -3,7 +3,6 @@ import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from 
 
 test('Translates a node and restores the original node text', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
-
 	const nodeText = 'Hello world!';
 	const div = document.createElement('div');
 	div.textContent = nodeText;
@@ -16,9 +15,8 @@ test('Translates a node and restores the original node text', async () => {
 	expect(div.textContent).toBe(nodeText);
 });
 
-test('Stores original text on translation and clears it on restoration', async () => {
+test('Stores original text on translation and clears it after restoration', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
-
 	const nodeText = 'Hello world!';
 	const div = document.createElement('div');
 	div.textContent = nodeText;
@@ -30,7 +28,7 @@ test('Stores original text on translation and clears it on restoration', async (
 	await awaitTranslation();
 
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(domNodesTranslator.getOriginalNodeText(div.childNodes[0])).toEqual(nodeText);
+	expect(domNodesTranslator.getOriginalNodeText(div.childNodes[0])).toBe(nodeText);
 
 	// after restore
 	domNodesTranslator.restoreNode(div.childNodes[0]);
@@ -38,9 +36,8 @@ test('Stores original text on translation and clears it on restoration', async (
 	expect(domNodesTranslator.getOriginalNodeText(div.childNodes[0])).toBe(null);
 });
 
-test('Stores node during translation and removes it upon restoration', async () => {
+test('Stores the node after translation and removes it after restoration', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
-
 	const div = document.createElement('div');
 	const nodeText = 'Hello world!';
 	div.textContent = nodeText;
@@ -58,9 +55,8 @@ test('Stores node during translation and removes it upon restoration', async () 
 	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(false);
 });
 
-test('Updates translation when attribute value changes', async () => {
+test('UpdateNode method translates the modified node', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
-
 	const node = document.createElement('a');
 	const text = 'title text';
 	node.setAttribute('title', text);
@@ -68,20 +64,23 @@ test('Updates translation when attribute value changes', async () => {
 	// translate
 	domNodesTranslator.translateNode(node.attributes[0], () => {});
 	await awaitTranslation();
-	expect(node.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(node.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 	// update value
 	const text1 = 'title text is update';
 	node.setAttribute('title', text1);
+
 	domNodesTranslator.updateNode(node.attributes[0], () => {});
 	await awaitTranslation();
-	expect(node.attributes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(node.attributes[0].textContent).toMatch(text);
+	expect(node.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(node.getAttribute('title')).toMatch(text1);
+
+	domNodesTranslator.restoreNode(node.attributes[0]);
+	expect(node.getAttribute('title')).toBe(text1);
 });
 
 test('Restores the most recent original text after multiple translations', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
-
 	const div = document.createElement('div');
 	const nodeText = 'Hello world!';
 	div.textContent = nodeText;
@@ -90,14 +89,13 @@ test('Restores the most recent original text after multiple translations', async
 	await awaitTranslation();
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// change text
+	// change
 	const nodeText1 = 'My name is Jake';
 	div.textContent = nodeText1;
 	domNodesTranslator.translateNode(div.childNodes[0], () => {});
 	await awaitTranslation();
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// restore: elements have the last updated text and are not translated
 	domNodesTranslator.restoreNode(div.childNodes[0]);
 	expect(div.textContent).toBe(nodeText1);
 });
