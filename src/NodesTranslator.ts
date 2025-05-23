@@ -1,5 +1,6 @@
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationDispatcher } from './TranslationDispatcher';
+import { visitWholeTree } from './utils/visitWholeTree';
 import { DOMNodesTranslator } from '.';
 
 // TODO: consider local language definitions (and implement `from`, `to` parameters for translator to specify default or locale languages)
@@ -27,9 +28,8 @@ export class NodesTranslator {
 	}
 
 	private translatedNodes = new WeakMap<Node, string>();
-	private shouldSkipNode = (node: Node) => {
-		return this.translatedNodes.get(node) === node.nodeValue;
-	};
+	private shouldSkipNode = (node: Node) =>
+		this.translatedNodes.get(node) === node.nodeValue;
 	/** Save node translation to storage */
 	private translationHandler = (node: Node) => {
 		if (node.nodeValue) this.translatedNodes.set(node, node.nodeValue);
@@ -95,6 +95,9 @@ export class NodesTranslator {
 		this.dispatcher.restoreNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
+		visitWholeTree(node, () => {
+			this.translatedNodes.delete(node);
+		});
 	}
 
 	public getNodeData(node: Node) {
