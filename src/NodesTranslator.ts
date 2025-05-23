@@ -9,7 +9,7 @@ import { DOMNodesTranslator } from '.';
 export type NodeTranslationHandler = (node: Node) => void;
 
 /**
- * Module for dynamic translate a DOM nodes.
+ * Module for dynamic translate a DOM nodes
  */
 export class NodesTranslator {
 	private readonly dispatcher;
@@ -29,8 +29,7 @@ export class NodesTranslator {
 	private translatedNodes = new WeakMap<Node, string>();
 	private shouldSkipNode = (node: Node) =>
 		this.translatedNodes.get(node) === node.nodeValue;
-	/** Save node translation to storage */
-	private translationHandler = (node: Node) => {
+	private saveTranslatedNode = (node: Node) => {
 		if (node.nodeValue) this.translatedNodes.set(node, node.nodeValue);
 	};
 
@@ -45,7 +44,7 @@ export class NodesTranslator {
 		this.observedNodesStorage.set(node, observer);
 
 		observer.addHandler('elementAdded', ({ target }) => {
-			this.dispatcher.translateNode(target, this.translationHandler);
+			this.dispatcher.translateNode(target, this.saveTranslatedNode);
 		});
 		observer.addHandler('elementRemoved', ({ target }) => {
 			this.translatedNodes.delete(target);
@@ -56,7 +55,7 @@ export class NodesTranslator {
 				this.translatedNodes.delete(target);
 				return;
 			}
-			this.dispatcher.updateNode(target, this.translationHandler);
+			this.dispatcher.updateNode(target, this.saveTranslatedNode);
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName, oldValue }) => {
 			if (attributeName === undefined || attributeName === null) return;
@@ -72,18 +71,18 @@ export class NodesTranslator {
 				if (oldValue === attribute.value) {
 					this.translatedNodes.delete(attribute);
 				}
-				this.dispatcher.translateNode(attribute, this.translationHandler);
+				this.dispatcher.translateNode(attribute, this.saveTranslatedNode);
 			} else {
 				if (this.shouldSkipNode(attribute)) {
 					this.translatedNodes.delete(attribute);
 					return;
 				}
-				this.dispatcher.updateNode(attribute, this.translationHandler);
+				this.dispatcher.updateNode(attribute, this.saveTranslatedNode);
 			}
 		});
 
 		observer.observe(node);
-		this.dispatcher.translateNode(node, this.translationHandler);
+		this.dispatcher.translateNode(node, this.saveTranslatedNode);
 	}
 
 	public unobserve(node: Element) {
