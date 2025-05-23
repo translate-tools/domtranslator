@@ -22,7 +22,7 @@ export class TranslationDispatcher {
 		filter: TranslatableNodePredicate;
 		nodeTranslator: DOMNodesTranslator;
 		/**
-		 * If nodeIntersectionObserver is passed then node can be translate delayed - after intersect viewport
+		 * If nodeIntersectionObserver is provided, nodes can be translated delayed - after intersect the viewport
 		 */
 		nodeIntersectionObserver?: NodesIntersectionObserver;
 	}) {
@@ -42,7 +42,6 @@ export class TranslationDispatcher {
 	 * Translates the node and all its nested translatable nodes (text and attribute nodes)
 	 */
 	public translateNode(node: Node, callback: NodeTranslationHandler) {
-		// Skip node if it does not satisfy the filter
 		if (!this.filter(node)) return;
 
 		// Translate all nodes which element contains (text nodes and attributes of current and inner elements)

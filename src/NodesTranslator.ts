@@ -47,7 +47,7 @@ export class NodesTranslator {
 			this.dispatcher.restoreNode(target);
 		});
 		observer.addHandler('characterData', ({ target }) => {
-			// skip this update because it was triggered by the translation itself
+			// skip this update if it was triggered by the translation itself
 			if (this.shouldSkipNode(target)) {
 				this.translatedNodes.delete(target);
 				return;
@@ -64,13 +64,13 @@ export class NodesTranslator {
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
 			if (!this.dispatcher.hasNode(attribute)) {
-				// if node was replaces delete form storage
 				if (oldValue === attribute.value) {
+					// if the node was replaced but has the same value, delete the old attribute from storage
 					this.translatedNodes.delete(attribute);
 				}
 				this.dispatcher.translateNode(attribute, this.saveTranslatedNode);
 			} else {
-				// skip this update because it was triggered by the translation itself
+				// skip this update if it was triggered by the translation itself
 				if (this.shouldSkipNode(attribute)) {
 					this.translatedNodes.delete(attribute);
 					return;
