@@ -15,6 +15,36 @@ test('Translates a node and restores the original node text', async () => {
 	expect(div.textContent).toBe(nodeText);
 });
 
+test('The passed callback is called with the translated node', async () => {
+	const callback = vi.fn();
+	const domNodesTranslator = new DOMNodesTranslator(translator);
+	const text = 'Hello world!';
+	const div = document.createElement('div');
+	div.setAttribute('title', text);
+
+	// translate
+	domNodesTranslator.translateNode(div.attributes[0], callback);
+	await awaitTranslation();
+
+	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	// callback is called with translated node
+	expect(callback.mock.calls[0][0].nodeValue).toMatch(
+		containsRegex(TRANSLATION_SYMBOL),
+	);
+
+	// update
+	const text1 = 'update';
+	div.setAttribute('title', text1);
+	domNodesTranslator.updateNode(div.attributes[0], callback);
+	await awaitTranslation();
+
+	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(callback.mock.calls[0][0].nodeValue).toMatch(
+		containsRegex(TRANSLATION_SYMBOL),
+	);
+	expect(callback.mock.calls[0][0].nodeValue).toMatch(text1);
+});
+
 test('Stores original text on translation and clears it after restoration', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const nodeText = 'Hello world!';
