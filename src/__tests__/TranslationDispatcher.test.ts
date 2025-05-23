@@ -33,7 +33,7 @@ test('In lazy-translation mode a non-intersecting node translates immediately', 
 	select.appendChild(option);
 	document.body.appendChild(select);
 
-	// options not intersect viewport
+	// element is outside the viewport
 	// IntersectionObserver should not invoke the callback until the node appears in the viewport
 	mockBoundingClientRect(option, { width: 50, height: 100, x: 0, y: 300 });
 	mockBoundingClientRect(document.body, { width: 100, height: 200, x: 0, y: 0 });
@@ -52,8 +52,7 @@ test('In lazy-translation mode a node not attached to the body translates immedi
 		nodeIntersectionObserver: new NodesIntersectionObserver(),
 	});
 
-	// the node is not in document.body, it is not intersecteble and cannot be translated later.
-	// translation must happen immediately
+	// the node is outside the document.body, it is not intersecteble and cannot be translated later
 	const head = document.createElement('head');
 	const title = document.createElement('title');
 	const text = 'Title can contain only text';
