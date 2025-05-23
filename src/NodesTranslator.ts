@@ -26,12 +26,9 @@ export class NodesTranslator {
 		this.nodeTranslator = nodeTranslator;
 	}
 
-	private translatedNodes = new WeakMap<Node, string>();
-	private shouldSkipNode = (node: Node) =>
-		this.translatedNodes.get(node) === node.nodeValue;
-	private saveTranslatedNode = (node: Node) => {
-		if (node.nodeValue) this.translatedNodes.set(node, node.nodeValue);
-	};
+	private translatedNodes = new WeakSet<Node>();
+	private shouldSkipNode = (node: Node) => this.translatedNodes.has(node);
+	private saveTranslatedNode = (node: Node) => this.translatedNodes.add(node);
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 	public observe(node: Element) {
@@ -50,6 +47,7 @@ export class NodesTranslator {
 			this.dispatcher.restoreNode(target);
 		});
 		observer.addHandler('characterData', ({ target }) => {
+			// skip this update because it was triggered by the translation itself
 			if (this.shouldSkipNode(target)) {
 				this.translatedNodes.delete(target);
 				return;
@@ -72,6 +70,7 @@ export class NodesTranslator {
 				}
 				this.dispatcher.translateNode(attribute, this.saveTranslatedNode);
 			} else {
+				// skip this update because it was triggered by the translation itself
 				if (this.shouldSkipNode(attribute)) {
 					this.translatedNodes.delete(attribute);
 					return;
