@@ -1,6 +1,5 @@
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationDispatcher } from './TranslationDispatcher';
-import { visitWholeTree } from './utils/visitWholeTree';
 import { DOMNodesTranslator } from '.';
 
 // TODO: consider local language definitions (and implement `from`, `to` parameters for translator to specify default or locale languages)
@@ -95,9 +94,6 @@ export class NodesTranslator {
 		this.dispatcher.restoreNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
-		visitWholeTree(node, () => {
-			this.translatedNodes.delete(node);
-		});
 	}
 
 	public getNodeData(node: Node) {
