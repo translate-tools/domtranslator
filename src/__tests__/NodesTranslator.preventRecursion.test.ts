@@ -19,9 +19,9 @@ test('Translating a node does not trigger recursive updateNode calls.', async ()
 	nodesTranslator.observe(div);
 
 	await awaitTranslation();
+	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls).toEqual([]);
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 });
 
 test('Translation of added nodes does not trigger recursive updateNode calls.', async () => {
@@ -40,8 +40,9 @@ test('Translation of added nodes does not trigger recursive updateNode calls.', 
 	nodesTranslator.observe(div);
 
 	await awaitTranslation();
-	expect(updateNodeSpy.mock.calls).toEqual([]);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	await awaitTranslation();
+	expect(updateNodeSpy.mock.calls).toEqual([]);
 
 	// add new element
 	const div1 = document.createElement('div');
@@ -50,16 +51,18 @@ test('Translation of added nodes does not trigger recursive updateNode calls.', 
 	div.appendChild(div1);
 
 	await awaitTranslation();
-	expect(updateNodeSpy.mock.calls).toEqual([]);
 	expect(div1.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	await awaitTranslation();
+	expect(updateNodeSpy.mock.calls).toEqual([]);
 
 	// add new attribute
 	const text2 = 'Short text';
 	div.setAttribute('title', text2);
 
 	await awaitTranslation();
-	expect(updateNodeSpy.mock.calls).toEqual([]);
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	await awaitTranslation();
+	expect(updateNodeSpy.mock.calls).toEqual([]);
 });
 
 test('Updating an attribute multiple times does not trigger recursive updateNode calls', async () => {
@@ -78,26 +81,29 @@ test('Updating an attribute multiple times does not trigger recursive updateNode
 	nodesTranslator.observe(div);
 
 	await awaitTranslation();
-	expect(updateNodeSpy.mock.calls).toEqual([]);
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	await awaitTranslation();
+	expect(updateNodeSpy.mock.calls).toEqual([]);
 
 	// update content, node should be translated
 	const text1 = 'new Text';
 	div.setAttribute('title', text1);
 	await awaitTranslation();
-
-	expect(updateNodeSpy.mock.calls[0][0]).toEqual(div.attributes[0]);
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(div.getAttribute('title')).toMatch(text1);
+
+	await awaitTranslation();
+	expect(updateNodeSpy.mock.calls[0][0]).toEqual(div.attributes[0]);
 
 	// update content again, node should be translated
 	const text2 = 'new Text with new information';
 	div.setAttribute('title', text2);
 	await awaitTranslation();
-
-	expect(updateNodeSpy.mock.calls[1][0]).toEqual(div.attributes[0]);
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(div.getAttribute('title')).toMatch(text2);
+
+	await awaitTranslation();
+	expect(updateNodeSpy.mock.calls[1][0]).toEqual(div.attributes[0]);
 });
 
 test('Updating a node with a translated-looking value triggers updateNode calls', async () => {
@@ -113,20 +119,23 @@ test('Updating a node with a translated-looking value triggers updateNode calls'
 	const text = 'title text';
 	div.setAttribute('title', text);
 	document.body.appendChild(div);
-	nodesTranslator.observe(div);
 
+	nodesTranslator.observe(div);
 	await awaitTranslation();
-	// updateNode should not be called
-	expect(updateNodeSpy.mock.calls).toEqual([]);
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+
+	// updateNode should not be called
+	await awaitTranslation();
+	expect(updateNodeSpy.mock.calls).toEqual([]);
 
 	const text1 = TRANSLATION_SYMBOL + 'title text';
 	div.setAttribute('title', text1);
+	await awaitTranslation();
+	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.getAttribute('title')).toMatch(text1);
 
 	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls[0][0]).toEqual(div.attributes[0]);
-	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div.getAttribute('title')).toMatch(text1);
 
 	// restored node has the last set text
 	nodesTranslator.unobserve(div);
