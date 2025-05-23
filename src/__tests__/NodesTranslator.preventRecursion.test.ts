@@ -141,3 +141,55 @@ test('Updating a node with a translated-looking value triggers updateNode calls'
 	nodesTranslator.unobserve(div);
 	expect(div.getAttribute('title')).toBe(text1);
 });
+
+test('Only the latest translation will be applied to the node', async () => {
+	const translator = vi
+		.fn()
+		.mockImplementationOnce(
+			(text: string) =>
+				new Promise((resolve) =>
+					setTimeout(() => resolve((text += TRANSLATION_SYMBOL)), 300),
+				),
+		)
+		.mockImplementationOnce(
+			(text: string) =>
+				new Promise((resolve) =>
+					setTimeout(() => resolve((text += TRANSLATION_SYMBOL)), 100),
+				),
+		);
+	const nodeTranslator = new DOMNodesTranslator(translator);
+	const dispatcher = new TranslationDispatcher({
+		filter: () => true,
+		nodeTranslator: nodeTranslator,
+	});
+	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
+	const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+	const div = document.createElement('a');
+	const text = 'title text';
+	div.setAttribute('title', text);
+	document.body.appendChild(div);
+	nodesTranslator.observe(div);
+
+	// this translation completes within 300 ms, do not wait for completion
+	await delay(100);
+	expect(translator).toBeCalledTimes(1);
+	expect(div.getAttribute('title')).toBe(text);
+
+	const text1 = 'you must translate me';
+	div.setAttribute('title', text1);
+
+	// this translation completes in 100 ms, wait for it
+	await delay(110);
+	expect(translator).toBeCalledTimes(2);
+	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.getAttribute('title')).toMatch(text1);
+
+	// wait for the first translation to finish, it does not modify the node
+	await delay(200);
+	expect(div.getAttribute('title')).toMatch(text1);
+
+	// reset
+	nodesTranslator.unobserve(div);
+	expect(div.getAttribute('title')).toBe(text1);
+});
