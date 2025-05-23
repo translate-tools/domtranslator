@@ -66,7 +66,7 @@ test('Translation of added nodes does not trigger recursive updateNode calls', a
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 });
 
-test('Updating node does not trigger recursive updateNode calls', async () => {
+test('Updating a node does not trigger recursive updateNode calls', async () => {
 	const { dispatcher, nodeTranslator } = buildTranslationServices(translator);
 	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
 	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
@@ -98,7 +98,7 @@ test('Updating node does not trigger recursive updateNode calls', async () => {
 	expect(div.getAttribute('title')).toBe(text1);
 });
 
-test('Updating a node with a translated-looking value triggers updateNode calls', async () => {
+test('Updating a node with a translated-looking value not trigger recursive updateNode calls', async () => {
 	const { dispatcher, nodeTranslator } = buildTranslationServices(translator);
 	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
 	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
@@ -111,8 +111,6 @@ test('Updating a node with a translated-looking value triggers updateNode calls'
 	nodesTranslator.observe(div);
 	await awaitTranslation();
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
-
-	// updateNode should not be called
 	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 
@@ -134,6 +132,7 @@ test('Updating a node with a translated-looking value triggers updateNode calls'
 });
 
 test('Only the latest translation will be applied to the node', async () => {
+	// first call resolves after 300 ms, second call — after 100 ms
 	const translator = vi
 		.fn()
 		.mockImplementationOnce(
