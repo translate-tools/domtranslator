@@ -2,7 +2,7 @@ import { DOMNodesTranslator } from './DOMNodesTranslator';
 import { NodesIntersectionObserver } from './NodesIntersectionObserver';
 import { visitWholeTree } from './utils/visitWholeTree';
 
-export type NodeTranslationHandler = (node: Node) => void;
+export type NodeTranslatedCallback = (node: Node) => void;
 
 export type TranslatableNodePredicate = (node: Node) => boolean;
 
@@ -32,7 +32,7 @@ export class TranslationDispatcher {
 		this.nodeIntersectionObserver = nodeIntersectionObserver || null;
 	}
 
-	public updateNode(node: Node, callback: NodeTranslationHandler) {
+	public updateNode(node: Node, callback: NodeTranslatedCallback) {
 		this.nodeTranslator.updateNode(node, callback);
 	}
 
@@ -42,7 +42,7 @@ export class TranslationDispatcher {
 	/**
 	 * Translates the node and all its nested translatable nodes (text and attribute nodes)
 	 */
-	public translateNode(node: Node, callback: NodeTranslationHandler) {
+	public translateNode(node: Node, callback: NodeTranslatedCallback) {
 		if (!this.filter(node)) return;
 
 		// Translate all nodes which element contains (text nodes and attributes of current and inner elements)
