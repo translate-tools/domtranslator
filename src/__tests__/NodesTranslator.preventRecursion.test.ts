@@ -3,6 +3,10 @@ import { TranslationDispatcher } from '../TranslationDispatcher';
 import { awaitTranslation, containsRegex, TRANSLATION_SYMBOL, translator } from './utils';
 import { NodesTranslator, TranslatorInterface } from '..';
 
+beforeEach(() => {
+	document.body.innerHTML = '';
+});
+
 function buildTranslationServices(translator: TranslatorInterface) {
 	const nodeTranslator = new DOMNodesTranslator(translator);
 	const dispatcher = new TranslationDispatcher({
@@ -115,12 +119,11 @@ test('Updating a node with a translated-looking value not trigger recursive upda
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 
 	// update content, node should be translated without triggering recursion
-	const text1 = TRANSLATION_SYMBOL + 'title text';
+	const text1 = TRANSLATION_SYMBOL + text;
 	div.setAttribute('title', text1);
 	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls[0][0]).toEqual(div.attributes[0]);
-	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div.getAttribute('title')).toMatch(TRANSLATION_SYMBOL + text1);
+	expect(div.getAttribute('title')).toBe(TRANSLATION_SYMBOL + text1);
 
 	// no recursion
 	await awaitTranslation();
