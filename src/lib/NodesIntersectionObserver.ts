@@ -1,4 +1,4 @@
-import { isIntersectableNode } from './utils/isIntersectableNode';
+import { isIntersectableNode } from '../utils/isIntersectableNode';
 
 /**
  * @returns Returns the node owner element.

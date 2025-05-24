@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 
 import { Config } from '../DefaultNodesTranslator';
 import { DOMNodesTranslator, TranslatorInterface } from '../DOMNodesTranslator';
-import { NodesIntersectionObserver } from '../NodesIntersectionObserver';
+import { NodesIntersectionObserver } from '../lib/NodesIntersectionObserver';
 import { NodesTranslator } from '../NodesTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';

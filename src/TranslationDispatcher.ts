@@ -1,5 +1,5 @@
 import { DOMNodesTranslator } from './DOMNodesTranslator';
-import { NodesIntersectionObserver } from './NodesIntersectionObserver';
+import { NodesIntersectionObserver } from './lib/NodesIntersectionObserver';
 import { visitWholeTree } from './utils/visitWholeTree';
 
 export type NodeTranslatedCallback = (node: Node) => void;

@@ -1,10 +1,10 @@
-import { NodesIntersectionObserver } from '../NodesIntersectionObserver';
 import {
 	awaitTranslation,
 	containsRegex,
 	mockBoundingClientRect,
 	TRANSLATION_SYMBOL,
-} from './utils';
+} from '../__tests__/utils';
+import { NodesIntersectionObserver } from './NodesIntersectionObserver';
 
 require('intersection-observer');
 

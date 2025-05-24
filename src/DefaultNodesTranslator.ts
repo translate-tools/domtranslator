@@ -1,12 +1,11 @@
-import { TranslatorInterface } from './DOMNodesTranslator';
-import { NodesTranslator } from './NodesTranslator';
-import { configureTranslatableNodePredicate } from './utils/nodes';
+import { DOMNodesTranslator, TranslatorInterface } from './DOMNodesTranslator';
+import { NodesIntersectionObserver } from './lib/NodesIntersectionObserver';
 import {
-	DOMNodesTranslator,
-	NodesIntersectionObserver,
 	TranslatableNodePredicate,
 	TranslationDispatcher,
-} from '.';
+} from './TranslationDispatcher';
+import { configureTranslatableNodePredicate } from './utils/nodes';
+import { NodesTranslator } from '.';
 
 export interface Config {
 	isTranslatableNode?: TranslatableNodePredicate;

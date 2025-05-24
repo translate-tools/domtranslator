@@ -1,5 +1,5 @@
 import { DOMNodesTranslator } from '../DOMNodesTranslator';
-import { NodesIntersectionObserver } from '../NodesIntersectionObserver';
+import { NodesIntersectionObserver } from '../lib/NodesIntersectionObserver';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { configureTranslatableNodePredicate } from '../utils/nodes';
 import {
