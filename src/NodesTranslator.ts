@@ -60,15 +60,16 @@ export class NodesTranslator {
 
 			if (attribute === null) return;
 
+			// skip this update if it was triggered by the translation itself
+			if (this.mutatedNodes.has(attribute)) {
+				this.mutatedNodes.delete(attribute);
+				return;
+			}
+
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
 			if (!this.dispatcher.hasNode(attribute)) {
 				this.dispatcher.translateNode(attribute, this.saveTranslatedNode);
 			} else {
-				// skip this update if it was triggered by the translation itself
-				if (this.mutatedNodes.has(attribute)) {
-					this.mutatedNodes.delete(attribute);
-					return;
-				}
 				this.dispatcher.updateNode(attribute, this.saveTranslatedNode);
 			}
 		});
