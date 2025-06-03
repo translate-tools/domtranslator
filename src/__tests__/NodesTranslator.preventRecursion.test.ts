@@ -18,7 +18,10 @@ function buildTranslationServices(translator: TranslatorInterface) {
 
 test('Translating a node does not trigger recursive updateNode calls', async () => {
 	const { dispatcher, nodeTranslator } = buildTranslationServices(translator);
-	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
+	const nodesTranslator = new NodesTranslator({
+		dispatcher,
+		nodesTranslator: nodeTranslator,
+	});
 	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
 
 	const div = document.createElement('div');
@@ -35,7 +38,10 @@ test('Translating a node does not trigger recursive updateNode calls', async () 
 
 test('Translation of added nodes does not trigger recursive updateNode calls', async () => {
 	const { dispatcher, nodeTranslator } = buildTranslationServices(translator);
-	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
+	const nodesTranslator = new NodesTranslator({
+		dispatcher,
+		nodesTranslator: nodeTranslator,
+	});
 	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
 
 	const div = document.createElement('div');
@@ -72,7 +78,10 @@ test('Translation of added nodes does not trigger recursive updateNode calls', a
 
 test('Updating a node does not trigger recursive updateNode calls', async () => {
 	const { dispatcher, nodeTranslator } = buildTranslationServices(translator);
-	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
+	const nodesTranslator = new NodesTranslator({
+		dispatcher,
+		nodesTranslator: nodeTranslator,
+	});
 	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
 
 	const div = document.createElement('a');
@@ -104,7 +113,10 @@ test('Updating a node does not trigger recursive updateNode calls', async () => 
 
 test('Updating a node with a translated-looking value not trigger recursive updateNode calls', async () => {
 	const { dispatcher, nodeTranslator } = buildTranslationServices(translator);
-	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
+	const nodesTranslator = new NodesTranslator({
+		dispatcher,
+		nodesTranslator: nodeTranslator,
+	});
 	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
 
 	const div = document.createElement('a');
@@ -151,7 +163,10 @@ test('Only the latest translation will be applied to the node', async () => {
 				),
 		);
 	const { dispatcher, nodeTranslator } = buildTranslationServices(translator);
-	const nodesTranslator = new NodesTranslator({ dispatcher, nodeTranslator });
+	const nodesTranslator = new NodesTranslator({
+		dispatcher,
+		nodesTranslator: nodeTranslator,
+	});
 	const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 	const div = document.createElement('a');

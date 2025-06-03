@@ -11,17 +11,17 @@ import { DOMNodesTranslator } from '.';
  */
 export class NodesTranslator {
 	private readonly dispatcher;
-	private readonly nodeTranslator;
+	private readonly nodesTranslator;
 
 	constructor({
 		dispatcher,
-		nodeTranslator,
+		nodesTranslator: nodeTranslator,
 	}: {
 		dispatcher: TranslationDispatcher;
-		nodeTranslator: DOMNodesTranslator;
+		nodesTranslator: DOMNodesTranslator;
 	}) {
 		this.dispatcher = dispatcher;
-		this.nodeTranslator = nodeTranslator;
+		this.nodesTranslator = nodeTranslator;
 	}
 
 	private translatedNodes = new WeakSet<Node>();
@@ -92,6 +92,6 @@ export class NodesTranslator {
 	}
 
 	public getNodeData(node: Node) {
-		return this.nodeTranslator.getOriginalNodeText(node);
+		return this.nodesTranslator.getOriginalNodeText(node);
 	}
 }
