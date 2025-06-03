@@ -20,7 +20,7 @@ export class TranslationDispatcher {
 		nodeTranslator,
 		nodeIntersectionObserver,
 	}: {
-		filter: TranslatableNodePredicate;
+		filter?: TranslatableNodePredicate;
 		nodeTranslator: DOMNodesTranslator;
 		/**
 		 * If nodeIntersectionObserver is provided, nodes can be translated delayed - after intersect the viewport
@@ -32,18 +32,11 @@ export class TranslationDispatcher {
 		this.nodeIntersectionObserver = nodeIntersectionObserver || null;
 	}
 
-	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
-		this.nodeTranslator.updateNode(node, callback);
-	}
-
-	public hasNode(node: Node) {
-		return this.nodeTranslator.hasNode(node);
-	}
 	/**
 	 * Translates the node and all its nested translatable nodes (text and attribute nodes)
 	 */
 	public translateNode(node: Node, callback?: NodeTranslatedCallback) {
-		if (!this.filter(node)) return;
+		if (this.filter && !this.filter(node)) return;
 
 		// Translate all nodes which element contains (text nodes and attributes of current and inner elements)
 		if (node instanceof Element) {
@@ -56,7 +49,7 @@ export class TranslationDispatcher {
 
 		// Handle text nodes and attributes
 
-		// translate latter if possible
+		// translate later if possible
 		if (this.nodeIntersectionObserver) {
 			// if node is outside of body (utility tags like meta or title) translate immediately
 			const isAttachedToDOM = node.getRootNode() !== node;
@@ -87,5 +80,13 @@ export class TranslationDispatcher {
 		}
 
 		this.nodeTranslator.restoreNode(node);
+	}
+
+	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
+		this.nodeTranslator.updateNode(node, callback);
+	}
+
+	public hasNode(node: Node) {
+		return this.nodeTranslator.hasNode(node);
 	}
 }
