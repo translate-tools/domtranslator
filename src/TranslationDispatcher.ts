@@ -51,10 +51,13 @@ export class TranslationDispatcher {
 
 		// translate later if possible
 		if (this.nodeIntersectionObserver) {
-			// if node is outside of body (utility tags like meta or title) translate immediately
+			// Check that the node is attached to the DOM. This means the node is accessible by traversing the current DOM
+			// This check is necessary to avoid lazy translation for nodes that are detached from the DOM,
+			// since they potentially may never intersect with the viewport
+
 			const isAttachedToDOM = node.getRootNode() !== node;
 			if (isAttachedToDOM) {
-				this.nodeIntersectionObserver.observe(node, (node: Node) => {
+				this.nodeIntersectionObserver.observe(node, () => {
 					this.nodeTranslator.translateNode(node, callback);
 				});
 				return;
