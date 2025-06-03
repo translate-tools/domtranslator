@@ -1,5 +1,6 @@
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationDispatcher } from './TranslationDispatcher';
+import { visitWholeTree } from './utils/visitWholeTree';
 import { DOMNodesTranslator } from '.';
 
 // TODO: consider local language definitions (and implement `from`, `to` parameters for translator to specify default or locale languages)
@@ -82,6 +83,11 @@ export class NodesTranslator {
 		if (!this.observedNodesStorage.has(node)) {
 			throw new Error('Node is not under observe');
 		}
+
+		// if clearing only remove the nodes related to the given node.
+		visitWholeTree(node, (node) => {
+			this.mutatedNodes.delete(node);
+		});
 
 		this.dispatcher.restoreNode(node);
 		this.observedNodesStorage.get(node)?.disconnect();
