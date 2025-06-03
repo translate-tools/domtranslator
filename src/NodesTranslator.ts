@@ -24,9 +24,8 @@ export class NodesTranslator {
 		this.nodesTranslator = nodeTranslator;
 	}
 
-	private translatedNodes = new WeakSet<Node>();
-	private shouldSkipNode = (node: Node) => this.translatedNodes.has(node);
-	private saveTranslatedNode = (node: Node) => this.translatedNodes.add(node);
+	private mutatedNodes = new WeakSet<Node>();
+	private saveTranslatedNode = (node: Node) => this.mutatedNodes.add(node);
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 	public observe(node: Element) {
@@ -46,8 +45,8 @@ export class NodesTranslator {
 		});
 		observer.addHandler('characterData', ({ target }) => {
 			// skip this update if it was triggered by the translation itself
-			if (this.shouldSkipNode(target)) {
-				this.translatedNodes.delete(target);
+			if (this.mutatedNodes.has(target)) {
+				this.mutatedNodes.delete(target);
 				return;
 			}
 			this.dispatcher.updateNode(target, this.saveTranslatedNode);
@@ -64,13 +63,13 @@ export class NodesTranslator {
 			if (!this.dispatcher.hasNode(attribute)) {
 				if (oldValue === attribute.value) {
 					// if the node was replaced but has the same value, delete the old attribute from storage
-					this.translatedNodes.delete(attribute);
+					this.mutatedNodes.delete(attribute);
 				}
 				this.dispatcher.translateNode(attribute, this.saveTranslatedNode);
 			} else {
 				// skip this update if it was triggered by the translation itself
-				if (this.shouldSkipNode(attribute)) {
-					this.translatedNodes.delete(attribute);
+				if (this.mutatedNodes.has(attribute)) {
+					this.mutatedNodes.delete(attribute);
 					return;
 				}
 				this.dispatcher.updateNode(attribute, this.saveTranslatedNode);
