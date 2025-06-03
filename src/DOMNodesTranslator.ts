@@ -74,7 +74,7 @@ export class DOMNodesTranslator {
 	 * Translates nodes that contain text (e.g., Text, Attr)
 	 * After translation invokes a callback with the translated node
 	 */
-	public translateNode = (node: Node, callback: NodeTranslatedCallback) => {
+	public translateNode = (node: Node, callback?: NodeTranslatedCallback) => {
 		if (this.hasNode(node)) return;
 
 		// Skip empty text
@@ -108,7 +108,7 @@ export class DOMNodesTranslator {
 	 * Translates node after it has been modified
 	 * After translation invokes a callback with the translated node
 	 */
-	public updateNode(node: Node, callback: NodeTranslatedCallback) {
+	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
 		const nodeData = this.nodeStorage.get(node);
 		if (!nodeData) return;
 
@@ -119,7 +119,7 @@ export class DOMNodesTranslator {
 	/**
 	 * Call only for new and updated nodes
 	 */
-	private translateNodeContent(node: Node, callback: NodeTranslatedCallback) {
+	private translateNodeContent(node: Node, callback?: NodeTranslatedCallback) {
 		const nodeData = this.nodeStorage.get(node);
 		if (!nodeData) {
 			throw new Error('Node is not register');
@@ -140,7 +140,8 @@ export class DOMNodesTranslator {
 
 			actualNodeData.originalText = node.nodeValue !== null ? node.nodeValue : '';
 			node.nodeValue = text;
-			callback(node);
+
+			if (callback) callback(node);
 		});
 	}
 }

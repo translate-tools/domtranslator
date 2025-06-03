@@ -32,7 +32,7 @@ export class TranslationDispatcher {
 		this.nodeIntersectionObserver = nodeIntersectionObserver || null;
 	}
 
-	public updateNode(node: Node, callback: NodeTranslatedCallback) {
+	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
 		this.nodeTranslator.updateNode(node, callback);
 	}
 
@@ -42,7 +42,7 @@ export class TranslationDispatcher {
 	/**
 	 * Translates the node and all its nested translatable nodes (text and attribute nodes)
 	 */
-	public translateNode(node: Node, callback: NodeTranslatedCallback) {
+	public translateNode(node: Node, callback?: NodeTranslatedCallback) {
 		if (!this.filter(node)) return;
 
 		// Translate all nodes which element contains (text nodes and attributes of current and inner elements)
