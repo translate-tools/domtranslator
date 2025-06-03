@@ -25,6 +25,7 @@ export class NodesTranslator {
 	}
 
 	private mutatedNodes = new WeakSet<Node>();
+
 	private saveTranslatedNode = (node: Node) => this.mutatedNodes.add(node);
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
@@ -51,7 +52,7 @@ export class NodesTranslator {
 			}
 			this.dispatcher.updateNode(target, this.saveTranslatedNode);
 		});
-		observer.addHandler('changeAttribute', ({ target, attributeName, oldValue }) => {
+		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
 			if (attributeName === undefined || attributeName === null) return;
 			if (!(target instanceof Element)) return;
 
@@ -61,10 +62,6 @@ export class NodesTranslator {
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
 			if (!this.dispatcher.hasNode(attribute)) {
-				if (oldValue === attribute.value) {
-					// if the node was replaced but has the same value, delete the old attribute from storage
-					this.mutatedNodes.delete(attribute);
-				}
 				this.dispatcher.translateNode(attribute, this.saveTranslatedNode);
 			} else {
 				// skip this update if it was triggered by the translation itself
