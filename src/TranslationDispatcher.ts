@@ -16,12 +16,12 @@ export class TranslationDispatcher {
 	private readonly nodeIntersectionObserver;
 
 	constructor({
-		filter,
 		nodesTranslator: nodesTranslator,
+		filter,
 		nodeIntersectionObserver,
 	}: {
-		filter?: TranslatableNodePredicate;
 		nodesTranslator: DOMNodesTranslator;
+		filter?: TranslatableNodePredicate;
 		/**
 		 * If nodeIntersectionObserver is provided, nodes can be translated delayed - after intersect the viewport
 		 */

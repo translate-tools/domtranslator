@@ -26,7 +26,6 @@ export class NodesTranslator {
 	}
 
 	private mutatedNodes = new WeakSet<Node>();
-
 	private saveTranslatedNode = (node: Node) => this.mutatedNodes.add(node);
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
