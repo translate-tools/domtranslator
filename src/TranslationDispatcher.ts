@@ -12,23 +12,23 @@ export type TranslatableNodePredicate = (node: Node) => boolean;
  */
 export class TranslationDispatcher {
 	private readonly filter;
-	private readonly nodeTranslator;
+	private readonly nodesTranslator;
 	private readonly nodeIntersectionObserver;
 
 	constructor({
 		filter,
-		nodeTranslator,
+		nodesTranslator: nodesTranslator,
 		nodeIntersectionObserver,
 	}: {
 		filter?: TranslatableNodePredicate;
-		nodeTranslator: DOMNodesTranslator;
+		nodesTranslator: DOMNodesTranslator;
 		/**
 		 * If nodeIntersectionObserver is provided, nodes can be translated delayed - after intersect the viewport
 		 */
 		nodeIntersectionObserver?: NodesIntersectionObserver;
 	}) {
 		this.filter = filter;
-		this.nodeTranslator = nodeTranslator;
+		this.nodesTranslator = nodesTranslator;
 		this.nodeIntersectionObserver = nodeIntersectionObserver || null;
 	}
 
@@ -58,13 +58,13 @@ export class TranslationDispatcher {
 			const isAttachedToDOM = node.getRootNode() !== node;
 			if (isAttachedToDOM) {
 				this.nodeIntersectionObserver.observe(node, () => {
-					this.nodeTranslator.translateNode(node, callback);
+					this.nodesTranslator.translateNode(node, callback);
 				});
 				return;
 			}
 		}
 		// translate immediately
-		this.nodeTranslator.translateNode(node, callback);
+		this.nodesTranslator.translateNode(node, callback);
 	}
 
 	/**
@@ -82,14 +82,14 @@ export class TranslationDispatcher {
 			this.nodeIntersectionObserver.unobserve(node);
 		}
 
-		this.nodeTranslator.restoreNode(node);
+		this.nodesTranslator.restoreNode(node);
 	}
 
 	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
-		this.nodeTranslator.updateNode(node, callback);
+		this.nodesTranslator.updateNode(node, callback);
 	}
 
 	public hasNode(node: Node) {
-		return this.nodeTranslator.hasNode(node);
+		return this.nodesTranslator.hasNode(node);
 	}
 }

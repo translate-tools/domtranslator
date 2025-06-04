@@ -16,15 +16,15 @@ beforeEach(() => {
 });
 
 function buildTranslationServices(translator: TranslatorInterface) {
-	const nodeTranslator = new DOMNodesTranslator(translator);
+	const domNodeTranslator = new DOMNodesTranslator(translator);
 	const dispatcher = new TranslationDispatcher({
 		filter: () => true,
-		nodeTranslator: nodeTranslator,
+		nodesTranslator: domNodeTranslator,
 	});
 
 	const nodesTranslator = new NodesTranslator({
 		dispatcher,
-		nodesTranslator: nodeTranslator,
+		nodesTranslator: domNodeTranslator,
 	});
 	return { dispatcher, nodesTranslator };
 }

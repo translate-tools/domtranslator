@@ -31,7 +31,7 @@ export class DefaultNodesTranslator extends NodesTranslator {
 
 		const translatorDispatcher = new TranslationDispatcher({
 			filter: isTranslatableNode,
-			nodeTranslator: domNodesTranslator,
+			nodesTranslator: domNodesTranslator,
 			nodeIntersectionObserver,
 		});
 

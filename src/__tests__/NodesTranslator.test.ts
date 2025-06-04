@@ -47,7 +47,7 @@ function buildTranslationServices(
 
 	const translatorDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
-		nodeTranslator: domNodesTranslator,
+		nodesTranslator: domNodesTranslator,
 		nodeIntersectionObserver,
 	});
 
