@@ -18,25 +18,27 @@ test('Callback is called only after successful translation', async () => {
 
 	// first translation call resolves after 300 ms, second — after 100 ms
 
-	// Start the first (slow) translation. Do not wait for it to complete yet
-	// Ensure that the callback has not been called and content is unchanged
+	// first slow translation (300ms)
 	domNodesTranslator.translateNode(div.childNodes[0], callback);
+
+	// waiting 100ms: the translation is not completed yet, callback should not be called
 	await delay(100);
 	await awaitTranslation();
 	expect(callback).toBeCalledTimes(0);
 	expect(div.textContent).toBe(text);
 
-	// Start the second (fast) translation and wait for it to complete
-	// Ensure the callback is called and the content is updated
+	// second fast translation (100ms)
 	const text2 = 'Hi friends!';
 	div.setAttribute('title', text2);
 	domNodesTranslator.updateNode(div.childNodes[0], callback);
+
+	// waiting 100 ms: the translation is complete and the callback should be called
 	await delay(100);
 	await awaitTranslation();
 	expect(callback).toBeCalledTimes(1);
 	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	// Wait for the first (slow) translation to complete, ensure the callback is still called only once.
+	// wait for the first translation to finish. Callback should not be called again
 	await delay(200);
 	await awaitTranslation();
 	expect(callback).toBeCalledTimes(1);

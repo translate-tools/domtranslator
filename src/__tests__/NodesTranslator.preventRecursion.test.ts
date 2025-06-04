@@ -147,28 +147,30 @@ test('Only the latest translation will be applied to the node', async () => {
 	const text1 = 'title text';
 	div.setAttribute('title', text1);
 	document.body.appendChild(div);
-	nodesTranslator.observe(div);
 
 	// first translation call resolves after 300 ms, second — after 100 ms
 
-	// Start the first (slow) translation. Do not wait for it to complete yet
-	// Ensure that the callback has not been called and content is unchanged
+	// first slow translation (300ms)
+	nodesTranslator.observe(div);
+
+	// waiting 100ms: the translation is not completed yet, callback should not be called
+	await delay(100);
 	await awaitTranslation();
 	expect(translatorMockWithDelays).toHaveBeenCalledTimes(1);
 	expect(div.getAttribute('title')).toBe(text1);
 
-	// Start the second (fast) translation and wait for it to complete
-	// Ensure the callback is called and the content is updated
+	// second fast translation (100ms)
 	const text2 = 'you must translate me';
 	div.setAttribute('title', text2);
+
+	// waiting 100 ms: the translation is complete and the callback should be called
 	await delay(100);
 	await awaitTranslation();
-
 	expect(translatorMockWithDelays).toHaveBeenCalledTimes(2);
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(div.getAttribute('title')).toMatch(text2);
 
-	// Wait for the first (slow) translation to complete, ensure the callback is still called only once.
+	// wait for the first translation to finish. Callback should not be called again
 	await delay(200);
 	await awaitTranslation();
 	expect(div.getAttribute('title')).toMatch(text2);
