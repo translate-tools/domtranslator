@@ -20,8 +20,7 @@ export class DefaultNodesTranslator extends NodesTranslator {
 	constructor(translateCallback: TranslatorInterface, config?: Config) {
 		const isTranslatableNode =
 			config?.isTranslatableNode ?? configureTranslatableNodePredicate();
-		const lazyTranslate =
-			config?.lazyTranslate !== undefined ? config?.lazyTranslate : true;
+		const lazyTranslate = config?.lazyTranslate ?? true;
 
 		const domNodesTranslator = new DOMNodesTranslator(translateCallback);
 
