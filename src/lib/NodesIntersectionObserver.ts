@@ -2,7 +2,7 @@ import { isIntersectableNode } from '../utils/isIntersectableNode';
 
 /**
  * @returns Returns the node owner element.
- * If the node is an Element, the element itself is returned
+ * For Element, the element itself is returned
  */
 export function getElementOfNode(node: Node) {
 	// Use type guards because a simple check `node.nodeType === Node.ELEMENT_NODE`
@@ -29,7 +29,7 @@ type Callback = (node: Node) => void;
 
 /**
  * Observes DOM nodes for intersection with the viewport and triggers callbacks when they become visible.
- * This class supports observing both elements and nodes (Text, Attr, etc.)
+ * Class supports observing both elements and nodes (Text, Attr, etc.)
  */
 export class NodesIntersectionObserver {
 	private readonly intersectionObserver: IntersectionObserver;
@@ -59,24 +59,25 @@ export class NodesIntersectionObserver {
 	 * Starts observing the node for intersection.
 	 * When the owner element of the node intersects the viewport, the callback is invoked.
 	 * Then the owner element and all its tracked nodes are automatically removed from observation.
+	 * (Owner element means: element itself for Element, parent element for Text, owner element for Attr)
 	 */
 	public observe(node: Node, callback: Callback) {
-		const ownerElement = getElementOfNode(node);
+		const targetElement = getElementOfNode(node);
 
 		// Immediately invoke the callback if the node has no owner or is not intersectable
-		if (!ownerElement || !isIntersectableNode(ownerElement)) {
+		if (!targetElement || !isIntersectableNode(targetElement)) {
 			callback(node);
 			return;
 		}
 
 		this.nodeCallbacksMap.set(node, callback);
 
-		const observedNodes = this.elementNodesMap.get(ownerElement);
+		const observedNodes = this.elementNodesMap.get(targetElement);
 		if (observedNodes) {
 			observedNodes.add(node);
 		} else {
-			this.elementNodesMap.set(ownerElement, new Set<Node>([node]));
-			this.intersectionObserver.observe(ownerElement);
+			this.elementNodesMap.set(targetElement, new Set<Node>([node]));
+			this.intersectionObserver.observe(targetElement);
 		}
 	}
 
@@ -84,9 +85,9 @@ export class NodesIntersectionObserver {
 	 *  Stops observing the node and removes it from observation
 	 */
 	public unobserve(node: Node) {
-		const ownerElement = getElementOfNode(node);
-		if (!ownerElement) return;
-		const observedNodes = this.elementNodesMap.get(ownerElement);
+		const targetElement = getElementOfNode(node);
+		if (!targetElement) return;
+		const observedNodes = this.elementNodesMap.get(targetElement);
 		if (!observedNodes || !observedNodes.has(node)) return;
 
 		// remove only the specified node
@@ -95,8 +96,8 @@ export class NodesIntersectionObserver {
 
 		// if no more nodes are tracked under this ownerElement, stop observing it
 		if (observedNodes.size === 0) {
-			this.elementNodesMap.delete(ownerElement);
-			this.intersectionObserver.unobserve(ownerElement);
+			this.elementNodesMap.delete(targetElement);
+			this.intersectionObserver.unobserve(targetElement);
 		}
 	}
 
