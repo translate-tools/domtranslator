@@ -63,6 +63,7 @@ export class TranslationDispatcher {
 				return;
 			}
 		}
+
 		// translate immediately
 		this.nodesTranslator.translateNode(node, callback);
 	}
@@ -72,7 +73,7 @@ export class TranslationDispatcher {
 	 * @param onlyTarget determines whether only the target node or all its nested nodes will be restored
 	 */
 	public restoreNode(node: Node, onlyTarget = false) {
-		// Delete all attributes and inner nodes
+		// Restore all attributes and inner nodes
 		if (node instanceof Element && !onlyTarget) {
 			visitWholeTree(node, (node) => {
 				this.restoreNode(node, true);
