@@ -1,8 +1,6 @@
-import { DOMNodesTranslator } from './DOMNodesTranslator';
+import { DOMNodesTranslator, NodeTranslatedCallback } from './DOMNodesTranslator';
 import { NodesIntersectionObserver } from './lib/NodesIntersectionObserver';
 import { visitWholeTree } from './utils/visitWholeTree';
-
-export type NodeTranslatedCallback = (node: Node) => void;
 
 export type TranslatableNodePredicate = (node: Node) => boolean;
 

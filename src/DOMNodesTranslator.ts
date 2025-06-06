@@ -1,6 +1,6 @@
-import { NodeTranslatedCallback } from './TranslationDispatcher';
 import { isInViewport } from './utils/isInViewport';
 
+export type NodeTranslatedCallback = (node: Node) => void;
 export type TranslatorInterface = (text: string, priority: number) => Promise<string>;
 
 interface NodeData {
