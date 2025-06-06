@@ -70,11 +70,11 @@ export class TranslationDispatcher {
 	 * Restores the original node text
 	 * @param onlyTarget determines whether only the target node or all its nested nodes will be restored
 	 */
-	public restoreNode(node: Node, onlyTarget = false) {
+	public restoreNode(node: Node, callback?: (node: Node) => void, onlyTarget = false) {
 		// Restore all attributes and inner nodes
 		if (node instanceof Element && !onlyTarget) {
 			visitWholeTree(node, (node) => {
-				this.restoreNode(node, true);
+				this.restoreNode(node, callback, true);
 			});
 		}
 		if (this.nodeIntersectionObserver) {
@@ -82,6 +82,8 @@ export class TranslationDispatcher {
 		}
 
 		this.nodesTranslator.restoreNode(node);
+
+		if (callback) callback(node);
 	}
 
 	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
