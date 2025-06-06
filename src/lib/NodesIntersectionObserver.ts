@@ -2,16 +2,34 @@ import { isIntersectableNode } from '../utils/isIntersectableNode';
 
 /**
  * @returns Returns the node owner element.
+ * If the node is an Element, the element itself is returned
  */
 export function getElementOfNode(node: Node) {
-	return node instanceof Attr ? node.ownerElement : node.parentElement;
+	// Use type guards because a simple check `node.nodeType === Node.ELEMENT_NODE`
+	// does not narrow the type in TypeScript — `node` remains of type `Node`
+
+	const isElement = (node: Node): node is Element => {
+		return node.nodeType === Node.ELEMENT_NODE;
+	};
+	const isAttr = (node: Node): node is Attr => {
+		return node.nodeType === Node.ATTRIBUTE_NODE;
+	};
+
+	if (isElement(node)) {
+		return node;
+	}
+	if (isAttr(node)) {
+		return node.ownerElement;
+	}
+
+	return node.parentElement;
 }
 
 type Callback = (node: Node) => void;
 
 /**
  * Observes DOM nodes for intersection with the viewport and triggers callbacks when they become visible.
- * WARNING: This class works with nodes (Text, Attr, etc.), not directly with Element nodes.
+ * This class supports observing both elements and nodes (Text, Attr, etc.)
  */
 export class NodesIntersectionObserver {
 	private readonly intersectionObserver: IntersectionObserver;
