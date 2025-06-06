@@ -25,8 +25,8 @@ export class NodesTranslator {
 		this.nodesTranslator = nodeTranslator;
 	}
 
+	// store nodes that were changed (transferred) to us
 	private mutatedNodes = new WeakSet<Node>();
-	private saveTranslatedNode = (node: Node) => this.mutatedNodes.add(node);
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 	public observe(node: Element) {
@@ -39,7 +39,9 @@ export class NodesTranslator {
 		this.observedNodesStorage.set(node, observer);
 
 		observer.addHandler('elementAdded', ({ target }) => {
-			this.dispatcher.translateNode(target, this.saveTranslatedNode);
+			this.dispatcher.translateNode(target, (node: Node) =>
+				this.mutatedNodes.add(node),
+			);
 		});
 		observer.addHandler('elementRemoved', ({ target }) => {
 			this.dispatcher.restoreNode(target);
@@ -50,7 +52,9 @@ export class NodesTranslator {
 				this.mutatedNodes.delete(target);
 				return;
 			}
-			this.dispatcher.updateNode(target, this.saveTranslatedNode);
+			this.dispatcher.updateNode(target, (node: Node) =>
+				this.mutatedNodes.add(node),
+			);
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
 			if (attributeName === undefined || attributeName === null) return;
@@ -68,14 +72,18 @@ export class NodesTranslator {
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
 			if (!this.dispatcher.hasNode(attribute)) {
-				this.dispatcher.translateNode(attribute, this.saveTranslatedNode);
+				this.dispatcher.translateNode(attribute, (node: Node) =>
+					this.mutatedNodes.add(node),
+				);
 			} else {
-				this.dispatcher.updateNode(attribute, this.saveTranslatedNode);
+				this.dispatcher.updateNode(attribute, (node: Node) =>
+					this.mutatedNodes.add(node),
+				);
 			}
 		});
 
 		observer.observe(node);
-		this.dispatcher.translateNode(node, this.saveTranslatedNode);
+		this.dispatcher.translateNode(node, (node: Node) => this.mutatedNodes.add(node));
 	}
 
 	public unobserve(node: Element) {
