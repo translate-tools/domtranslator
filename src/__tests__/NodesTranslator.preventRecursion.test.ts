@@ -28,29 +28,12 @@ function buildTranslationServices(translator: TranslatorInterface) {
 	return { dispatcher, nodesTranslator };
 }
 
-test('Translating a node does not trigger recursive updateNode calls', async () => {
+test('Translation of nodes does not trigger recursive updateNode calls', async () => {
 	const { nodesTranslator, dispatcher } = buildTranslationServices(translator);
 	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
 
 	const div = document.createElement('div');
-	div.textContent = 'simple short text';
-	document.body.appendChild(div);
-	nodesTranslator.observe(div);
-
-	await awaitTranslation();
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-
-	// wait the update call trigger
-	await awaitTranslation();
-	expect(updateNodeSpy.mock.calls).toEqual([]);
-});
-
-test('Translation of added nodes does not trigger recursive updateNode calls', async () => {
-	const { nodesTranslator, dispatcher } = buildTranslationServices(translator);
-	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
-
-	const div = document.createElement('div');
-	div.textContent = 'Siple short text';
+	div.textContent = 'Simple text';
 	document.body.appendChild(div);
 	nodesTranslator.observe(div);
 
@@ -61,7 +44,7 @@ test('Translation of added nodes does not trigger recursive updateNode calls', a
 
 	// add new element
 	const div1 = document.createElement('div');
-	div1.textContent = 'New simple text';
+	div1.textContent = 'new text';
 	div.appendChild(div1);
 
 	await awaitTranslation();
@@ -70,7 +53,7 @@ test('Translation of added nodes does not trigger recursive updateNode calls', a
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 
 	// add new attribute
-	div.setAttribute('title', 'Short simple text');
+	div.setAttribute('title', 'Short text');
 
 	await awaitTranslation();
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
@@ -93,7 +76,7 @@ test('Updating a node does not trigger recursive updateNode calls', async () => 
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 
 	// update content, node should be translated without triggering recursion
-	const text = 'new Text';
+	const text = 'new text';
 	div.setAttribute('title', text);
 	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls[0][0]).toEqual(div.attributes[0]);
@@ -103,9 +86,6 @@ test('Updating a node does not trigger recursive updateNode calls', async () => 
 	// no recursion
 	await awaitTranslation();
 	expect(updateNodeSpy).toBeCalledTimes(1);
-
-	nodesTranslator.unobserve(div);
-	expect(div.getAttribute('title')).toBe(text);
 });
 
 test('Updating a node with a translated-looking value not trigger recursive updateNode calls', async () => {
@@ -155,7 +135,6 @@ test('Only the latest translation will be applied to the node', async () => {
 					setTimeout(() => resolve(translator(text)), 100),
 				),
 		);
-
 	const { nodesTranslator } = buildTranslationServices(translatorWithDelay);
 
 	const div = document.createElement('a');

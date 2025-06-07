@@ -111,15 +111,11 @@ test('Callback is called only after successful translation', async () => {
 		.fn()
 		.mockImplementationOnce(
 			(text: string) =>
-				new Promise((resolve) =>
-					setTimeout(() => resolve(translator(text)), 300),
-				),
+				new Promise((res) => setTimeout(() => res(translator(text)), 300)),
 		)
 		.mockImplementationOnce(
 			(text: string) =>
-				new Promise((resolve) =>
-					setTimeout(() => resolve(translator(text)), 100),
-				),
+				new Promise((res) => setTimeout(() => res(translator(text)), 100)),
 		);
 	const callback = vi.fn();
 
@@ -138,8 +134,7 @@ test('Callback is called only after successful translation', async () => {
 	expect(div.getAttribute('title')).toBe(text1);
 
 	// second fast translation (100ms)
-	const text2 = 'Hi friends!';
-	div.setAttribute('title', text2);
+	div.setAttribute('title', 'Hi friends!');
 	domNodesTranslator.updateNode(div.attributes[0], callback);
 
 	// waiting 100 ms: the translation is complete and the callback should be called
