@@ -5,44 +5,7 @@ import {
 	delay,
 	TRANSLATION_SYMBOL,
 	translator,
-	translatorMockWithDelays,
 } from './utils';
-
-test('Callback is called only after successful translation', async () => {
-	const callback = vi.fn();
-
-	const domNodesTranslator = new DOMNodesTranslator(translatorMockWithDelays);
-	const text = 'Hello world!';
-	const div = document.createElement('div');
-	div.textContent = text;
-
-	// first translation call resolves after 300 ms, second — after 100 ms
-
-	// first slow translation (300ms)
-	domNodesTranslator.translateNode(div.childNodes[0], callback);
-
-	// waiting 100ms: the translation is not completed yet, callback should not be called
-	await delay(100);
-	await awaitTranslation();
-	expect(callback).toBeCalledTimes(0);
-	expect(div.textContent).toBe(text);
-
-	// second fast translation (100ms)
-	const text2 = 'Hi friends!';
-	div.setAttribute('title', text2);
-	domNodesTranslator.updateNode(div.childNodes[0], callback);
-
-	// waiting 100 ms: the translation is complete and the callback should be called
-	await delay(100);
-	await awaitTranslation();
-	expect(callback).toBeCalledTimes(1);
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-
-	// wait for the first translation to finish. Callback should not be called again
-	await delay(200);
-	await awaitTranslation();
-	expect(callback).toBeCalledTimes(1);
-});
 
 test('Translates a node and restores the original node text', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
@@ -140,4 +103,53 @@ test('Restores the most recent original text after multiple translations', async
 
 	domNodesTranslator.restoreNode(div.childNodes[0]);
 	expect(div.textContent).toBe(text);
+});
+
+test('Callback is called only after successful translation', async () => {
+	// first translation call resolves after 300 ms, second — after 100 ms
+	const translatorWithDelay = vi
+		.fn()
+		.mockImplementationOnce(
+			(text: string) =>
+				new Promise((resolve) =>
+					setTimeout(() => resolve(translator(text)), 300),
+				),
+		)
+		.mockImplementationOnce(
+			(text: string) =>
+				new Promise((resolve) =>
+					setTimeout(() => resolve(translator(text)), 100),
+				),
+		);
+	const callback = vi.fn();
+
+	const domNodesTranslator = new DOMNodesTranslator(translatorWithDelay);
+	const div = document.createElement('div');
+	const text1 = 'Hello world!';
+	div.setAttribute('title', text1);
+
+	// first slow translation (300ms)
+	domNodesTranslator.translateNode(div.attributes[0], callback);
+
+	// waiting 100ms: the translation is not completed yet, callback should not be called
+	await delay(100);
+	await awaitTranslation();
+	expect(callback).toBeCalledTimes(0);
+	expect(div.getAttribute('title')).toBe(text1);
+
+	// second fast translation (100ms)
+	const text2 = 'Hi friends!';
+	div.setAttribute('title', text2);
+	domNodesTranslator.updateNode(div.attributes[0], callback);
+
+	// waiting 100 ms: the translation is complete and the callback should be called
+	await delay(100);
+	await awaitTranslation();
+	expect(callback).toBeCalledTimes(1);
+	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+
+	// wait for the first translation to finish. Callback should not be called again
+	await delay(200);
+	await awaitTranslation();
+	expect(callback).toBeCalledTimes(1);
 });

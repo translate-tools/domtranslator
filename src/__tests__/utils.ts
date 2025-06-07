@@ -33,14 +33,3 @@ export const mockBoundingClientRect = (
 		}),
 	});
 };
-
-export const translatorMockWithDelays = vi
-	.fn()
-	.mockImplementationOnce(
-		(text: string) =>
-			new Promise((resolve) => setTimeout(() => resolve(translator(text)), 300)),
-	)
-	.mockImplementationOnce(
-		(text: string) =>
-			new Promise((resolve) => setTimeout(() => resolve(translator(text)), 100)),
-	);

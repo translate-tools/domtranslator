@@ -6,7 +6,6 @@ import {
 	delay,
 	TRANSLATION_SYMBOL,
 	translator,
-	translatorMockWithDelays,
 } from './utils';
 import { NodesTranslator, TranslatorInterface } from '..';
 
@@ -141,14 +140,28 @@ test('Updating a node with a translated-looking value not trigger recursive upda
 });
 
 test('Only the latest translation will be applied to the node', async () => {
-	const { nodesTranslator } = buildTranslationServices(translatorMockWithDelays);
+	// first translation call resolves after 300 ms, second — after 100 ms
+	const translatorWithDelay = vi
+		.fn()
+		.mockImplementationOnce(
+			(text: string) =>
+				new Promise((resolve) =>
+					setTimeout(() => resolve(translator(text)), 300),
+				),
+		)
+		.mockImplementationOnce(
+			(text: string) =>
+				new Promise((resolve) =>
+					setTimeout(() => resolve(translator(text)), 100),
+				),
+		);
+
+	const { nodesTranslator } = buildTranslationServices(translatorWithDelay);
 
 	const div = document.createElement('a');
 	const text1 = 'title text';
 	div.setAttribute('title', text1);
 	document.body.appendChild(div);
-
-	// first translation call resolves after 300 ms, second — after 100 ms
 
 	// first slow translation (300ms)
 	nodesTranslator.observe(div);
@@ -156,17 +169,17 @@ test('Only the latest translation will be applied to the node', async () => {
 	// waiting 100ms: the translation is not completed yet, callback should not be called
 	await delay(100);
 	await awaitTranslation();
-	expect(translatorMockWithDelays).toHaveBeenCalledTimes(1);
+	expect(translatorWithDelay).toHaveBeenCalledTimes(1);
 	expect(div.getAttribute('title')).toBe(text1);
 
 	// second fast translation (100ms)
-	const text2 = 'you must translate me';
+	const text2 = 'new title text';
 	div.setAttribute('title', text2);
 
 	// waiting 100 ms: the translation is complete and the callback should be called
 	await delay(100);
 	await awaitTranslation();
-	expect(translatorMockWithDelays).toHaveBeenCalledTimes(2);
+	expect(translatorWithDelay).toHaveBeenCalledTimes(2);
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(div.getAttribute('title')).toMatch(text2);
 
