@@ -20,17 +20,18 @@ function buildTranslationServices(translator: TranslatorInterface) {
 		filter: () => true,
 		nodesTranslator: domNodeTranslator,
 	});
-
 	const nodesTranslator = new NodesTranslator({
 		dispatcher,
 		nodesTranslator: domNodeTranslator,
 	});
-	return { dispatcher, nodesTranslator };
+
+	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
+
+	return { dispatcher, nodesTranslator, updateNodeSpy };
 }
 
 test('Translation of nodes does not trigger recursive updateNode calls', async () => {
-	const { nodesTranslator, dispatcher } = buildTranslationServices(translator);
-	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
+	const { nodesTranslator, updateNodeSpy } = buildTranslationServices(translator);
 
 	const div = document.createElement('div');
 	div.textContent = 'Simple text';
@@ -62,8 +63,7 @@ test('Translation of nodes does not trigger recursive updateNode calls', async (
 });
 
 test('Updating a node does not trigger recursive updateNode calls', async () => {
-	const { nodesTranslator, dispatcher } = buildTranslationServices(translator);
-	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
+	const { nodesTranslator, updateNodeSpy } = buildTranslationServices(translator);
 
 	const div = document.createElement('a');
 	div.setAttribute('title', 'title text');
@@ -89,8 +89,7 @@ test('Updating a node does not trigger recursive updateNode calls', async () => 
 });
 
 test('Updating a node with a translated-looking value not trigger recursive updateNode calls', async () => {
-	const { nodesTranslator, dispatcher } = buildTranslationServices(translator);
-	const updateNodeSpy = vi.spyOn(dispatcher, 'updateNode');
+	const { nodesTranslator, updateNodeSpy } = buildTranslationServices(translator);
 
 	const div = document.createElement('a');
 	const text1 = 'title text';
