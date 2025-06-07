@@ -24,7 +24,6 @@ export class NodesTranslator {
 		this.nodesTranslator = nodeTranslator;
 	}
 
-	// store nodes that were changed (transferred) to us
 	private mutatedNodes = new WeakSet<Node>();
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
@@ -90,7 +89,7 @@ export class NodesTranslator {
 			throw new Error('Node is not under observe');
 		}
 
-		// restore the node and all nested nodes if it’s an element, and remove them from mutatedNodes after unobserve
+		// restore the node and all nested nodes, and remove them from mutatedNodes
 		this.dispatcher.restoreNode({
 			node,
 			callback: (node) => {
