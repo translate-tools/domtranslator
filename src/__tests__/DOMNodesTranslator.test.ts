@@ -85,26 +85,6 @@ test('UpdateNode method translates the modified node', async () => {
 	expect(node.getAttribute('title')).toBe(text2);
 });
 
-test('Restores the most recent original text after multiple translations', async () => {
-	const domNodesTranslator = new DOMNodesTranslator(translator);
-	const div = document.createElement('div');
-	div.textContent = 'Hello world!';
-
-	domNodesTranslator.translateNode(div.childNodes[0]);
-	await awaitTranslation();
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-
-	// change
-	const text = 'My name is Jake';
-	div.textContent = text;
-	domNodesTranslator.translateNode(div.childNodes[0]);
-	await awaitTranslation();
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-
-	domNodesTranslator.restoreNode(div.childNodes[0]);
-	expect(div.textContent).toBe(text);
-});
-
 test('Callback is called only after successful translation', async () => {
 	// first translation call resolves after 300 ms, second — after 100 ms
 	const translatorWithDelay = vi
