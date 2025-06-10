@@ -68,30 +68,22 @@ export class TranslationDispatcher {
 
 	/**
 	 * Restores the original node text
-	 * @param onlyTarget determines whether only the target node or all its nested nodes will be restored
 	 */
-	public restoreNode({
-		node,
-		callback,
-		onlyTarget = false,
-	}: {
-		node: Node;
-		callback?: (node: Node) => void;
-		onlyTarget?: boolean;
-	}) {
-		// Restore all attributes and inner nodes
-		if (node instanceof Element && !onlyTarget) {
-			visitWholeTree(node, (node) => {
-				this.restoreNode({ node, callback, onlyTarget: true });
-			});
-		}
-		if (this.nodeIntersectionObserver) {
-			this.nodeIntersectionObserver.unobserve(node);
-		}
+	public restoreNode(node: Node, callback?: (node: Node) => void) {
+		const restoreSingleNode = (node: Node) => {
+			if (this.nodeIntersectionObserver) {
+				this.nodeIntersectionObserver.unobserve(node);
+			}
+			this.nodesTranslator.restoreNode(node);
 
-		this.nodesTranslator.restoreNode(node);
+			if (callback) callback(node);
+		};
 
-		if (callback) callback(node);
+		if (node instanceof Element) {
+			visitWholeTree(node, restoreSingleNode);
+		} else {
+			restoreSingleNode(node);
+		}
 	}
 
 	public updateNode(node: Node, callback?: NodeTranslatedCallback) {

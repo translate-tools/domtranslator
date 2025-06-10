@@ -42,7 +42,7 @@ export class NodesTranslator {
 			);
 		});
 		observer.addHandler('elementRemoved', ({ target }) => {
-			this.dispatcher.restoreNode({ node: target });
+			this.dispatcher.restoreNode(target);
 		});
 		observer.addHandler('characterData', ({ target }) => {
 			// skip this update if it was triggered by the translation itself
@@ -90,11 +90,8 @@ export class NodesTranslator {
 		}
 
 		// restore the node and all nested nodes, and remove them from mutatedNodes
-		this.dispatcher.restoreNode({
-			node,
-			callback: (node) => {
-				this.mutatedNodes.delete(node);
-			},
+		this.dispatcher.restoreNode(node, (node) => {
+			this.mutatedNodes.delete(node);
 		});
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);

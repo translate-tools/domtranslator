@@ -83,7 +83,7 @@ test('Translates and restores the element and its child elements', async () => {
 	expect(div.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(div1.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	translationDispatcher.restoreNode({ node: div });
+	translationDispatcher.restoreNode(div);
 	expect(div.childNodes[0].textContent).toBe(text1);
 	expect(div1.childNodes[0].textContent).toBe(text2);
 });
