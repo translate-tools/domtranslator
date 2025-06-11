@@ -31,43 +31,50 @@ export class TranslationDispatcher {
 	}
 
 	/**
-	 * Translates the node and all its nested translatable nodes (text and attribute nodes)
+	 * Translates the node and all its nested translatable nodes (Text, Attr, etc.)
+	 *
+	 * @param callback - Optional. Called asynchronously for each translated node, in the same order as nodes are translated.
 	 */
 	public translateNode(node: Node, callback?: NodeTranslatedCallback) {
-		if (this.filter && !this.filter(node)) return;
+		// Handle text nodes and attributes
+		const translateSingleNode = (node: Node) => {
+			if (this.filter && !this.filter(node)) return;
+
+			// translate later if possible
+			if (this.nodeIntersectionObserver) {
+				// Check that the node is attached to the DOM. This means the node is accessible by traversing the current DOM
+				// This check is necessary to avoid lazy translation for nodes that are detached from the DOM,
+				// since they potentially may never intersect with the viewport
+
+				const isAttachedToDOM = node.getRootNode() !== node;
+				if (isAttachedToDOM) {
+					this.nodeIntersectionObserver.observe(node, () => {
+						this.nodesTranslator.translateNode(node, callback);
+					});
+					return;
+				}
+			}
+
+			// translate immediately
+			this.nodesTranslator.translateNode(node, callback);
+		};
 
 		// Translate all nodes which element contains (text nodes and attributes of current and inner elements)
 		if (node instanceof Element) {
 			visitWholeTree(node, (node) => {
 				if (node instanceof Element) return;
-				this.translateNode(node, callback);
+				translateSingleNode(node);
 			});
-			return;
+		} else {
+			translateSingleNode(node);
 		}
-
-		// Handle text nodes and attributes
-
-		// translate later if possible
-		if (this.nodeIntersectionObserver) {
-			// Check that the node is attached to the DOM. This means the node is accessible by traversing the current DOM
-			// This check is necessary to avoid lazy translation for nodes that are detached from the DOM,
-			// since they potentially may never intersect with the viewport
-
-			const isAttachedToDOM = node.getRootNode() !== node;
-			if (isAttachedToDOM) {
-				this.nodeIntersectionObserver.observe(node, () => {
-					this.nodesTranslator.translateNode(node, callback);
-				});
-				return;
-			}
-		}
-
-		// translate immediately
-		this.nodesTranslator.translateNode(node, callback);
 	}
 
 	/**
-	 * Restores the original node text
+	 * Restores the original node text.
+	 * For elements, restores each child node (Text, Attr, etc.)
+	 *
+	 * @param callback - Optional. Called synchronously after each individual node is restored
 	 */
 	public restoreNode(node: Node, callback?: (node: Node) => void) {
 		const restoreSingleNode = (node: Node) => {
@@ -79,6 +86,7 @@ export class TranslationDispatcher {
 			if (callback) callback(node);
 		};
 
+		// restore all nested nodes
 		if (node instanceof Element) {
 			visitWholeTree(node, restoreSingleNode);
 		} else {
@@ -86,6 +94,11 @@ export class TranslationDispatcher {
 		}
 	}
 
+	/**
+	 * Re-translates a node after it has been modified.
+	 *
+	 * @param callback - Optional. Called after the node has been re-translated.
+	 */
 	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
 		this.nodesTranslator.updateNode(node, callback);
 	}
