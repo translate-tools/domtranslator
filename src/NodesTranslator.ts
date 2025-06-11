@@ -15,16 +15,18 @@ export class NodesTranslator {
 
 	constructor({
 		dispatcher,
-		nodesTranslator: nodeTranslator,
+		nodesTranslator,
 	}: {
 		dispatcher: TranslationDispatcher;
 		nodesTranslator: DOMNodesTranslator;
 	}) {
 		this.dispatcher = dispatcher;
-		this.nodesTranslator = nodeTranslator;
+		this.nodesTranslator = nodesTranslator;
 	}
 
-	private mutatedNodes = new WeakSet<Node>();
+	// Stores nodes mutated as a result of translation
+	// used to prevent handling mutation events triggered by our own translations
+	private readonly mutatedNodes = new WeakSet<Node>();
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
 	public observe(node: Element) {
@@ -55,11 +57,9 @@ export class NodesTranslator {
 			);
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
-			if (attributeName === undefined || attributeName === null) return;
-			if (!(target instanceof Element)) return;
+			if (!attributeName || !(target instanceof Element)) return;
 
 			const attribute = target.attributes.getNamedItem(attributeName);
-
 			if (attribute === null) return;
 
 			// skip this update if it was triggered by the translation itself
@@ -89,7 +89,8 @@ export class NodesTranslator {
 			throw new Error('Node is not under observe');
 		}
 
-		// restore the node and all nested nodes, and remove them from mutatedNodes
+		// mutatedNodes may include nodes from multiple observed trees — remove only those belonging to the unobserved node
+		// restoreNode calls the callback after restoring each node; the callback removes that node from mutatedNodes
 		this.dispatcher.restoreNode(node, (node) => {
 			this.mutatedNodes.delete(node);
 		});

@@ -41,14 +41,14 @@ function buildTranslationServices(
 
 	const domNodesTranslator = new DOMNodesTranslator(translateCallback);
 
-	const nodeIntersectionObserver = config.lazyTranslate
+	const nodesIntersectionObserver = config.lazyTranslate
 		? new NodesIntersectionObserver()
 		: undefined;
 
 	const translatorDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
 		nodesTranslator: domNodesTranslator,
-		nodeIntersectionObserver,
+		nodesIntersectionObserver,
 	});
 
 	return {
