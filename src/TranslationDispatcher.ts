@@ -11,44 +11,48 @@ export type TranslatableNodePredicate = (node: Node) => boolean;
 export class TranslationDispatcher {
 	private readonly filter;
 	private readonly nodesTranslator;
-	private readonly nodeIntersectionObserver;
+	private readonly nodesIntersectionObserver;
 
 	constructor({
-		nodesTranslator: nodesTranslator,
+		nodesTranslator,
 		filter,
-		nodeIntersectionObserver,
+		nodesIntersectionObserver,
 	}: {
 		nodesTranslator: DOMNodesTranslator;
+		/**
+		 * Determines which nodes should be translated
+		 */
 		filter?: TranslatableNodePredicate;
 		/**
-		 * If nodeIntersectionObserver is provided, nodes can be translated delayed - after intersect the viewport
+		 * If nodesIntersectionObserver is provided, nodes can be translated delayed - after intersect the viewport
 		 */
-		nodeIntersectionObserver?: NodesIntersectionObserver;
+		nodesIntersectionObserver?: NodesIntersectionObserver;
 	}) {
 		this.filter = filter;
 		this.nodesTranslator = nodesTranslator;
-		this.nodeIntersectionObserver = nodeIntersectionObserver || null;
+		this.nodesIntersectionObserver = nodesIntersectionObserver;
 	}
 
 	/**
 	 * Translates the node and all its nested translatable nodes (Text, Attr, etc.)
 	 *
-	 * @param callback - Optional. Called asynchronously for each translated node, in the same order as nodes are translated.
+	 * @param [callback] - Called asynchronously for each translated node, in the same order as nodes are translated.
+	 * The callback receives the translated node
 	 */
 	public translateNode(node: Node, callback?: NodeTranslatedCallback) {
 		// Handle text nodes and attributes
-		const translateSingleNode = (node: Node) => {
+		const translate = (node: Node) => {
 			if (this.filter && !this.filter(node)) return;
 
 			// translate later if possible
-			if (this.nodeIntersectionObserver) {
+			if (this.nodesIntersectionObserver) {
 				// Check that the node is attached to the DOM. This means the node is accessible by traversing the current DOM
 				// This check is necessary to avoid lazy translation for nodes that are detached from the DOM,
 				// since they potentially may never intersect with the viewport
 
 				const isAttachedToDOM = node.getRootNode() !== node;
 				if (isAttachedToDOM) {
-					this.nodeIntersectionObserver.observe(node, () => {
+					this.nodesIntersectionObserver.observe(node, () => {
 						this.nodesTranslator.translateNode(node, callback);
 					});
 					return;
@@ -63,23 +67,23 @@ export class TranslationDispatcher {
 		if (node instanceof Element) {
 			visitWholeTree(node, (node) => {
 				if (node instanceof Element) return;
-				translateSingleNode(node);
+				translate(node);
 			});
 		} else {
-			translateSingleNode(node);
+			translate(node);
 		}
 	}
 
 	/**
-	 * Restores the original node text.
-	 * For elements, restores each child node (Text, Attr, etc.)
+	 * Restores the original node text. For elements, restores each child node (Text, Attr, etc.)
 	 *
-	 * @param callback - Optional. Called synchronously after each individual node is restored
+	 * @param [callback] - Called synchronously after each individual node is restored.
+	 * The callback received restored node
 	 */
 	public restoreNode(node: Node, callback?: (node: Node) => void) {
-		const restoreSingleNode = (node: Node) => {
-			if (this.nodeIntersectionObserver) {
-				this.nodeIntersectionObserver.unobserve(node);
+		const restore = (node: Node) => {
+			if (this.nodesIntersectionObserver) {
+				this.nodesIntersectionObserver.unobserve(node);
 			}
 			this.nodesTranslator.restoreNode(node);
 
@@ -88,16 +92,17 @@ export class TranslationDispatcher {
 
 		// restore all nested nodes
 		if (node instanceof Element) {
-			visitWholeTree(node, restoreSingleNode);
+			visitWholeTree(node, restore);
 		} else {
-			restoreSingleNode(node);
+			restore(node);
 		}
 	}
 
 	/**
 	 * Re-translates a node after it has been modified.
 	 *
-	 * @param callback - Optional. Called after the node has been re-translated.
+	 * @param [callback] - Called after the node has been re-translated.
+	 * The callback receives the translated node
 	 */
 	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
 		this.nodesTranslator.updateNode(node, callback);

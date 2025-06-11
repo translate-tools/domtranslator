@@ -22,7 +22,7 @@ test('In lazy-translation mode a non-intersecting node translates immediately', 
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
 		nodesTranslator: new DOMNodesTranslator(translator),
-		nodeIntersectionObserver: new NodesIntersectionObserver(),
+		nodesIntersectionObserver: new NodesIntersectionObserver(),
 	});
 
 	// OPTION node is not intersectable; it cannot be translated later
@@ -48,7 +48,7 @@ test('In lazy-translation mode a node not attached to the body translates immedi
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
 		nodesTranslator: domNodesTranslator,
-		nodeIntersectionObserver: new NodesIntersectionObserver(),
+		nodesIntersectionObserver: new NodesIntersectionObserver(),
 	});
 
 	// the node is outside the document.body, it is not intersecteble and cannot be translated later

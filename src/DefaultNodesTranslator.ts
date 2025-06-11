@@ -24,14 +24,14 @@ export class DefaultNodesTranslator extends NodesTranslator {
 
 		const domNodesTranslator = new DOMNodesTranslator(translateCallback);
 
-		const nodeIntersectionObserver = lazyTranslate
+		const nodesIntersectionObserver = lazyTranslate
 			? new NodesIntersectionObserver()
 			: undefined;
 
 		const translatorDispatcher = new TranslationDispatcher({
 			filter: isTranslatableNode,
 			nodesTranslator: domNodesTranslator,
-			nodeIntersectionObserver,
+			nodesIntersectionObserver,
 		});
 
 		super({
