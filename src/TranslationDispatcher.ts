@@ -24,7 +24,7 @@ export class TranslationDispatcher {
 		 */
 		filter?: TranslatableNodePredicate;
 		/**
-		 * If nodesIntersectionObserver is provided, nodes can be translated delayed - after intersect the viewport
+		 * If is provided, nodes can be translated delayed - after intersect the viewport
 		 */
 		nodesIntersectionObserver?: NodesIntersectionObserver;
 	}) {
@@ -36,8 +36,7 @@ export class TranslationDispatcher {
 	/**
 	 * Translates the node and all its nested translatable nodes (Text, Attr, etc.)
 	 *
-	 * @param [callback] - Called asynchronously for each translated node, in the same order as nodes are translated.
-	 * The callback receives the translated node
+	 * @param [callback] - Called asynchronously with each translated node, in the order in which the nodes are translated
 	 */
 	public translateNode(node: Node, callback?: NodeTranslatedCallback) {
 		// Handle text nodes and attributes
@@ -77,8 +76,7 @@ export class TranslationDispatcher {
 	/**
 	 * Restores the original node text. For elements, restores each child node (Text, Attr, etc.)
 	 *
-	 * @param [callback] - Called synchronously after each individual node is restored.
-	 * The callback received restored node
+	 * @param [callback] - Called synchronously after each node is restored, receiving the restored node
 	 */
 	public restoreNode(node: Node, callback?: (node: Node) => void) {
 		const restore = (node: Node) => {
@@ -101,8 +99,7 @@ export class TranslationDispatcher {
 	/**
 	 * Re-translates a node after it has been modified.
 	 *
-	 * @param [callback] - Called after the node has been re-translated.
-	 * The callback receives the translated node
+	 * @param [callback] - Called with the translated node after it has been re-translated
 	 */
 	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
 		this.nodesTranslator.updateNode(node, callback);
