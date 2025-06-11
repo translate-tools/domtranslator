@@ -54,7 +54,7 @@ test('In lazy-translation mode a node not attached to the body translates immedi
 	// the node is outside the document.body, it is not intersecteble and cannot be translated later
 	const head = document.createElement('head');
 	const title = document.createElement('title');
-	title.textContent = 'Title can contain only text';
+	title.textContent = 'Title text';
 	head.appendChild(title);
 
 	translationDispatcher.translateNode(head);
@@ -63,29 +63,29 @@ test('In lazy-translation mode a node not attached to the body translates immedi
 });
 
 test('Translates and restores the element and its child elements', async () => {
-	const div = document.createElement('div');
-	const text1 = 'Would you like a cup of tea?';
-	div.textContent = text1;
 	const div1 = document.createElement('div');
+	const text1 = 'Would you like a cup of tea?';
+	div1.textContent = text1;
+	const div2 = document.createElement('div');
 	const text2 = 'Hi! yes i would';
-	div1.textContent = text2;
-	div.appendChild(div1);
-	document.body.appendChild(div);
+	div2.textContent = text2;
+	div1.appendChild(div2);
+	document.body.appendChild(div1);
 
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
 		nodesTranslator: new DOMNodesTranslator(translator),
 	});
 
-	translationDispatcher.translateNode(div);
+	translationDispatcher.translateNode(div1);
 	await awaitTranslation();
 	// check the text on the element itself
-	expect(div.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(div1.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div2.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
-	translationDispatcher.restoreNode(div);
-	expect(div.childNodes[0].textContent).toBe(text1);
-	expect(div1.childNodes[0].textContent).toBe(text2);
+	translationDispatcher.restoreNode(div1);
+	expect(div1.childNodes[0].textContent).toBe(text1);
+	expect(div2.childNodes[0].textContent).toBe(text2);
 });
 
 test('Does not translate ignored node', async () => {
@@ -98,10 +98,10 @@ test('Does not translate ignored node', async () => {
 	});
 
 	const div = document.createElement('div');
-	div.textContent = 'I`m block i have four corners';
-	const comment = document.createComment('I`m comment node, not translate me please');
+	div.textContent = 'I`m container';
+	const comment = document.createComment('I`m comment node');
 	const p = document.createElement('p');
-	p.textContent = 'I have text, i would be translated';
+	p.textContent = 'I have text';
 	div.appendChild(p);
 	div.appendChild(comment);
 	document.body.appendChild(div);

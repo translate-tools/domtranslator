@@ -7,7 +7,7 @@ import {
 	translator,
 } from './utils';
 
-test('Translates a node and restores the original node text', async () => {
+test('Translates and restores a node and restores the original node text', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const text = 'Hello world!';
 	const div = document.createElement('div');
@@ -63,29 +63,31 @@ test('Stores the node after translation and removes it after restoration', async
 
 test('UpdateNode method translates the modified node', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
-	const node = document.createElement('a');
+	const div = document.createElement('div');
 	const text1 = 'title text';
-	node.setAttribute('title', text1);
+	div.setAttribute('title', text1);
 
 	// translate
-	domNodesTranslator.translateNode(node.attributes[0]);
+	domNodesTranslator.translateNode(div.attributes[0]);
 	await awaitTranslation();
-	expect(node.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 	// update value
 	const text2 = 'title text is update';
-	node.setAttribute('title', text2);
+	div.setAttribute('title', text2);
 
-	domNodesTranslator.updateNode(node.attributes[0]);
+	domNodesTranslator.updateNode(div.attributes[0]);
 	await awaitTranslation();
-	expect(node.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(node.getAttribute('title')).toMatch(text2);
+	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.getAttribute('title')).toMatch(text2);
 
-	domNodesTranslator.restoreNode(node.attributes[0]);
-	expect(node.getAttribute('title')).toBe(text2);
+	domNodesTranslator.restoreNode(div.attributes[0]);
+	expect(div.getAttribute('title')).toBe(text2);
 });
 
 test('Callback is called only after successful translation', async () => {
+	const callback = vi.fn();
+
 	// first translation call resolves after 300 ms, second — after 100 ms
 	const translatorWithDelay = vi
 		.fn()
@@ -97,7 +99,6 @@ test('Callback is called only after successful translation', async () => {
 			(text: string) =>
 				new Promise((res) => setTimeout(() => res(translator(text)), 100)),
 		);
-	const callback = vi.fn();
 
 	const domNodesTranslator = new DOMNodesTranslator(translatorWithDelay);
 	const div = document.createElement('div');
