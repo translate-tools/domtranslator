@@ -97,7 +97,6 @@ export class DOMNodesTranslator {
 		const nodeData = this.nodeStorage.get(node);
 		if (!nodeData) return;
 
-		// Restore original text if text been replaced
 		if (nodeData.originalText !== null) {
 			node.nodeValue = nodeData.originalText;
 		}
@@ -138,6 +137,7 @@ export class DOMNodesTranslator {
 				return;
 			}
 
+			console.log('translate text', text);
 			actualNodeData.originalText = node.nodeValue !== null ? node.nodeValue : '';
 			node.nodeValue = text;
 
