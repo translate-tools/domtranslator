@@ -72,7 +72,7 @@ export class DOMNodesTranslator {
 
 	/**
 	 * Translates nodes that contain text (e.g., Text, Attr)
-	 * After translation invokes a callback with the translated node
+	 * After translation calls the callback with the translated node
 	 */
 	public translateNode = (node: Node, callback?: NodeTranslatedCallback) => {
 		if (this.hasNode(node)) return;
@@ -106,7 +106,7 @@ export class DOMNodesTranslator {
 
 	/**
 	 * Translates node after it has been modified
-	 * After translation invokes a callback with the translated node
+	 * After translation calls the callback with the translated node
 	 */
 	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
 		const nodeData = this.nodeStorage.get(node);
