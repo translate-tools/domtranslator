@@ -36,7 +36,8 @@ export class TranslationDispatcher {
 	/**
 	 * Translates the node and all its nested translatable nodes (Text, Attr, etc.)
 	 *
-	 * @param [callback] - Called asynchronously with each translated node, in the order in which the nodes are translated
+	 * @param callback - Called asynchronously for each translated node, in the order of translation.
+	 * The callback receives the translated node as argument.
 	 */
 	public translateNode(node: Node, callback?: NodeTranslatedCallback) {
 		// Handle text nodes and attributes
@@ -76,7 +77,7 @@ export class TranslationDispatcher {
 	/**
 	 * Restores the original node text. For elements, restores each child node (Text, Attr, etc.)
 	 *
-	 * @param [callback] - Called synchronously after each node is restored, receiving the restored node
+	 * @param callback Called synchronously after each node is restored, receiving the restored node
 	 */
 	public restoreNode(node: Node, callback?: (node: Node) => void) {
 		const restore = (node: Node) => {
@@ -99,7 +100,7 @@ export class TranslationDispatcher {
 	/**
 	 * Re-translates a node after it has been modified.
 	 *
-	 * @param [callback] - Called with the translated node after it has been re-translated
+	 * @param callback Called asynchronously with the translated node once the update is complete
 	 */
 	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
 		this.nodesTranslator.updateNode(node, callback);

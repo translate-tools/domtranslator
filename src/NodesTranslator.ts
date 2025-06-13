@@ -89,7 +89,7 @@ export class NodesTranslator {
 			throw new Error('Node is not under observe');
 		}
 
-		// mutatedNodes may include nodes from multiple observed trees — remove only those belonging to the unobserved node
+		// mutatedNodes may include nodes from multiple observed tree elements — remove only those belonging to the unobserved
 		// restoreNode calls the callback after restoring each node; the callback removes that node from mutatedNodes
 		this.dispatcher.restoreNode(node, (node) => {
 			this.mutatedNodes.delete(node);
