@@ -91,7 +91,10 @@ export class TranslationDispatcher {
 
 		// restore all nested nodes
 		if (node instanceof Element) {
-			visitWholeTree(node, restore);
+			visitWholeTree(node, (node) => {
+				if (node instanceof Element) return;
+				restore(node);
+			});
 		} else {
 			restore(node);
 		}
