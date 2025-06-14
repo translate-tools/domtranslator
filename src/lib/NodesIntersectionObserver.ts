@@ -1,8 +1,12 @@
 import { isIntersectableNode } from '../utils/isIntersectableNode';
 
+type Callback = (node: Node) => void;
+
 /**
- * @returns Returns the node owner element.
- * For Element, the element itself is returned
+ * Returns the node owner element:
+ * - For Element returns itself
+ * - For Attr returns owner ownerElement
+ * - For Text and other node returns parentElement
  */
 export function getElementOfNode(node: Node) {
 	// Use type guards because a simple check `node.nodeType === Node.ELEMENT_NODE`
@@ -24,8 +28,6 @@ export function getElementOfNode(node: Node) {
 
 	return node.parentElement;
 }
-
-type Callback = (node: Node) => void;
 
 /**
  * Observes DOM nodes for intersection with the viewport and triggers callbacks when they become visible.
@@ -59,6 +61,7 @@ export class NodesIntersectionObserver {
 	 * Starts observing the node for intersection.
 	 * When the owner element of the node intersects the viewport, the callback is invoked.
 	 * Then the owner element and all its tracked nodes are automatically removed from observation.
+	 *
 	 * (Owner element means: element itself for Element, parent element for Text, owner element for Attr)
 	 */
 	public observe(node: Node, callback: Callback) {
