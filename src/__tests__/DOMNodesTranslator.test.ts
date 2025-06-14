@@ -7,7 +7,7 @@ import {
 	translator,
 } from './utils';
 
-test('Translates and restores a node and restores the original node text', async () => {
+test('Translates a node and restores the original node text', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const text = 'Hello world!';
 	const div = document.createElement('div');
@@ -21,7 +21,7 @@ test('Translates and restores a node and restores the original node text', async
 	expect(div.textContent).toBe(text);
 });
 
-test('Stores original text on translation and clears it after restoration', async () => {
+test('Stores original node text on translation and clears it after restoration', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const text = 'Hello world!';
 	const div = document.createElement('div');
@@ -44,8 +44,8 @@ test('Stores original text on translation and clears it after restoration', asyn
 
 test('Stores the node after translation and removes it after restoration', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
-	const div = document.createElement('div');
 	const text = 'Hello world!';
+	const div = document.createElement('div');
 	div.textContent = text;
 
 	// not exists before translate
@@ -78,6 +78,8 @@ test('UpdateNode method translates the modified node', async () => {
 
 	domNodesTranslator.updateNode(div.attributes[0]);
 	await awaitTranslation();
+
+	// check that the node value is the translated new value
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(div.getAttribute('title')).toMatch(text2);
 
@@ -108,7 +110,7 @@ test('Callback is called only after successful translation', async () => {
 	// first slow translation (300ms)
 	domNodesTranslator.translateNode(div.attributes[0], callback);
 
-	// waiting 100ms: the translation is not completed yet, callback should not be called
+	// waiting (less then 300 ms); the translation is not completed yet, callback should not be called
 	await delay(100);
 	await awaitTranslation();
 	expect(callback).toBeCalledTimes(0);
@@ -118,7 +120,7 @@ test('Callback is called only after successful translation', async () => {
 	div.setAttribute('title', 'Hi friends!');
 	domNodesTranslator.updateNode(div.attributes[0], callback);
 
-	// waiting 100 ms: the translation is complete and the callback should be called
+	// waiting (more then 100 ms), the translation is complete and the callback should be called
 	await delay(100);
 	await awaitTranslation();
 	expect(callback).toBeCalledTimes(1);
