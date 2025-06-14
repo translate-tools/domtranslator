@@ -79,7 +79,8 @@ test('Translates and restores the element and its child elements', async () => {
 
 	translationDispatcher.translateNode(div1);
 	await awaitTranslation();
-	// check the text on the element itself
+
+	// check the text content of the element itself, because div1.textContent includes the text of child nodes
 	expect(div1.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 	expect(div2.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
@@ -109,7 +110,7 @@ test('Calls callback after restore node', async () => {
 	// restore
 	translationDispatcher.restoreNode(div, callback);
 	expect(div.textContent).toBe(text);
-	expect(callback.mock.calls[0][0]).toEqual(div.childNodes[0]);
+	expect(callback.mock.calls).toEqual([[div.childNodes[0]]]);
 });
 
 test('Does not translate ignored node', async () => {
