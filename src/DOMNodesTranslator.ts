@@ -137,7 +137,6 @@ export class DOMNodesTranslator {
 				return;
 			}
 
-			console.log('translate text', text);
 			actualNodeData.originalText = node.nodeValue !== null ? node.nodeValue : '';
 			node.nodeValue = text;
 
