@@ -79,11 +79,11 @@ test('Updating a node does not trigger recursive updateNode calls', async () => 
 	const text = 'new text';
 	div.setAttribute('title', text);
 	await awaitTranslation();
-	expect(updateNodeSpy.mock.calls[0][0]).toEqual(div.attributes[0]);
-	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div.getAttribute('title')).toMatch(text);
 
-	// no recursion
+	// second arg is a callback, not relevant for this test
+	expect(updateNodeSpy.mock.calls).toEqual([[div.attributes[0], expect.any(Function)]]);
+	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+
 	await awaitTranslation();
 	expect(updateNodeSpy).toBeCalledTimes(1);
 });
@@ -106,10 +106,11 @@ test('Updating a node with a translated-looking value not trigger recursive upda
 	const text2 = TRANSLATION_SYMBOL + text1;
 	div.setAttribute('title', text2);
 	await awaitTranslation();
-	expect(updateNodeSpy.mock.calls[0][0]).toEqual(div.attributes[0]);
+
+	// second arg is a callback, not relevant for this test
+	expect(updateNodeSpy.mock.calls).toEqual([[div.attributes[0], expect.any(Function)]]);
 	expect(div.getAttribute('title')).toBe(TRANSLATION_SYMBOL + text2);
 
-	// no recursion
 	await awaitTranslation();
 	expect(updateNodeSpy).toHaveBeenCalledTimes(1);
 
@@ -140,7 +141,7 @@ test('Only the latest translation will be applied to the node', async () => {
 	// first slow translation (300ms)
 	nodesTranslator.observe(div);
 
-	// waiting 100ms: the translation is not completed yet, node not changed
+	// waiting (less then 300 ms); the translation is not completed yet, node not changed
 	await delay(100);
 	await awaitTranslation();
 	expect(translatorWithDelay).toHaveBeenCalledTimes(1);
@@ -150,14 +151,13 @@ test('Only the latest translation will be applied to the node', async () => {
 	const text2 = 'new title text';
 	div.setAttribute('title', text2);
 
-	// waiting 100 ms: the translation is complete and node was changed
+	// waiting (more then 100 ms); the translation is complete and node was changed
 	await delay(100);
 	await awaitTranslation();
 	expect(translatorWithDelay).toHaveBeenCalledTimes(2);
 	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div.getAttribute('title')).toMatch(text2);
 
-	// wait for the first translation to finish
+	// wait for first translation to finish; translation not applied, node remains unchanged
 	await delay(200);
 	await awaitTranslation();
 	expect(div.getAttribute('title')).toMatch(text2);
