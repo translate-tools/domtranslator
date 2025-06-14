@@ -36,7 +36,7 @@ export class TranslationDispatcher {
 	/**
 	 * Translates the node and all its nested translatable nodes (Text, Attr, etc.)
 	 *
-	 * @param callback - Called asynchronously for each translated node, in the order of translation.
+	 * @param callback - Called asynchronously after each node is translated, in the order of translation.
 	 * The callback receives the translated node as argument.
 	 */
 	public translateNode(node: Node, callback?: NodeTranslatedCallback) {
@@ -52,7 +52,7 @@ export class TranslationDispatcher {
 
 				const isAttachedToDOM = node.getRootNode() !== node;
 				if (isAttachedToDOM) {
-					this.nodesIntersectionObserver.observe(node, () => {
+					this.nodesIntersectionObserver.observe(node, (node) => {
 						this.nodesTranslator.translateNode(node, callback);
 					});
 					return;
@@ -77,7 +77,7 @@ export class TranslationDispatcher {
 	/**
 	 * Restores the original node text. For elements, restores each child node (Text, Attr, etc.)
 	 *
-	 * @param callback Called synchronously after each node is restored, receiving the restored node
+	 * @param callback - Called synchronously after each node is restored, receiving the restored node
 	 */
 	public restoreNode(node: Node, callback?: (node: Node) => void) {
 		const restore = (node: Node) => {
@@ -100,7 +100,7 @@ export class TranslationDispatcher {
 	/**
 	 * Re-translates a node after it has been modified.
 	 *
-	 * @param callback Called asynchronously with the translated node once the update is complete
+	 * @param callback - Called asynchronously with the translated node once the update is complete
 	 */
 	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
 		this.nodesTranslator.updateNode(node, callback);
