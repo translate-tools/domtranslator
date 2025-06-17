@@ -87,7 +87,7 @@ test('UpdateNode method translates the modified node', async () => {
 	expect(div.getAttribute('title')).toBe(text2);
 });
 
-test('Callback is called only after successful translation', async () => {
+test('Callback is called only once after latest completed translation', async () => {
 	const callback = vi.fn();
 
 	// first translation call resolves after 300 ms, second — after 100 ms
