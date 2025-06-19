@@ -7,6 +7,10 @@ export const translator = async (text: string) => TRANSLATION_SYMBOL + text;
 export const escapeRegexString = (input: string) =>
 	input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+export const startsWithRegex = (input: string) =>
+	new RegExp(`^${escapeRegexString(input)}`);
+export const endsWithRegex = (input: string) =>
+	new RegExp(`${escapeRegexString(input)}$`);
 export const containsRegex = (input: string) => new RegExp(`${escapeRegexString(input)}`);
 
 /**

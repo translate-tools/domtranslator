@@ -6,27 +6,23 @@ import { NodesIntersectionObserver } from '../lib/NodesIntersectionObserver';
 import { NodesTranslator } from '../NodesTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
+import {
+	awaitTranslation,
+	containsRegex,
+	endsWithRegex,
+	startsWithRegex,
+	TRANSLATION_SYMBOL,
+	translator,
+} from './utils';
 
 require('intersection-observer');
 
 (IntersectionObserver.prototype as any).POLL_INTERVAL = 100;
 
-const delay = (time: number) => new Promise((res) => setTimeout(res, time));
-const awaitTranslation = () => delay(120);
-
 const getElementText = (elm: Element | null) =>
 	elm && elm.textContent ? elm.textContent.trim() : null;
 
 const composeName = (...args: (string | boolean)[]) => args.filter(Boolean).join(' ');
-
-const TRANSLATION_SYMBOL = '***TRANSLATED***';
-const translator = async (text: string) => TRANSLATION_SYMBOL + text;
-
-const escapeRegexString = (input: string) => input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-const startsWithRegex = (input: string) => new RegExp(`^${escapeRegexString(input)}`);
-const endsWithRegex = (input: string) => new RegExp(`${escapeRegexString(input)}$`);
-const containsRegex = (input: string) => new RegExp(`${escapeRegexString(input)}`);
 
 const fillDocument = (text: string) => {
 	document.write(text);
