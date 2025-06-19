@@ -109,13 +109,13 @@ export class NodesIntersectionObserver {
 	 */
 	private triggerNestedNodes(node: Element) {
 		const ownedNodes = this.elementNodesMap.get(node);
-		if (ownedNodes) {
-			ownedNodes.forEach((node) => {
-				const callback = this.nodeCallbacksMap.get(node);
-				if (callback) callback(node);
+		if (!ownedNodes) return;
 
-				this.nodeCallbacksMap.delete(node);
-			});
-		}
+		ownedNodes.forEach((node) => {
+			const callback = this.nodeCallbacksMap.get(node);
+			this.nodeCallbacksMap.delete(node);
+
+			if (callback) callback(node);
+		});
 	}
 }
