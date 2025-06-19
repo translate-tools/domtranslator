@@ -2,6 +2,16 @@ import { isIntersectableNode } from '../utils/isIntersectableNode';
 
 type Callback = (node: Node) => void;
 
+// Use type guards because a simple check `node.nodeType === Node.ELEMENT_NODE`
+// does not narrow the type in TypeScript — `node` remains of type `Node`
+
+const isElement = (node: Node): node is Element => {
+	return node.nodeType === Node.ELEMENT_NODE;
+};
+const isAttr = (node: Node): node is Attr => {
+	return node.nodeType === Node.ATTRIBUTE_NODE;
+};
+
 /**
  * Returns the node owner element:
  * - For Element returns itself
@@ -9,16 +19,6 @@ type Callback = (node: Node) => void;
  * - For Text and other node returns parentElement
  */
 export function getElementOfNode(node: Node) {
-	// Use type guards because a simple check `node.nodeType === Node.ELEMENT_NODE`
-	// does not narrow the type in TypeScript — `node` remains of type `Node`
-
-	const isElement = (node: Node): node is Element => {
-		return node.nodeType === Node.ELEMENT_NODE;
-	};
-	const isAttr = (node: Node): node is Attr => {
-		return node.nodeType === Node.ATTRIBUTE_NODE;
-	};
-
 	if (isElement(node)) {
 		return node;
 	}
