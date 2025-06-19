@@ -2,8 +2,8 @@ import { DOMNodesTranslator } from '../DOMNodesTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import {
 	awaitTranslation,
-	containsRegex,
 	delay,
+	startsWithRegex,
 	TRANSLATION_SYMBOL,
 	translator,
 } from './utils';
@@ -39,7 +39,7 @@ test('Translation of nodes does not trigger recursive updateNode calls', async (
 
 	nodesTranslator.observe(div1);
 	await awaitTranslation();
-	expect(div1.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div1.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 
@@ -49,7 +49,7 @@ test('Translation of nodes does not trigger recursive updateNode calls', async (
 	div1.appendChild(div2);
 
 	await awaitTranslation();
-	expect(div2.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div2.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 
@@ -57,7 +57,7 @@ test('Translation of nodes does not trigger recursive updateNode calls', async (
 	div1.setAttribute('title', 'Short text');
 
 	await awaitTranslation();
-	expect(div1.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div1.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 });
@@ -71,7 +71,7 @@ test('Updating a node does not trigger recursive updateNode calls', async () => 
 
 	nodesTranslator.observe(div);
 	await awaitTranslation();
-	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 
@@ -82,7 +82,7 @@ test('Updating a node does not trigger recursive updateNode calls', async () => 
 
 	// second arg is a callback, not relevant for this test
 	expect(updateNodeSpy.mock.calls).toEqual([[div.attributes[0], expect.any(Function)]]);
-	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	await awaitTranslation();
 	expect(updateNodeSpy).toBeCalledTimes(1);
@@ -98,7 +98,7 @@ test('Updating a node with a translated-looking value not trigger recursive upda
 
 	nodesTranslator.observe(div);
 	await awaitTranslation();
-	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	await awaitTranslation();
 	expect(updateNodeSpy.mock.calls).toEqual([]);
 
@@ -155,7 +155,7 @@ test('Only the latest translation will be applied to the node', async () => {
 	await delay(100);
 	await awaitTranslation();
 	expect(translatorWithDelay).toHaveBeenCalledTimes(2);
-	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// wait for first translation to finish; translation not applied, node remains unchanged
 	await delay(200);

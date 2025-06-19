@@ -1,8 +1,8 @@
 import { DOMNodesTranslator } from '../DOMNodesTranslator';
 import {
 	awaitTranslation,
-	containsRegex,
 	delay,
+	startsWithRegex,
 	TRANSLATION_SYMBOL,
 	translator,
 } from './utils';
@@ -15,7 +15,7 @@ test('Translates a node and restores the original node text', async () => {
 
 	domNodesTranslator.translateNode(div.childNodes[0]);
 	await awaitTranslation();
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	domNodesTranslator.restoreNode(div.childNodes[0]);
 	expect(div.textContent).toBe(text);
@@ -33,7 +33,7 @@ test('Stores original node text on translation and clears it after restoration',
 	domNodesTranslator.translateNode(div.childNodes[0]);
 	await awaitTranslation();
 
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	expect(domNodesTranslator.getOriginalNodeText(div.childNodes[0])).toBe(text);
 
 	// after restore
@@ -53,7 +53,7 @@ test('Stores the node after translation and removes it after restoration', async
 
 	domNodesTranslator.translateNode(div.childNodes[0]);
 	await awaitTranslation();
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(true);
 
 	domNodesTranslator.restoreNode(div.childNodes[0]);
@@ -70,7 +70,7 @@ test('UpdateNode method translates the modified node', async () => {
 	// translate
 	domNodesTranslator.translateNode(div.attributes[0]);
 	await awaitTranslation();
-	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// update value
 	const text2 = 'title text is update';
@@ -80,7 +80,7 @@ test('UpdateNode method translates the modified node', async () => {
 	await awaitTranslation();
 
 	// check that the node value is the translated new value
-	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	expect(div.getAttribute('title')).toMatch(text2);
 
 	domNodesTranslator.restoreNode(div.attributes[0]);
@@ -124,7 +124,7 @@ test('Callback is called only once after latest completed translation', async ()
 	await delay(100);
 	await awaitTranslation();
 	expect(callback).toBeCalledTimes(1);
-	expect(div.getAttribute('title')).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// wait for the first translation to finish. Callback should not be called again
 	await delay(200);

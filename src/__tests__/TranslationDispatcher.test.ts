@@ -4,8 +4,8 @@ import { TranslationDispatcher } from '../TranslationDispatcher';
 import { configureTranslatableNodePredicate } from '../utils/nodes';
 import {
 	awaitTranslation,
-	containsRegex,
 	mockBoundingClientRect,
+	startsWithRegex,
 	TRANSLATION_SYMBOL,
 	translator,
 } from './utils';
@@ -42,7 +42,7 @@ test('In lazy-translation mode a non-intersecting node translates immediately', 
 	// the element is translated regardless of viewport intersection
 	translationDispatcher.translateNode(select);
 	await awaitTranslation();
-	expect(option.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(option.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
 
 test('In lazy-translation mode node not attached to document.body translate immediately', async () => {
@@ -69,7 +69,7 @@ test('In lazy-translation mode node not attached to document.body translate imme
 
 	translationDispatcher.translateNode(div);
 	await awaitTranslation();
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
 
 test('Translates and restores the element and its child elements', async () => {
@@ -91,11 +91,11 @@ test('Translates and restores the element and its child elements', async () => {
 	translationDispatcher.translateNode(div1);
 	await awaitTranslation();
 
-	// check the text content of the element itself, because div1.textContent includes the text of child nodes
-	expect(div1.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
-	expect(div2.childNodes[0].textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div1.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(div2.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	translationDispatcher.restoreNode(div1);
+	// check the text content of the element itself, because div1.textContent includes the text of child nodes
 	expect(div1.childNodes[0].textContent).toBe(text1);
 	expect(div2.childNodes[0].textContent).toBe(text2);
 });
@@ -116,7 +116,7 @@ test('Callback is called after the node is restored', async () => {
 	// translate
 	translationDispatcher.translateNode(div);
 	await awaitTranslation();
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// restore
 	translationDispatcher.restoreNode(div, callback);
@@ -144,7 +144,7 @@ test('Does not translate ignored node', async () => {
 	translationDispatcher.translateNode(div);
 	await awaitTranslation();
 
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// comment not translated
 	expect(comment.textContent).toBe(text);

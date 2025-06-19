@@ -1,7 +1,7 @@
 import {
 	awaitTranslation,
-	containsRegex,
 	mockBoundingClientRect,
+	startsWithRegex,
 	TRANSLATION_SYMBOL,
 } from '../__tests__/utils';
 import { NodesIntersectionObserver } from './NodesIntersectionObserver';
@@ -9,7 +9,7 @@ import { NodesIntersectionObserver } from './NodesIntersectionObserver';
 require('intersection-observer');
 
 const translator = vi.fn().mockImplementation(async (node: Node) => {
-	node.textContent += TRANSLATION_SYMBOL;
+	node.textContent = TRANSLATION_SYMBOL + node.textContent;
 });
 
 beforeEach(() => {
@@ -35,7 +35,7 @@ test('Triggers callback for node in viewport', async () => {
 
 	// The mock function was called once
 	expect(translator.mock.calls).toEqual([[div.childNodes[0]]]);
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
 
 test('Triggers callback for a node only when it becomes intersectable', async () => {
@@ -52,14 +52,14 @@ test('Triggers callback for a node only when it becomes intersectable', async ()
 	await awaitTranslation();
 
 	expect(translator.mock.calls).toEqual([]);
-	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// the node becomes visible and is translated
 	div.style.display = 'block';
 	await awaitTranslation();
 
 	expect(translator.mock.calls).toEqual([[div.childNodes[0]]]);
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
 
 test('Does not trigger callback after node is detached', async () => {
@@ -76,7 +76,7 @@ test('Does not trigger callback after node is detached', async () => {
 
 	// does not translate because node is not visible
 	expect(translator.mock.calls).toEqual([]);
-	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// node is detached
 	lazyTranslator.unobserve(div.childNodes[0]);
@@ -85,7 +85,7 @@ test('Does not trigger callback after node is detached', async () => {
 	div.style.display = 'block';
 	await awaitTranslation();
 	expect(translator.mock.calls).toEqual([]);
-	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
 
 test('Triggers callback only after node intersects viewport', async () => {
@@ -114,7 +114,7 @@ test('Triggers callback only after node intersects viewport', async () => {
 
 	// does not translate because the node does not intersect the container
 	expect(translator.mock.calls).toEqual([]);
-	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// change coordinates, the node is now inside the viewport
 	mockBoundingClientRect(div, {
@@ -129,7 +129,7 @@ test('Triggers callback only after node intersects viewport', async () => {
 	document.dispatchEvent(new Event('scroll'));
 	await awaitTranslation();
 	expect(translator.mock.calls).toEqual([[div.childNodes[0]]]);
-	expect(div.textContent).toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
 
 test('Does not triggers callback for node that does not intersect viewport after scrolling', async () => {
@@ -158,7 +158,7 @@ test('Does not triggers callback for node that does not intersect viewport after
 
 	// does not translate because the element does not intersect the container
 	expect(translator.mock.calls).toEqual([]);
-	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// change coordinates, the node is still outside the viewport
 	mockBoundingClientRect(div, {
@@ -175,5 +175,5 @@ test('Does not triggers callback for node that does not intersect viewport after
 
 	// still not translated
 	expect(translator.mock.calls).toEqual([]);
-	expect(div.textContent).not.toMatch(containsRegex(TRANSLATION_SYMBOL));
+	expect(div.textContent).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
