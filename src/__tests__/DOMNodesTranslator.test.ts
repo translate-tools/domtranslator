@@ -7,6 +7,12 @@ import {
 	translator,
 } from './utils';
 
+function getAttributeNode(node: Element, attrName: string) {
+	const attrNode = node.getAttributeNode(attrName);
+	if (!attrNode) throw new Error('Not found node for test');
+	return attrNode;
+}
+
 test('Translates a node and restores the original node text', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const text = 'Hello world!';
@@ -42,7 +48,7 @@ test('Stores original node text on translation and clears it after restoration',
 	expect(domNodesTranslator.getOriginalNodeText(div.childNodes[0])).toBe(null);
 });
 
-test('Stores the node after translation and removes it after restoration', async () => {
+test('hasNode returns true if node is currently translated and false if not', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const text = 'Hello world!';
 	const div = document.createElement('div');
@@ -61,30 +67,94 @@ test('Stores the node after translation and removes it after restoration', async
 	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(false);
 });
 
-test('UpdateNode method translates the modified node', async () => {
+test('updateNode method translates the modified node', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const div = document.createElement('div');
 	const text1 = 'title text';
 	div.setAttribute('title', text1);
 
+	const attrNode = getAttributeNode(div, 'title');
+
 	// translate
-	domNodesTranslator.translateNode(div.attributes[0]);
+	domNodesTranslator.translateNode(attrNode);
 	await awaitTranslation();
-	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// update value
 	const text2 = 'title text is update';
 	div.setAttribute('title', text2);
 
-	domNodesTranslator.updateNode(div.attributes[0]);
+	domNodesTranslator.updateNode(attrNode);
 	await awaitTranslation();
 
 	// check that the node value is the translated new value
-	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-	expect(div.getAttribute('title')).toMatch(text2);
+	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(attrNode.value).toContain(text2);
 
 	domNodesTranslator.restoreNode(div.attributes[0]);
-	expect(div.getAttribute('title')).toBe(text2);
+	expect(attrNode.value).toBe(text2);
+});
+
+test('Calls the callback after a node is translated and updated', async () => {
+	const callback = vi.fn();
+
+	const domNodesTranslator = new DOMNodesTranslator(translator);
+	const div = document.createElement('div');
+	const text1 = 'title text';
+	div.setAttribute('title', text1);
+
+	const attrNode = getAttributeNode(div, 'title');
+	domNodesTranslator.translateNode(attrNode, callback);
+	await awaitTranslation();
+
+	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(callback.mock.calls[0]).toEqual([attrNode]);
+
+	const text2 = 'update title text';
+	div.setAttribute('title', text2);
+	domNodesTranslator.updateNode(attrNode, callback);
+	await awaitTranslation();
+
+	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(attrNode.value).toContain(text2);
+	expect(callback.mock.calls[1]).toEqual([attrNode]);
+});
+
+test('A callback passed to updateNode is not called for nodes that were never translated', async () => {
+	const callback = vi.fn();
+
+	const domNodesTranslator = new DOMNodesTranslator(translator);
+	const div = document.createElement('div');
+	const text1 = 'title text';
+	div.setAttribute('title', text1);
+
+	const attrNode = getAttributeNode(div, 'title');
+
+	domNodesTranslator.updateNode(attrNode, callback);
+	await awaitTranslation();
+	expect(attrNode.value).toBe(text1);
+	expect(callback.mock.calls).toEqual([]);
+});
+
+test('Callback is not called when translating the same node again', async () => {
+	const callback = vi.fn();
+
+	const domNodesTranslator = new DOMNodesTranslator(translator);
+	const div = document.createElement('div');
+	const text1 = 'title text';
+	div.setAttribute('title', text1);
+
+	const attrNode = getAttributeNode(div, 'title');
+
+	domNodesTranslator.translateNode(attrNode, callback);
+	await awaitTranslation();
+
+	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(callback.mock.calls[0]).toEqual([attrNode]);
+
+	domNodesTranslator.translateNode(attrNode, callback);
+	await awaitTranslation();
+	expect(callback).toBeCalledTimes(1);
 });
 
 test('Callback is called only once after latest completed translation', async () => {
@@ -107,27 +177,40 @@ test('Callback is called only once after latest completed translation', async ()
 	const text1 = 'Hello world!';
 	div.setAttribute('title', text1);
 
+	const attrNode = getAttributeNode(div, 'title');
+
 	// first slow translation (300ms)
-	domNodesTranslator.translateNode(div.attributes[0], callback);
+	domNodesTranslator.translateNode(attrNode, callback);
 
 	// waiting (less then 300 ms); the translation is not completed yet, callback should not be called
 	await delay(100);
 	await awaitTranslation();
 	expect(callback).toBeCalledTimes(0);
-	expect(div.getAttribute('title')).toBe(text1);
+	expect(attrNode.value).toBe(text1);
 
 	// second fast translation (100ms)
-	div.setAttribute('title', 'Hi friends!');
-	domNodesTranslator.updateNode(div.attributes[0], callback);
+	const text2 = 'Hi friends!';
+	div.setAttribute('title', text2);
+	domNodesTranslator.updateNode(attrNode, callback);
 
 	// waiting (more then 100 ms), the translation is complete and the callback should be called
 	await delay(100);
 	await awaitTranslation();
 	expect(callback).toBeCalledTimes(1);
-	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(attrNode.value).toContain(text2);
+
+	// the second (fast translation) was resolved
+	await expect(translatorWithDelay.mock.results[1].value).resolves.toBeDefined();
 
 	// wait for the first translation to finish. Callback should not be called again
 	await delay(200);
 	await awaitTranslation();
 	expect(callback).toBeCalledTimes(1);
+
+	// all translation was resolved
+	expect(translatorWithDelay.mock.results).toHaveLength(2);
+
+	// the first (slow translation) was resolved
+	await expect(translatorWithDelay.mock.results[0].value).resolves.toBeDefined();
 });
