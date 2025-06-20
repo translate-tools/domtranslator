@@ -91,7 +91,7 @@ test('updateNode method translates the modified node', async () => {
 	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	expect(attrNode.value).toContain(text2);
 
-	domNodesTranslator.restoreNode(div.attributes[0]);
+	domNodesTranslator.restoreNode(attrNode);
 	expect(attrNode.value).toBe(text2);
 });
 
