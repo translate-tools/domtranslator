@@ -73,7 +73,7 @@ test('Updating a node does not trigger recursive translation', async () => {
 	expect(translationSpy).toBeCalledTimes(2);
 });
 
-test('Does not trigger recursive translation when setting node value starting with translation symbol', async () => {
+test('Does not trigger recursive translation when setting node value containing the translation symbol', async () => {
 	const { nodesTranslator, translationSpy } = buildTranslationServices(translator);
 
 	const div = document.createElement('div');
@@ -95,7 +95,7 @@ test('Does not trigger recursive translation when setting node value starting wi
 	// the node value should be: TRANSLATION_SYMBOL+TRANSLATION_SYMBOL+some text
 	expect(div.getAttribute('title')).toBe(TRANSLATION_SYMBOL + text2);
 	await awaitTranslation();
-	expect(translationSpy).toHaveBeenCalledTimes(2);
+	expect(translationSpy).toBeCalledTimes(2);
 
 	// restored node has the latest text
 	nodesTranslator.unobserve(div);
@@ -127,7 +127,7 @@ test('Only the latest translation will be applied to the node', async () => {
 	// waiting (less then 300 ms); the translation is not completed yet, node not changed
 	await delay(100);
 	await awaitTranslation();
-	expect(translatorWithDelay).toHaveBeenCalledTimes(1);
+	expect(translatorWithDelay).toBeCalledTimes(1);
 	expect(div.getAttribute('title')).toBe(text1);
 
 	// second fast translation (100ms)
@@ -137,7 +137,7 @@ test('Only the latest translation will be applied to the node', async () => {
 	// waiting (more then 100 ms); the translation is complete and node was changed
 	await delay(100);
 	await awaitTranslation();
-	expect(translatorWithDelay).toHaveBeenCalledTimes(2);
+	expect(translatorWithDelay).toBeCalledTimes(2);
 
 	// second translation was resolved
 	await expect(translatorWithDelay.mock.results[1].value).resolves.toBeDefined();

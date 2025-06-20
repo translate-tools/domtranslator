@@ -67,6 +67,7 @@ test('In lazy-translation mode node not attached to document.body translate imme
 	mockBoundingClientRect(div, { width: 50, height: 100, x: 0, y: 300 });
 	mockBoundingClientRect(document.body, { width: 100, height: 200, x: 0, y: 0 });
 
+	// the element is translated regardless of viewport intersection
 	translationDispatcher.translateNode(div);
 	await awaitTranslation();
 	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
