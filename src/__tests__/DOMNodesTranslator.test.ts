@@ -125,14 +125,15 @@ test('A callback passed to updateNode is not called for nodes that were never tr
 
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const div = document.createElement('div');
-	const text1 = 'title text';
-	div.setAttribute('title', text1);
+	const text = 'title text';
+	div.setAttribute('title', text);
 
 	const attrNode = getAttributeNode(div, 'title');
 
+	// the node was not translated
 	domNodesTranslator.updateNode(attrNode, callback);
 	await awaitTranslation();
-	expect(attrNode.value).toBe(text1);
+	expect(attrNode.value).toBe(text);
 	expect(callback.mock.calls).toEqual([]);
 });
 
@@ -141,8 +142,8 @@ test('Callback is not called when translating the same node again', async () => 
 
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const div = document.createElement('div');
-	const text1 = 'title text';
-	div.setAttribute('title', text1);
+	const text = 'title text';
+	div.setAttribute('title', text);
 
 	const attrNode = getAttributeNode(div, 'title');
 
@@ -154,6 +155,10 @@ test('Callback is not called when translating the same node again', async () => 
 
 	domNodesTranslator.translateNode(attrNode, callback);
 	await awaitTranslation();
+
+	// node was not changed
+	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(attrNode.value).toContain(text);
 	expect(callback).toBeCalledTimes(1);
 });
 
