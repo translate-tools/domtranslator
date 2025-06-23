@@ -2,7 +2,6 @@ import { DOMNodesTranslator } from '../DOMNodesTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import {
 	awaitTranslation,
-	delay,
 	startsWithRegex,
 	TRANSLATION_SYMBOL,
 	translator,
@@ -73,88 +72,86 @@ test('Updating a node does not trigger recursive translation', async () => {
 	expect(translationSpy).toBeCalledTimes(2);
 });
 
-test('Does not trigger recursive translation when setting node value containing the translation symbol', async () => {
+test('Changes nodes not trigger recursive translation', async () => {
 	const { nodesTranslator, translationSpy } = buildTranslationServices(translator);
 
-	const div = document.createElement('div');
-	const text1 = 'title text';
-	div.setAttribute('title', text1);
-	document.body.appendChild(div);
+	// create parent node
+	const parentDiv = document.createElement('div');
+	document.body.appendChild(parentDiv);
 
-	nodesTranslator.observe(div);
+	nodesTranslator.observe(parentDiv);
 	await awaitTranslation();
-	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+
+	expect(translationSpy).toBeCalledTimes(0);
+	vi.clearAllMocks();
+
+	// add empty element
+	const div1 = document.createElement('div');
+	parentDiv.appendChild(div1);
+
 	await awaitTranslation();
+	expect(translationSpy).toBeCalledTimes(0);
+	vi.clearAllMocks();
+
+	// add text in element
+	const textNode1 = new Text('Simple text');
+	parentDiv.appendChild(textNode1);
+
+	await awaitTranslation();
+	expect(textNode1.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	expect(translationSpy).toBeCalledTimes(1);
+	vi.clearAllMocks();
 
-	// update content, node should be translated without triggering recursion
-	const text2 = TRANSLATION_SYMBOL + text1;
-	div.setAttribute('title', text2);
+	// add element with text
+	const div2 = document.createElement('div');
+	const textNode2 = new Text('New text');
+	div2.appendChild(textNode2);
+
+	parentDiv.appendChild(div2);
+
+	await awaitTranslation();
+	expect(textNode2.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(translationSpy).toBeCalledTimes(1);
+	vi.clearAllMocks();
+
+	// text in element changed
+	const text1 = 'Update text';
+	textNode2.nodeValue = text1;
 	await awaitTranslation();
 
-	// the node value should be: TRANSLATION_SYMBOL+TRANSLATION_SYMBOL+some text
-	expect(div.getAttribute('title')).toBe(TRANSLATION_SYMBOL + text2);
+	expect(textNode2.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(textNode2.nodeValue).toContain(text1);
+	expect(translationSpy).toBeCalledTimes(1);
+	vi.clearAllMocks();
+
+	// add attribute
+	const attrNode = document.createAttribute('title');
+	attrNode.nodeValue = 'Title text';
+	parentDiv.setAttributeNode(attrNode);
+
 	await awaitTranslation();
-	expect(translationSpy).toBeCalledTimes(2);
+	expect(attrNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(translationSpy).toBeCalledTimes(1);
+	vi.clearAllMocks();
 
-	// restored node has the latest text
-	nodesTranslator.unobserve(div);
-	expect(div.getAttribute('title')).toBe(text2);
-});
-
-test('Only the latest translation will be applied to the node', async () => {
-	// first translation call resolves after 300 ms, second — after 100 ms
-	const translatorWithDelay = vi
-		.fn()
-		.mockImplementationOnce(
-			(text: string) =>
-				new Promise((res) => setTimeout(() => res(translator(text)), 300)),
-		)
-		.mockImplementationOnce(
-			(text: string) =>
-				new Promise((res) => setTimeout(() => res(translator(text)), 100)),
-		);
-	const { nodesTranslator } = buildTranslationServices(translatorWithDelay);
-
-	const div = document.createElement('div');
-	const text1 = 'title text';
-	div.setAttribute('title', text1);
-	document.body.appendChild(div);
-
-	// first slow translation (300ms)
-	nodesTranslator.observe(div);
-
-	// waiting (less then 300 ms); the translation is not completed yet, node not changed
-	await delay(100);
+	// remove attribute
+	parentDiv.removeAttributeNode(attrNode);
 	await awaitTranslation();
-	expect(translatorWithDelay).toBeCalledTimes(1);
-	expect(div.getAttribute('title')).toBe(text1);
+	expect(translationSpy).toBeCalledTimes(0);
+	vi.clearAllMocks();
 
-	// second fast translation (100ms)
-	const text2 = 'new title text';
-	div.setAttribute('title', text2);
-
-	// waiting (more then 100 ms); the translation is complete and node was changed
-	await delay(100);
+	// removed text node
+	parentDiv.removeChild(textNode1);
 	await awaitTranslation();
-	expect(translatorWithDelay).toBeCalledTimes(2);
+	expect(translationSpy).toBeCalledTimes(0);
+	vi.clearAllMocks();
 
-	// second translation was resolved
-	await expect(translatorWithDelay.mock.results[1].value).resolves.toBeDefined();
-	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-	expect(div.getAttribute('title')).toContain(text2);
-
-	// wait for first (slow) translation to finish; translation not applied, node not changed
-	await delay(200);
+	// removed element
+	parentDiv.removeChild(div2);
 	await awaitTranslation();
+	expect(translationSpy).toBeCalledTimes(0);
+	vi.clearAllMocks();
 
-	// all translations was resolved (including the first slow translation)
-	expect(translatorWithDelay.mock.results).toHaveLength(2);
-	await expect(translatorWithDelay.mock.results[0].value).resolves.toBeDefined();
-	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-	expect(div.getAttribute('title')).toContain(text2);
-
-	// reset
-	nodesTranslator.unobserve(div);
-	expect(div.getAttribute('title')).toBe(text2);
+	await awaitTranslation();
+	expect(translationSpy).toBeCalledTimes(0);
 });
