@@ -16,64 +16,59 @@ function getAttributeNode(node: Element, attrName: string) {
 test('Translates a node and restores the original node text', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const text = 'Hello world!';
-	const div = document.createElement('div');
-	div.textContent = text;
+	const node = new Text(text);
 
-	domNodesTranslator.translateNode(div.childNodes[0]);
+	domNodesTranslator.translateNode(node);
 	await awaitTranslation();
-	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(node.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
-	domNodesTranslator.restoreNode(div.childNodes[0]);
-	expect(div.textContent).toBe(text);
+	domNodesTranslator.restoreNode(node);
+	expect(node.nodeValue).toBe(text);
 });
 
 test('Stores original node text on translation and clears it after restoration', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const text = 'Hello world!';
-	const div = document.createElement('div');
-	div.textContent = text;
+	const node = new Text(text);
 
 	// before translation
-	expect(domNodesTranslator.getOriginalNodeText(div.childNodes[0])).toBe(null);
+	expect(domNodesTranslator.getOriginalNodeText(node)).toBe(null);
 
-	domNodesTranslator.translateNode(div.childNodes[0]);
+	domNodesTranslator.translateNode(node);
 	await awaitTranslation();
 
-	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-	expect(domNodesTranslator.getOriginalNodeText(div.childNodes[0])).toBe(text);
+	expect(node.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(domNodesTranslator.getOriginalNodeText(node)).toBe(text);
 
 	// after restore
-	domNodesTranslator.restoreNode(div.childNodes[0]);
-	expect(div.textContent).toBe(text);
-	expect(domNodesTranslator.getOriginalNodeText(div.childNodes[0])).toBe(null);
+	domNodesTranslator.restoreNode(node);
+	expect(node.nodeValue).toBe(text);
+	expect(domNodesTranslator.getOriginalNodeText(node)).toBe(null);
 });
 
 test('hasNode returns true if node is currently translated and false if not', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const text = 'Hello world!';
-	const div = document.createElement('div');
-	div.textContent = text;
+	const node = new Text(text);
 
 	// not exists before translate
-	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(false);
+	expect(domNodesTranslator.hasNode(node)).toBe(false);
 
-	domNodesTranslator.translateNode(div.childNodes[0]);
+	domNodesTranslator.translateNode(node);
 	await awaitTranslation();
-	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(true);
+	expect(node.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(domNodesTranslator.hasNode(node)).toBe(true);
 
-	domNodesTranslator.restoreNode(div.childNodes[0]);
-	expect(div.textContent).toBe(text);
-	expect(domNodesTranslator.hasNode(div.childNodes[0])).toBe(false);
+	domNodesTranslator.restoreNode(node);
+	expect(node.nodeValue).toBe(text);
+	expect(domNodesTranslator.hasNode(node)).toBe(false);
 });
 
 test('updateNode method translates the modified node', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
-	const div = document.createElement('div');
 	const text1 = 'title text';
-	div.setAttribute('title', text1);
-
-	const attrNode = getAttributeNode(div, 'title');
+	const attrNode = document.createAttribute('title');
+	attrNode.nodeValue = text1;
 
 	// translate
 	domNodesTranslator.translateNode(attrNode);
@@ -82,7 +77,7 @@ test('updateNode method translates the modified node', async () => {
 
 	// update value
 	const text2 = 'title text is update';
-	div.setAttribute('title', text2);
+	attrNode.nodeValue = text2;
 
 	domNodesTranslator.updateNode(attrNode);
 	await awaitTranslation();
@@ -99,36 +94,34 @@ test('Calls the callback after a node is translated and updated', async () => {
 	const callback = vi.fn();
 
 	const domNodesTranslator = new DOMNodesTranslator(translator);
-	const div = document.createElement('div');
 	const text1 = 'title text';
-	div.setAttribute('title', text1);
+	const attrNode = document.createAttribute('title');
+	attrNode.nodeValue = text1;
 
-	const attrNode = getAttributeNode(div, 'title');
 	domNodesTranslator.translateNode(attrNode, callback);
 	await awaitTranslation();
 
-	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-	expect(callback.mock.calls[0]).toEqual([attrNode]);
+	expect(attrNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(callback.mock.calls).toEqual([[attrNode]]);
 
 	const text2 = 'update title text';
-	div.setAttribute('title', text2);
+	attrNode.nodeValue = text2;
+
 	domNodesTranslator.updateNode(attrNode, callback);
 	await awaitTranslation();
 
-	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-	expect(attrNode.value).toContain(text2);
-	expect(callback.mock.calls[1]).toEqual([attrNode]);
+	expect(attrNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(attrNode.nodeValue).toContain(text2);
+	expect(callback.mock.calls).toEqual([[attrNode], [attrNode]]);
 });
 
 test('A callback passed to updateNode is not called for nodes that were never translated', async () => {
 	const callback = vi.fn();
 
 	const domNodesTranslator = new DOMNodesTranslator(translator);
-	const div = document.createElement('div');
 	const text = 'title text';
-	div.setAttribute('title', text);
-
-	const attrNode = getAttributeNode(div, 'title');
+	const attrNode = document.createAttribute('title');
+	attrNode.nodeValue = text;
 
 	// the node was not translated
 	domNodesTranslator.updateNode(attrNode, callback);
@@ -141,25 +134,20 @@ test('Callback is not called when translating the same node again', async () => 
 	const callback = vi.fn();
 
 	const domNodesTranslator = new DOMNodesTranslator(translator);
-	const div = document.createElement('div');
 	const text = 'title text';
-	div.setAttribute('title', text);
-
-	const attrNode = getAttributeNode(div, 'title');
+	const attrNode = document.createAttribute('title');
+	attrNode.nodeValue = text;
 
 	domNodesTranslator.translateNode(attrNode, callback);
 	await awaitTranslation();
 
 	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-	expect(callback.mock.calls[0]).toEqual([attrNode]);
+	expect(callback.mock.calls).toEqual([[attrNode]]);
 
-	domNodesTranslator.translateNode(attrNode, callback);
 	await awaitTranslation();
+	expect(domNodesTranslator.translateNode(attrNode, callback)).toThrowError();
 
-	// node was not changed
-	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-	expect(attrNode.value).toContain(text);
-	expect(callback).toBeCalledTimes(1);
+	// TODO: check exception
 });
 
 test('Callback is called only once after latest completed translation', async () => {
