@@ -75,7 +75,7 @@ export class DOMNodesTranslator {
 	 * After translation calls the callback with the translated node
 	 */
 	public translateNode = (node: Node, callback?: NodeTranslatedCallback) => {
-		if (this.hasNode(node)) return;
+		if (this.hasNode(node)) throw new Error('This node has already been translated');
 
 		// Skip empty text
 		if (node.nodeValue === null || node.nodeValue.trim().length == 0) return;
@@ -95,7 +95,8 @@ export class DOMNodesTranslator {
 	 */
 	public restoreNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-		if (!nodeData) return;
+		if (!nodeData)
+			throw new Error('Node cannot be restored because it was never translated');
 
 		if (nodeData.originalText !== null) {
 			node.nodeValue = nodeData.originalText;
@@ -109,7 +110,8 @@ export class DOMNodesTranslator {
 	 */
 	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
 		const nodeData = this.nodeStorage.get(node);
-		if (!nodeData) return;
+		if (!nodeData)
+			throw new Error('Node cannot be updated because it was never translated');
 
 		nodeData.updateId++;
 		this.translateNodeContent(node, callback);
