@@ -70,18 +70,19 @@ export class NodesTranslator {
 			}
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
-			if (!this.dispatcher.hasNode(attribute)) {
-				this.dispatcher.translateNode(attribute, (node: Node) =>
-					this.mutatedNodes.add(node),
-				);
-			} else {
+			if (this.dispatcher.hasNode(attribute)) {
 				this.dispatcher.updateNode(attribute, (node: Node) =>
 					this.mutatedNodes.add(node),
 				);
+				return;
 			}
+			this.dispatcher.translateNode(attribute, (node: Node) =>
+				this.mutatedNodes.add(node),
+			);
 		});
 
 		observer.observe(node);
+
 		this.dispatcher.translateNode(node, (node: Node) => this.mutatedNodes.add(node));
 	}
 
