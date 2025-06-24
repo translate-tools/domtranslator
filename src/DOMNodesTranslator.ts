@@ -77,6 +77,13 @@ export class DOMNodesTranslator {
 	public translateNode = (node: Node, callback?: NodeTranslatedCallback) => {
 		if (this.hasNode(node)) throw new Error('This node has already been translated');
 
+		// Translate only Text and Attr node
+		if (node.nodeType !== Node.ATTRIBUTE_NODE && node.nodeType !== Node.TEXT_NODE) {
+			throw new Error(
+				'Can not translate node: only Text and Attr nodes are supported',
+			);
+		}
+
 		// Skip empty text
 		if (node.nodeValue === null || node.nodeValue.trim().length == 0) return;
 
