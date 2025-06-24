@@ -72,7 +72,7 @@ test('Updating a node does not trigger recursive translation', async () => {
 	expect(translationSpy).toBeCalledTimes(2);
 });
 
-test('Changes nodes not trigger recursive translation', async () => {
+test('Changed nodes do not trigger recursive translation', async () => {
 	const { nodesTranslator, translationSpy } = buildTranslationServices(translator);
 
 	// create parent node
