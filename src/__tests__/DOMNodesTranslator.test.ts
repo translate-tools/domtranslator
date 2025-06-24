@@ -7,12 +7,6 @@ import {
 	translator,
 } from './utils';
 
-function getAttributeNode(node: Element, attrName: string) {
-	const attrNode = node.getAttributeNode(attrName);
-	if (!attrNode) throw new Error('Not found node for test');
-	return attrNode;
-}
-
 test('Translates a node and restores the original node text', async () => {
 	const domNodesTranslator = new DOMNodesTranslator(translator);
 	const text = 'Hello world!';
@@ -115,7 +109,7 @@ test('Calls the callback after a node is translated and updated', async () => {
 	expect(callback.mock.calls).toEqual([[attrNode], [attrNode]]);
 });
 
-test('A callback passed to updateNode is not called for nodes that were never translated', async () => {
+test('updateNode throws an error when called on a node that was never translated', async () => {
 	const callback = vi.fn();
 
 	const domNodesTranslator = new DOMNodesTranslator(translator);
@@ -124,13 +118,12 @@ test('A callback passed to updateNode is not called for nodes that were never tr
 	attrNode.nodeValue = text;
 
 	// the node was not translated
-	domNodesTranslator.updateNode(attrNode, callback);
-	await awaitTranslation();
-	expect(attrNode.value).toBe(text);
-	expect(callback.mock.calls).toEqual([]);
+	expect(() => {
+		domNodesTranslator.updateNode(attrNode, callback);
+	}).toThrowError();
 });
 
-test('Callback is not called when translating the same node again', async () => {
+test('translateNode throws an error when called on the same node more than once', async () => {
 	const callback = vi.fn();
 
 	const domNodesTranslator = new DOMNodesTranslator(translator);
@@ -145,9 +138,7 @@ test('Callback is not called when translating the same node again', async () => 
 	expect(callback.mock.calls).toEqual([[attrNode]]);
 
 	await awaitTranslation();
-	expect(domNodesTranslator.translateNode(attrNode, callback)).toThrowError();
-
-	// TODO: check exception
+	expect(() => domNodesTranslator.translateNode(attrNode, callback)).toThrowError();
 });
 
 test('Callback is called only once after latest completed translation', async () => {
@@ -166,11 +157,9 @@ test('Callback is called only once after latest completed translation', async ()
 		);
 
 	const domNodesTranslator = new DOMNodesTranslator(translatorWithDelay);
-	const div = document.createElement('div');
-	const text1 = 'Hello world!';
-	div.setAttribute('title', text1);
-
-	const attrNode = getAttributeNode(div, 'title');
+	const text1 = 'title text';
+	const attrNode = document.createAttribute('title');
+	attrNode.nodeValue = text1;
 
 	// first slow translation (300ms)
 	domNodesTranslator.translateNode(attrNode, callback);
@@ -183,7 +172,7 @@ test('Callback is called only once after latest completed translation', async ()
 
 	// second fast translation (100ms)
 	const text2 = 'Hi friends!';
-	div.setAttribute('title', text2);
+	attrNode.nodeValue = text2;
 	domNodesTranslator.updateNode(attrNode, callback);
 
 	// waiting (more then 100 ms), the translation is complete and the callback should be called
@@ -193,17 +182,13 @@ test('Callback is called only once after latest completed translation', async ()
 	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	expect(attrNode.value).toContain(text2);
 
-	// the second (fast translation) was resolved
-	await expect(translatorWithDelay.mock.results[1].value).resolves.toBeDefined();
-
 	// wait for the first translation to finish. Callback should not be called again
 	await delay(200);
 	await awaitTranslation();
 	expect(callback).toBeCalledTimes(1);
 
 	// all translation was resolved
-	expect(translatorWithDelay.mock.results).toHaveLength(2);
-
-	// the first (slow translation) was resolved
-	await expect(translatorWithDelay.mock.results[0].value).resolves.toBeDefined();
+	await expect(
+		Promise.all(translatorWithDelay.mock.results.map((r) => r.value)),
+	).resolves.toHaveLength(2);
 });
