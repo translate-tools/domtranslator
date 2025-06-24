@@ -14,8 +14,8 @@ const translator = vi.fn().mockImplementation(async (node: Node) => {
 
 beforeEach(() => {
 	mockBoundingClientRect(document.body, {
-		width: 0,
-		height: 0,
+		width: 100,
+		height: 100,
 		x: 0,
 		y: 0,
 	});
@@ -24,18 +24,17 @@ beforeEach(() => {
 });
 
 test('Triggers callback for node in viewport', async () => {
-	const div = document.createElement('div');
-	div.textContent = 'Hello, World!';
-	document.body.appendChild(div);
+	const textNode = new Text('Hello, World!');
+	document.body.appendChild(textNode);
 
 	const lazyTranslator = new NodesIntersectionObserver();
 
-	lazyTranslator.observe(div.childNodes[0], translator);
+	lazyTranslator.observe(textNode, translator);
 	await awaitTranslation();
 
 	// The mock function was called once
-	expect(translator.mock.calls).toEqual([[div.childNodes[0]]]);
-	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(translator.mock.calls).toEqual([[textNode]]);
+	expect(textNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
 
 test('Triggers callback for a node only when it becomes intersectable', async () => {
@@ -48,18 +47,20 @@ test('Triggers callback for a node only when it becomes intersectable', async ()
 	div.style.display = 'none';
 	document.body.appendChild(div);
 
-	lazyTranslator.observe(div.childNodes[0], translator);
+	const textNode = div.childNodes[0];
+
+	lazyTranslator.observe(textNode, translator);
 	await awaitTranslation();
 
 	expect(translator.mock.calls).toEqual([]);
-	expect(div.textContent).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// the node becomes visible and is translated
 	div.style.display = 'block';
 	await awaitTranslation();
 
-	expect(translator.mock.calls).toEqual([[div.childNodes[0]]]);
-	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(translator.mock.calls).toEqual([[textNode]]);
+	expect(textNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
 
 test('Does not trigger callback after node is detached', async () => {
@@ -71,21 +72,23 @@ test('Does not trigger callback after node is detached', async () => {
 	div.style.display = 'none';
 	document.body.appendChild(div);
 
-	lazyTranslator.observe(div.childNodes[0], translator);
+	const textNode = div.childNodes[0];
+
+	lazyTranslator.observe(textNode, translator);
 	await awaitTranslation();
 
 	// does not translate because node is not visible
 	expect(translator.mock.calls).toEqual([]);
-	expect(div.textContent).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// node is detached
-	lazyTranslator.unobserve(div.childNodes[0]);
+	lazyTranslator.unobserve(textNode);
 
 	// becomes visible and intersectable, but still does not translate after being detached
 	div.style.display = 'block';
 	await awaitTranslation();
 	expect(translator.mock.calls).toEqual([]);
-	expect(div.textContent).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
 
 test('Triggers callback only after node intersects viewport', async () => {
@@ -93,6 +96,8 @@ test('Triggers callback only after node intersects viewport', async () => {
 	const div = document.createElement('div');
 	div.textContent = 'Hello world!';
 	document.body.appendChild(div);
+
+	const textNode = div.childNodes[0];
 
 	mockBoundingClientRect(document.body, {
 		width: 300,
@@ -109,12 +114,12 @@ test('Triggers callback only after node intersects viewport', async () => {
 		y: 500,
 	});
 
-	lazyTranslator.observe(div.childNodes[0], translator);
+	lazyTranslator.observe(textNode, translator);
 	await awaitTranslation();
 
 	// does not translate because the node does not intersect the container
 	expect(translator.mock.calls).toEqual([]);
-	expect(div.textContent).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// change coordinates, the node is now inside the viewport
 	mockBoundingClientRect(div, {
@@ -128,8 +133,8 @@ test('Triggers callback only after node intersects viewport', async () => {
 	// The polyfill starts recalculating element positions only after the event
 	document.dispatchEvent(new Event('scroll'));
 	await awaitTranslation();
-	expect(translator.mock.calls).toEqual([[div.childNodes[0]]]);
-	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(translator.mock.calls).toEqual([[textNode]]);
+	expect(textNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
 
 test('Does not triggers callback for node that does not intersect viewport after scrolling', async () => {
@@ -137,6 +142,8 @@ test('Does not triggers callback for node that does not intersect viewport after
 	const div = document.createElement('div');
 	div.textContent = 'Hello world!';
 	document.body.appendChild(div);
+
+	const textNode = div.childNodes[0];
 
 	mockBoundingClientRect(document.body, {
 		width: 300,
@@ -153,12 +160,12 @@ test('Does not triggers callback for node that does not intersect viewport after
 		y: 400,
 	});
 
-	lazyTranslator.observe(div.childNodes[0], translator);
+	lazyTranslator.observe(textNode, translator);
 	await awaitTranslation();
 
 	// does not translate because the element does not intersect the container
 	expect(translator.mock.calls).toEqual([]);
-	expect(div.textContent).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// change coordinates, the node is still outside the viewport
 	mockBoundingClientRect(div, {
@@ -175,5 +182,5 @@ test('Does not triggers callback for node that does not intersect viewport after
 
 	// still not translated
 	expect(translator.mock.calls).toEqual([]);
-	expect(div.textContent).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });

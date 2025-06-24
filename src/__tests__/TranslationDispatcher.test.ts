@@ -14,7 +14,7 @@ require('intersection-observer');
 
 beforeEach(() => {
 	document.body.innerHTML = '';
-	mockBoundingClientRect(document.body, { width: 0, height: 0, x: 0, y: 0 });
+	mockBoundingClientRect(document.body, { width: 100, height: 100, x: 0, y: 0 });
 	vi.clearAllMocks();
 });
 
@@ -127,7 +127,7 @@ test('Callback is called after the node is restored', async () => {
 
 test('Does not translate ignored node', async () => {
 	const filter = configureTranslatableNodePredicate({
-		ignoredSelectors: ['comment'],
+		ignoredSelectors: ['title'],
 	});
 	const translationDispatcher = new TranslationDispatcher({
 		filter,
@@ -137,9 +137,10 @@ test('Does not translate ignored node', async () => {
 
 	const div = document.createElement('div');
 	div.textContent = 'I`m container node';
-	const text = 'I`m comment node';
-	const comment = document.createComment(text);
-	div.appendChild(comment);
+	const text = 'I`m title ';
+	const attrNode = document.createAttribute('title');
+	attrNode.nodeValue = text;
+	div.setAttributeNode(attrNode);
 	document.body.appendChild(div);
 
 	translationDispatcher.translateNode(div);
@@ -147,6 +148,7 @@ test('Does not translate ignored node', async () => {
 
 	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
-	// comment not translated
-	expect(comment.textContent).toBe(text);
+	// not translated
+	expect(attrNode.nodeValue).toBe(text);
+	expect(attrNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
