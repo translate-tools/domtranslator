@@ -67,21 +67,21 @@ test('updateNode method translates the modified node', async () => {
 	// translate
 	domNodesTranslator.translateNode(attrNode);
 	await awaitTranslation();
-	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(attrNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// update value
-	const text2 = 'title text is update';
+	const text2 = 'title text is updated';
 	attrNode.nodeValue = text2;
 
 	domNodesTranslator.updateNode(attrNode);
 	await awaitTranslation();
 
 	// check that the node value is the translated new value
-	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-	expect(attrNode.value).toContain(text2);
+	expect(attrNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(attrNode.nodeValue).toContain(text2);
 
 	domNodesTranslator.restoreNode(attrNode);
-	expect(attrNode.value).toBe(text2);
+	expect(attrNode.nodeValue).toBe(text2);
 });
 
 test('Calls the callback after a node is translated and updated', async () => {
@@ -134,7 +134,7 @@ test('translateNode throws an error when called on the same node more than once'
 	domNodesTranslator.translateNode(attrNode, callback);
 	await awaitTranslation();
 
-	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(attrNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	expect(callback.mock.calls).toEqual([[attrNode]]);
 
 	await awaitTranslation();
@@ -168,7 +168,7 @@ test('Callback is called only once after latest completed translation', async ()
 	await delay(100);
 	await awaitTranslation();
 	expect(callback).toBeCalledTimes(0);
-	expect(attrNode.value).toBe(text1);
+	expect(attrNode.nodeValue).toBe(text1);
 
 	// second fast translation (100ms)
 	const text2 = 'Hi friends!';
@@ -179,8 +179,8 @@ test('Callback is called only once after latest completed translation', async ()
 	await delay(100);
 	await awaitTranslation();
 	expect(callback).toBeCalledTimes(1);
-	expect(attrNode.value).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-	expect(attrNode.value).toContain(text2);
+	expect(attrNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(attrNode.nodeValue).toContain(text2);
 
 	// wait for the first translation to finish. Callback should not be called again
 	await delay(200);
