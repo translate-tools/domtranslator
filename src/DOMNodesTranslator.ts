@@ -102,8 +102,7 @@ export class DOMNodesTranslator {
 	 */
 	public restoreNode(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-		if (!nodeData)
-			throw new Error('Node cannot be restored because it was never translated');
+		if (!nodeData) return;
 
 		if (nodeData.originalText !== null) {
 			node.nodeValue = nodeData.originalText;
