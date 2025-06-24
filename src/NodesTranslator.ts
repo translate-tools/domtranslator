@@ -39,6 +39,7 @@ export class NodesTranslator {
 		this.observedNodesStorage.set(node, observer);
 
 		observer.addHandler('elementAdded', ({ target }) => {
+			if (this.dispatcher.hasNode(target)) return;
 			this.dispatcher.translateNode(target, (node: Node) =>
 				this.mutatedNodes.add(node),
 			);
