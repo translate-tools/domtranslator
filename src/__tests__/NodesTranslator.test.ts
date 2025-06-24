@@ -143,9 +143,9 @@ describe('basic usage', () => {
 				await awaitTranslation();
 
 				const div1 = document.createElement('div');
+				div1.innerHTML = 'Text 1';
 				document.body.appendChild(div1);
 
-				div1.innerHTML = 'Text 1';
 				await awaitTranslation();
 				expect(div1.innerHTML).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
