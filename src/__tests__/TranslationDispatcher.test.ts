@@ -13,7 +13,7 @@ require('intersection-observer');
 
 beforeEach(() => {
 	document.body.innerHTML = '';
-	mockBoundingClientRect(document.body, { width: 100, height: 100, x: 0, y: 0 });
+	mockBoundingClientRect(document.body, { width: 1280, height: 960, x: 0, y: 0 });
 	vi.clearAllMocks();
 });
 
@@ -36,8 +36,7 @@ describe('Translate node in lazy-translation mode', () => {
 
 		// element is outside the viewport
 		// IntersectionObserver should not invoke the callback until the node appears in the viewport
-		mockBoundingClientRect(option, { width: 100, height: 100, x: 0, y: 300 });
-		mockBoundingClientRect(document.body, { width: 200, height: 200, x: 0, y: 0 });
+		mockBoundingClientRect(option, { width: 100, height: 100, x: 0, y: -1000 });
 
 		// the element is translated regardless of viewport intersection
 		translationDispatcher.translateNode(select);
@@ -57,8 +56,7 @@ describe('Translate node in lazy-translation mode', () => {
 		div.textContent = 'hello';
 
 		// element is outside the viewport
-		mockBoundingClientRect(div, { width: 100, height: 100, x: 0, y: 300 });
-		mockBoundingClientRect(document.body, { width: 200, height: 200, x: 0, y: 0 });
+		mockBoundingClientRect(div, { width: 100, height: 100, x: 0, y: -1000 });
 
 		// the element is translated regardless of viewport intersection
 		translationDispatcher.translateNode(div);
@@ -85,8 +83,7 @@ describe('Translate node in lazy-translation mode', () => {
 		document.body.appendChild(host);
 
 		// element is outside the viewport
-		mockBoundingClientRect(div, { width: 100, height: 100, x: 0, y: 300 });
-		mockBoundingClientRect(document.body, { width: 200, height: 200, x: 0, y: 0 });
+		mockBoundingClientRect(div, { width: 100, height: 100, x: 0, y: -1000 });
 
 		// the element is translated regardless of viewport intersection
 		translationDispatcher.translateNode(div);
