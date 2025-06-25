@@ -20,57 +20,80 @@ beforeEach(() => {
 
 const isTranslatableNode = () => true;
 
-test('In lazy-translation mode a non-intersecting node translates immediately', async () => {
-	const translationDispatcher = new TranslationDispatcher({
-		filter: isTranslatableNode,
-		nodesTranslator: new DOMNodesTranslator(translator),
-		nodesIntersectionObserver: new NodesIntersectionObserver(),
+describe('Translate node in lazy-translation mode', () => {
+	test('translates non-intersecting node immediately', async () => {
+		const translationDispatcher = new TranslationDispatcher({
+			filter: isTranslatableNode,
+			nodesTranslator: new DOMNodesTranslator(translator),
+			nodesIntersectionObserver: new NodesIntersectionObserver(),
+		});
+
+		// OPTION node is not intersectable; it cannot be translated later
+		const select = document.createElement('select');
+		const option = document.createElement('option');
+		option.textContent = 'Hello, world!';
+		select.appendChild(option);
+		document.body.appendChild(select);
+
+		// element is outside the viewport
+		// IntersectionObserver should not invoke the callback until the node appears in the viewport
+		mockBoundingClientRect(option, { width: 100, height: 100, x: 0, y: 300 });
+		mockBoundingClientRect(document.body, { width: 200, height: 200, x: 0, y: 0 });
+
+		// the element is translated regardless of viewport intersection
+		translationDispatcher.translateNode(select);
+		await awaitTranslation();
+		expect(option.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	});
 
-	// OPTION node is not intersectable; it cannot be translated later
-	const select = document.createElement('select');
-	const option = document.createElement('option');
-	option.textContent = 'Hello, world!';
-	select.appendChild(option);
-	document.body.appendChild(select);
+	test('translates node not attached to document.body immediately', async () => {
+		const translationDispatcher = new TranslationDispatcher({
+			filter: isTranslatableNode,
+			nodesTranslator: new DOMNodesTranslator(translator),
+			nodesIntersectionObserver: new NodesIntersectionObserver(),
+		});
 
-	// element is outside the viewport
-	// IntersectionObserver should not invoke the callback until the node appears in the viewport
-	mockBoundingClientRect(option, { width: 50, height: 100, x: 0, y: 300 });
-	mockBoundingClientRect(document.body, { width: 100, height: 200, x: 0, y: 0 });
+		// div not attached to body, it cannot be translated later
+		const div = document.createElement('div');
+		div.textContent = 'hello';
 
-	// the element is translated regardless of viewport intersection
-	translationDispatcher.translateNode(select);
-	await awaitTranslation();
-	expect(option.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-});
+		// element is outside the viewport
+		mockBoundingClientRect(div, { width: 100, height: 100, x: 0, y: 300 });
+		mockBoundingClientRect(document.body, { width: 200, height: 200, x: 0, y: 0 });
 
-test('In lazy-translation mode node not attached to document.body translate immediately', async () => {
-	const translationDispatcher = new TranslationDispatcher({
-		filter: isTranslatableNode,
-		nodesTranslator: new DOMNodesTranslator(translator),
-		nodesIntersectionObserver: new NodesIntersectionObserver(),
+		// the element is translated regardless of viewport intersection
+		translationDispatcher.translateNode(div);
+		await awaitTranslation();
+		expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	});
 
-	// shadow element is not attached to document.body, so it is not intersectable and cannot be translated later
-	const host = document.createElement('div');
-	const shadowRoot = host.attachShadow({ mode: 'open' });
-	const div = document.createElement('div');
-	const text = 'Hello world';
-	div.textContent = text;
+	test('translates node inside shadow DOM immediately', async () => {
+		const translationDispatcher = new TranslationDispatcher({
+			filter: isTranslatableNode,
+			nodesTranslator: new DOMNodesTranslator(translator),
+			nodesIntersectionObserver: new NodesIntersectionObserver(),
+		});
 
-	shadowRoot.appendChild(div);
-	document.body.appendChild(host);
+		// The element nested inside a shadow element is not directly attached to document.body
+		// so it is not intersectable and cannot be translated later
+		const host = document.createElement('div');
+		const shadowRoot = host.attachShadow({ mode: 'open' });
+		const div = document.createElement('div');
+		const text = 'Hello world';
+		div.textContent = text;
 
-	// element is outside the viewport
-	// IntersectionObserver should not invoke the callback until the node appears in the viewport
-	mockBoundingClientRect(div, { width: 50, height: 100, x: 0, y: 300 });
-	mockBoundingClientRect(document.body, { width: 100, height: 200, x: 0, y: 0 });
+		shadowRoot.appendChild(div);
+		document.body.appendChild(host);
 
-	// the element is translated regardless of viewport intersection
-	translationDispatcher.translateNode(div);
-	await awaitTranslation();
-	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+		// element is outside the viewport
+		mockBoundingClientRect(div, { width: 100, height: 100, x: 0, y: 300 });
+		mockBoundingClientRect(document.body, { width: 200, height: 200, x: 0, y: 0 });
+
+		// the element is translated regardless of viewport intersection
+		translationDispatcher.translateNode(div);
+		await awaitTranslation();
+		expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	});
 });
 
 test('Translates and restores the element and its child elements', async () => {
