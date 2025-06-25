@@ -64,7 +64,7 @@ describe('Translate node in lazy-translation mode', () => {
 		expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	});
 
-	test('translates node inside shadow DOM immediately', async () => {
+	test('immediately translates node inside shadow DOM', async () => {
 		const translationDispatcher = new TranslationDispatcher({
 			filter: isTranslatableNode,
 			nodesTranslator: new DOMNodesTranslator(translator),
