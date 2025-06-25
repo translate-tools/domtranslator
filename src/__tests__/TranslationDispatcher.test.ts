@@ -20,7 +20,7 @@ beforeEach(() => {
 const isTranslatableNode = () => true;
 
 describe('Translate node in lazy-translation mode', () => {
-	test('translates non-intersecting node immediately', async () => {
+	test('immediately translates non-intersecting node', async () => {
 		const translationDispatcher = new TranslationDispatcher({
 			filter: isTranslatableNode,
 			nodesTranslator: new DOMNodesTranslator(translator),
