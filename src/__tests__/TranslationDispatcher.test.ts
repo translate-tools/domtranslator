@@ -1,7 +1,6 @@
 import { DOMNodesTranslator } from '../DOMNodesTranslator';
 import { NodesIntersectionObserver } from '../lib/NodesIntersectionObserver';
 import { TranslationDispatcher } from '../TranslationDispatcher';
-import { configureTranslatableNodePredicate } from '../utils/nodes';
 import {
 	awaitTranslation,
 	mockBoundingClientRect,
@@ -149,9 +148,10 @@ test('Callback is called after the node is restored', async () => {
 });
 
 test('Does not translate ignored node', async () => {
-	const filter = configureTranslatableNodePredicate({
-		ignoredSelectors: ['title'],
-	});
+	const filter = (node: Node) => {
+		if (node.nodeName === 'title') return false;
+		return true;
+	};
 	const translationDispatcher = new TranslationDispatcher({
 		filter,
 		nodesTranslator: new DOMNodesTranslator(translator),
