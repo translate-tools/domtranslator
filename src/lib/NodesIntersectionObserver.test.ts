@@ -14,20 +14,24 @@ const translator = vi.fn().mockImplementation(async (node: Node) => {
 
 const resetElementPosition = (
 	node: HTMLElement,
-	position?: {
+	{
+		width = 100,
+		height = 100,
+		x = 0,
+		y = 0,
+	}: {
 		width?: number;
 		height?: number;
 		x?: number;
 		y?: number;
-	},
+	} = {},
 ) => {
 	mockBoundingClientRect(node, {
-		width: position?.width ?? 100,
-		height: position?.height ?? 100,
-		x: position?.x ?? 0,
-		y: position?.y ?? 0,
+		width,
+		height,
+		x,
+		y,
 	});
-
 	// simulate a scroll event; the polyfill listens for the "scroll" event on the document
 	// The polyfill starts recalculating element positions only after the event
 	document.dispatchEvent(new Event('scroll'));
