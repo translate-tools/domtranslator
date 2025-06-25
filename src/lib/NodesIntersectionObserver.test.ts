@@ -39,6 +39,40 @@ beforeEach(() => {
 	vi.clearAllMocks();
 });
 
+describe('Trigger callback for nodes in viewport', () => {
+	const callback = vi.fn();
+
+	test('triggers for element', async () => {
+		const nodesIntersectionObserver = new NodesIntersectionObserver();
+		const div = document.createElement('div');
+
+		nodesIntersectionObserver.observe(div, callback);
+		await awaitTranslation();
+
+		// mock was called for element
+		expect(callback.mock.calls).toEqual([[div]]);
+	});
+	test('triggers for node', async () => {
+		const nodesIntersectionObserver = new NodesIntersectionObserver();
+		const node = new Text();
+
+		nodesIntersectionObserver.observe(node, callback);
+		await awaitTranslation();
+
+		expect(callback.mock.calls).toEqual([[node]]);
+	});
+	test('triggers for attribute', async () => {
+		const nodesIntersectionObserver = new NodesIntersectionObserver();
+		const attr = document.createAttribute('title');
+		attr.nodeValue = 'title text';
+
+		nodesIntersectionObserver.observe(attr, callback);
+		await awaitTranslation();
+
+		expect(callback.mock.calls).toEqual([[attr]]);
+	});
+});
+
 test('Triggers callback for node in viewport', async () => {
 	const textNode = new Text('Hello, World!');
 	document.body.appendChild(textNode);
