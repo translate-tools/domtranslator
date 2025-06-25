@@ -12,13 +12,29 @@ const translator = vi.fn().mockImplementation(async (node: Node) => {
 	node.textContent = TRANSLATION_SYMBOL + node.textContent;
 });
 
-beforeEach(() => {
-	mockBoundingClientRect(document.body, {
-		width: 100,
-		height: 100,
-		x: 0,
-		y: 0,
+const changeElementPosition = (
+	node: HTMLElement,
+	position?: {
+		width?: number;
+		height?: number;
+		x?: number;
+		y?: number;
+	},
+) => {
+	mockBoundingClientRect(node, {
+		width: position?.width ?? 100,
+		height: position?.height ?? 100,
+		x: position?.x ?? 0,
+		y: position?.y ?? 0,
 	});
+
+	// simulate a scroll event; the polyfill listens for the "scroll" event on the document
+	// The polyfill starts recalculating element positions only after the event
+	document.dispatchEvent(new Event('scroll'));
+};
+
+beforeEach(() => {
+	changeElementPosition(document.body);
 	document.body.textContent = '';
 	vi.clearAllMocks();
 });
@@ -99,20 +115,11 @@ test('Triggers callback only after node intersects viewport', async () => {
 
 	const textNode = div.childNodes[0];
 
-	mockBoundingClientRect(document.body, {
-		width: 300,
-		height: 300,
-		x: 0,
-		y: 0,
-	});
+	// coordinates: x=0, y=0
+	changeElementPosition(document.body, { width: 300, height: 300 });
 
 	// element is outside the viewport and does not intersect the container
-	mockBoundingClientRect(div, {
-		width: 100,
-		height: 100,
-		x: 0,
-		y: 500,
-	});
+	changeElementPosition(div, { y: 500 });
 
 	lazyTranslator.observe(textNode, translator);
 	await awaitTranslation();
@@ -121,17 +128,9 @@ test('Triggers callback only after node intersects viewport', async () => {
 	expect(translator.mock.calls).toEqual([]);
 	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
-	// change coordinates, the node is now inside the viewport
-	mockBoundingClientRect(div, {
-		width: 100,
-		height: 100,
-		x: 0,
-		y: 0,
-	});
+	// change coordinates, the node is now inside the viewport (coordinates: x=0, y=0)
+	changeElementPosition(div);
 
-	// simulate a scroll event; the polyfill listens for the "scroll" event on the document
-	// The polyfill starts recalculating element positions only after the event
-	document.dispatchEvent(new Event('scroll'));
 	await awaitTranslation();
 	expect(translator.mock.calls).toEqual([[textNode]]);
 	expect(textNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
@@ -145,20 +144,11 @@ test('Does not triggers callback for node that does not intersect viewport after
 
 	const textNode = div.childNodes[0];
 
-	mockBoundingClientRect(document.body, {
-		width: 300,
-		height: 300,
-		x: 0,
-		y: 0,
-	});
+	// coordinates: x=0, y=0
+	changeElementPosition(document.body, { width: 300, height: 300 });
 
 	// node is outside the viewport and does not intersect the container
-	mockBoundingClientRect(div, {
-		width: 100,
-		height: 100,
-		x: 0,
-		y: 400,
-	});
+	changeElementPosition(div, { y: 500 });
 
 	lazyTranslator.observe(textNode, translator);
 	await awaitTranslation();
@@ -168,16 +158,8 @@ test('Does not triggers callback for node that does not intersect viewport after
 	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// change coordinates, the node is still outside the viewport
-	mockBoundingClientRect(div, {
-		width: 100,
-		height: 100,
-		x: 0,
-		y: 330,
-	});
+	changeElementPosition(div, { y: 330 });
 
-	// simulate a scroll event; the polyfill listens for the "scroll" event on the document
-	// The polyfill starts recalculating element positions only after the event
-	document.dispatchEvent(new Event('scroll'));
 	await awaitTranslation();
 
 	// still not translated
