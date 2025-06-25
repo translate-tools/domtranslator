@@ -145,10 +145,7 @@ test('Callback is called after the node is restored', async () => {
 });
 
 test('Does not translate ignored node', async () => {
-	const filter = (node: Node) => {
-		if (node.nodeName === 'title') return false;
-		return true;
-	};
+	const filter = (node: Node) => node.nodeName !== 'title';
 	const translationDispatcher = new TranslationDispatcher({
 		filter,
 		nodesTranslator: new DOMNodesTranslator(translator),
