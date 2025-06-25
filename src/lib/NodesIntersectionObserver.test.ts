@@ -77,9 +77,9 @@ test('Triggers callback for node in viewport', async () => {
 	const textNode = new Text('Hello, World!');
 	document.body.appendChild(textNode);
 
-	const lazyTranslator = new NodesIntersectionObserver();
+	const nodesIntersectionObserver = new NodesIntersectionObserver();
 
-	lazyTranslator.observe(textNode, translator);
+	nodesIntersectionObserver.observe(textNode, translator);
 	await awaitTranslation();
 
 	// The mock function was called once
@@ -88,7 +88,7 @@ test('Triggers callback for node in viewport', async () => {
 });
 
 test('Triggers callback for a node only when it becomes intersectable', async () => {
-	const lazyTranslator = new NodesIntersectionObserver();
+	const nodesIntersectionObserver = new NodesIntersectionObserver();
 
 	// node with display = 'none' is not intersectable
 	// node with visibility: 'hidden' is considered intersectable, so use display: 'none' instead
@@ -99,7 +99,7 @@ test('Triggers callback for a node only when it becomes intersectable', async ()
 
 	const textNode = div.childNodes[0];
 
-	lazyTranslator.observe(textNode, translator);
+	nodesIntersectionObserver.observe(textNode, translator);
 	await awaitTranslation();
 
 	expect(translator.mock.calls).toEqual([]);
@@ -114,7 +114,7 @@ test('Triggers callback for a node only when it becomes intersectable', async ()
 });
 
 test('Does not trigger callback after node is detached', async () => {
-	const lazyTranslator = new NodesIntersectionObserver();
+	const nodesIntersectionObserver = new NodesIntersectionObserver();
 
 	// node with display: none is not intersectable
 	const div = document.createElement('div');
@@ -124,7 +124,7 @@ test('Does not trigger callback after node is detached', async () => {
 
 	const textNode = div.childNodes[0];
 
-	lazyTranslator.observe(textNode, translator);
+	nodesIntersectionObserver.observe(textNode, translator);
 	await awaitTranslation();
 
 	// does not translate because node is not visible
@@ -132,7 +132,7 @@ test('Does not trigger callback after node is detached', async () => {
 	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// node is detached
-	lazyTranslator.unobserve(textNode);
+	nodesIntersectionObserver.unobserve(textNode);
 
 	// becomes visible and intersectable, but still does not translate after being detached
 	div.style.display = 'block';
@@ -142,7 +142,7 @@ test('Does not trigger callback after node is detached', async () => {
 });
 
 test('Triggers callback only after node intersects viewport', async () => {
-	const lazyTranslator = new NodesIntersectionObserver();
+	const nodesIntersectionObserver = new NodesIntersectionObserver();
 	const div = document.createElement('div');
 	div.textContent = 'Hello world!';
 	document.body.appendChild(div);
@@ -155,7 +155,7 @@ test('Triggers callback only after node intersects viewport', async () => {
 	// element is outside the viewport and does not intersect the container
 	changeElementPosition(div, { y: 500 });
 
-	lazyTranslator.observe(textNode, translator);
+	nodesIntersectionObserver.observe(textNode, translator);
 	await awaitTranslation();
 
 	// does not translate because the node does not intersect the container
@@ -171,7 +171,7 @@ test('Triggers callback only after node intersects viewport', async () => {
 });
 
 test('Does not triggers callback for node that does not intersect viewport after scrolling', async () => {
-	const lazyTranslator = new NodesIntersectionObserver();
+	const nodesIntersectionObserver = new NodesIntersectionObserver();
 	const div = document.createElement('div');
 	div.textContent = 'Hello world!';
 	document.body.appendChild(div);
@@ -184,7 +184,7 @@ test('Does not triggers callback for node that does not intersect viewport after
 	// node is outside the viewport and does not intersect the container
 	changeElementPosition(div, { y: 500 });
 
-	lazyTranslator.observe(textNode, translator);
+	nodesIntersectionObserver.observe(textNode, translator);
 	await awaitTranslation();
 
 	// does not translate because the element does not intersect the container
