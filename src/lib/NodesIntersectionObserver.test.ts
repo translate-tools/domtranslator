@@ -64,7 +64,6 @@ describe('Trigger callback for nodes in viewport', () => {
 	test('triggers for attribute', async () => {
 		const nodesIntersectionObserver = new NodesIntersectionObserver();
 		const attr = document.createAttribute('title');
-		attr.nodeValue = 'title text';
 
 		nodesIntersectionObserver.observe(attr, callback);
 		await awaitTranslation();
