@@ -44,7 +44,7 @@ describe('Translate node in lazy-translation mode', () => {
 		expect(option.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	});
 
-	test('translates node not attached to document.body immediately', async () => {
+	test('immediately translates node not attached to document.body', async () => {
 		const translationDispatcher = new TranslationDispatcher({
 			filter: isTranslatableNode,
 			nodesTranslator: new DOMNodesTranslator(translator),
