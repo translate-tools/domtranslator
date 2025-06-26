@@ -37,10 +37,7 @@ const waitMockCall = (callback: Mock, timeout = 200) => {
 		const start = Date.now();
 
 		const interval = setInterval(() => {
-			if (
-				callback.mock.calls.length == 1 ||
-				callback.mock.calls.length > initialCallCount
-			) {
+			if (callback.mock.calls.length > initialCallCount) {
 				clearInterval(interval);
 				resolve();
 			}
@@ -67,7 +64,7 @@ describe('Trigger callback for nodes in viewport', () => {
 		const div = document.createElement('div');
 
 		intersectionObserver.observe(div, callback);
-		await waitMockCall(callback);
+		await expect(waitMockCall(callback)).rejects.toThrow();
 
 		expect(callback.mock.calls).toEqual([[div]]);
 	});
@@ -76,7 +73,7 @@ describe('Trigger callback for nodes in viewport', () => {
 		const textNode = new Text('Hello, World!');
 
 		intersectionObserver.observe(textNode, callback);
-		await waitMockCall(callback);
+		await expect(waitMockCall(callback)).rejects.toThrow();
 
 		expect(callback.mock.calls).toEqual([[textNode]]);
 	});
@@ -85,7 +82,7 @@ describe('Trigger callback for nodes in viewport', () => {
 		const attr = document.createAttribute('title');
 
 		intersectionObserver.observe(attr, callback);
-		await waitMockCall(callback);
+		await expect(waitMockCall(callback)).rejects.toThrow();
 
 		expect(callback.mock.calls).toEqual([[attr]]);
 	});
