@@ -31,18 +31,23 @@ const resetElementPosition = (
 };
 
 const waitMockCall = (callback: Mock, timeout = 200) => {
+	const initialCallCount = callback.mock.calls.length;
+
 	return new Promise<void>((resolve, reject) => {
 		const start = Date.now();
 
 		const interval = setInterval(() => {
-			if (callback.mock.calls.length == 1) {
+			if (
+				callback.mock.calls.length == 1 ||
+				callback.mock.calls.length > initialCallCount
+			) {
 				clearInterval(interval);
 				resolve();
 			}
 
 			if (Date.now() - start > timeout) {
 				clearInterval(interval);
-				reject('Timeout expired');
+				reject(new Error('Timeout expired'));
 			}
 		}, 10);
 	});
@@ -99,6 +104,7 @@ test('Triggers callback for a node only when it becomes intersectable', async ()
 	intersectionObserver.observe(div, callback);
 	await expect(waitMockCall(callback)).rejects.toThrow();
 
+	// does not call the callback because the node is not visible
 	expect(callback.mock.calls).toEqual([]);
 
 	// the node becomes visible and the callback is called
