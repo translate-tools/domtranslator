@@ -1,16 +1,9 @@
-import {
-	awaitTranslation,
-	mockBoundingClientRect,
-	startsWithRegex,
-	TRANSLATION_SYMBOL,
-} from '../__tests__/utils';
+import { Mock } from 'vitest';
+
+import { mockBoundingClientRect } from '../__tests__/utils';
 import { NodesIntersectionObserver } from './NodesIntersectionObserver';
 
 require('intersection-observer');
-
-const translator = vi.fn().mockImplementation(async (node: Node) => {
-	node.textContent = TRANSLATION_SYMBOL + node.textContent;
-});
 
 const resetElementPosition = (
 	node: HTMLElement,
@@ -37,6 +30,26 @@ const resetElementPosition = (
 	document.dispatchEvent(new Event('scroll'));
 };
 
+const callback = vi.fn();
+
+const waitMockCall = (callback: Mock, timeout?: number) => {
+	return new Promise<void>((resolve, reject) => {
+		const start = Date.now();
+
+		const interval = setInterval(() => {
+			if (callback.mock.calls.length == 1) {
+				clearInterval(interval);
+				resolve();
+			}
+
+			if (timeout && Date.now() - start > timeout) {
+				clearInterval(interval);
+				reject('Timeout expired');
+			}
+		}, 100);
+	});
+};
+
 beforeEach(() => {
 	resetElementPosition(document.body, { width: 1280, height: 960 });
 	document.body.textContent = '';
@@ -44,50 +57,34 @@ beforeEach(() => {
 });
 
 describe('Trigger callback for nodes in viewport', () => {
-	const callback = vi.fn();
-
 	test('triggers for element', async () => {
 		const intersectionObserver = new NodesIntersectionObserver();
 		const div = document.createElement('div');
 
 		intersectionObserver.observe(div, callback);
-		await awaitTranslation();
+		await waitMockCall(callback);
 
-		// mock was called for element
+		// callback was called for element
 		expect(callback.mock.calls).toEqual([[div]]);
 	});
 	test('triggers for node', async () => {
 		const intersectionObserver = new NodesIntersectionObserver();
-		const node = new Text();
+		const textNode = new Text('Hello, World!');
 
-		intersectionObserver.observe(node, callback);
-		await awaitTranslation();
+		intersectionObserver.observe(textNode, callback);
+		await waitMockCall(callback);
 
-		expect(callback.mock.calls).toEqual([[node]]);
+		expect(callback.mock.calls).toEqual([[textNode]]);
 	});
 	test('triggers for attribute', async () => {
 		const intersectionObserver = new NodesIntersectionObserver();
 		const attr = document.createAttribute('title');
 
 		intersectionObserver.observe(attr, callback);
-		await awaitTranslation();
+		await waitMockCall(callback);
 
 		expect(callback.mock.calls).toEqual([[attr]]);
 	});
-});
-
-test('Triggers callback for node in viewport', async () => {
-	const textNode = new Text('Hello, World!');
-	document.body.appendChild(textNode);
-
-	const intersectionObserver = new NodesIntersectionObserver();
-
-	intersectionObserver.observe(textNode, translator);
-	await awaitTranslation();
-
-	// The mock function was called once
-	expect(translator.mock.calls).toEqual([[textNode]]);
-	expect(textNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 });
 
 test('Triggers callback for a node only when it becomes intersectable', async () => {
@@ -102,18 +99,16 @@ test('Triggers callback for a node only when it becomes intersectable', async ()
 
 	const textNode = div.childNodes[0];
 
-	intersectionObserver.observe(textNode, translator);
-	await awaitTranslation();
+	intersectionObserver.observe(textNode, callback);
+	await expect(waitMockCall(callback, 200)).rejects.toThrow();
 
-	expect(translator.mock.calls).toEqual([]);
-	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(callback.mock.calls).toEqual([]);
 
 	// the node becomes visible and is translated
 	div.style.display = 'block';
-	await awaitTranslation();
+	await waitMockCall(callback);
 
-	expect(translator.mock.calls).toEqual([[textNode]]);
-	expect(textNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(callback.mock.calls).toEqual([[textNode]]);
 });
 
 test('Does not trigger callback after node is detached', async () => {
@@ -127,21 +122,20 @@ test('Does not trigger callback after node is detached', async () => {
 
 	const textNode = div.childNodes[0];
 
-	intersectionObserver.observe(textNode, translator);
-	await awaitTranslation();
+	intersectionObserver.observe(textNode, callback);
+	await expect(waitMockCall(callback, 200)).rejects.toThrow();
 
 	// does not translate because node is not visible
-	expect(translator.mock.calls).toEqual([]);
-	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(callback.mock.calls).toEqual([]);
 
 	// node is detached
 	intersectionObserver.unobserve(textNode);
 
 	// becomes visible and intersectable, but still does not translate after being detached
 	div.style.display = 'block';
-	await awaitTranslation();
-	expect(translator.mock.calls).toEqual([]);
-	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	await expect(waitMockCall(callback, 200)).rejects.toThrow();
+
+	expect(callback.mock.calls).toEqual([]);
 });
 
 test('Triggers callback only after node intersects viewport', async () => {
@@ -155,19 +149,18 @@ test('Triggers callback only after node intersects viewport', async () => {
 	// element is outside the viewport and does not intersect the container
 	resetElementPosition(div, { y: -1000 });
 
-	intersectionObserver.observe(textNode, translator);
-	await awaitTranslation();
+	intersectionObserver.observe(textNode, callback);
+	await expect(waitMockCall(callback, 200)).rejects.toThrow();
 
 	// does not translate because the node does not intersect the container
-	expect(translator.mock.calls).toEqual([]);
-	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(callback.mock.calls).toEqual([]);
 
 	// change coordinates, the node is now inside the viewport (coordinates: x=0, y=0)
 	resetElementPosition(div);
 
-	await awaitTranslation();
-	expect(translator.mock.calls).toEqual([[textNode]]);
-	expect(textNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	await waitMockCall(callback);
+
+	expect(callback.mock.calls).toEqual([[textNode]]);
 });
 
 test('Does not triggers callback for node that does not intersect viewport after scrolling', async () => {
@@ -181,19 +174,17 @@ test('Does not triggers callback for node that does not intersect viewport after
 	// node is outside the viewport and does not intersect the container
 	resetElementPosition(div, { y: -1000 });
 
-	intersectionObserver.observe(textNode, translator);
-	await awaitTranslation();
+	intersectionObserver.observe(textNode, callback);
+	await expect(waitMockCall(callback, 200)).rejects.toThrow();
 
 	// does not translate because the element does not intersect the container
-	expect(translator.mock.calls).toEqual([]);
-	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(callback.mock.calls).toEqual([]);
 
 	// change coordinates, the node is still outside the viewport
 	resetElementPosition(div, { y: -1500 });
 
-	await awaitTranslation();
+	await expect(waitMockCall(callback, 200)).rejects.toThrow();
 
 	// still not translated
-	expect(translator.mock.calls).toEqual([]);
-	expect(textNode.nodeValue).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
+	expect(callback.mock.calls).toEqual([]);
 });
