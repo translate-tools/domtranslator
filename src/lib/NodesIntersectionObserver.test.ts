@@ -32,7 +32,7 @@ const resetElementPosition = (
 
 const callback = vi.fn();
 
-const waitMockCall = (callback: Mock, timeout?: number) => {
+const waitMockCall = (callback: Mock, timeout = 200) => {
 	return new Promise<void>((resolve, reject) => {
 		const start = Date.now();
 
@@ -46,7 +46,7 @@ const waitMockCall = (callback: Mock, timeout?: number) => {
 				clearInterval(interval);
 				reject('Timeout expired');
 			}
-		}, 100);
+		}, 10);
 	});
 };
 
@@ -97,7 +97,7 @@ test('Triggers callback for a node only when it becomes intersectable', async ()
 	document.body.appendChild(div);
 
 	intersectionObserver.observe(div, callback);
-	await expect(waitMockCall(callback, 200)).rejects.toThrow();
+	await expect(waitMockCall(callback)).rejects.toThrow();
 
 	expect(callback.mock.calls).toEqual([]);
 
@@ -118,7 +118,7 @@ test('Does not trigger callback after node is detached', async () => {
 	document.body.appendChild(div);
 
 	intersectionObserver.observe(div, callback);
-	await expect(waitMockCall(callback, 200)).rejects.toThrow();
+	await expect(waitMockCall(callback)).rejects.toThrow();
 
 	// does not call the callback because the node is not visible
 	expect(callback.mock.calls).toEqual([]);
@@ -128,7 +128,7 @@ test('Does not trigger callback after node is detached', async () => {
 
 	// becomes visible and intersectable, but still doesn't call the callback after being detached
 	div.style.display = 'block';
-	await expect(waitMockCall(callback, 200)).rejects.toThrow();
+	await expect(waitMockCall(callback)).rejects.toThrow();
 
 	expect(callback.mock.calls).toEqual([]);
 });
@@ -144,7 +144,7 @@ test('Triggers callback only after node intersects viewport', async () => {
 	resetElementPosition(div, { y: -1000 });
 
 	intersectionObserver.observe(div, callback);
-	await expect(waitMockCall(callback, 200)).rejects.toThrow();
+	await expect(waitMockCall(callback)).rejects.toThrow();
 
 	// the callback is not called because the node does not intersect the container
 	expect(callback.mock.calls).toEqual([]);
@@ -168,7 +168,7 @@ test('Does not triggers callback for node that does not intersect viewport after
 	resetElementPosition(div, { y: -1000 });
 
 	intersectionObserver.observe(div, callback);
-	await expect(waitMockCall(callback, 200)).rejects.toThrow();
+	await expect(waitMockCall(callback)).rejects.toThrow();
 
 	// the callback is not called because the element does not intersect the container
 	expect(callback.mock.calls).toEqual([]);
@@ -176,7 +176,7 @@ test('Does not triggers callback for node that does not intersect viewport after
 	// change coordinates, the node is still outside the viewport
 	resetElementPosition(div, { y: -1500 });
 
-	await expect(waitMockCall(callback, 200)).rejects.toThrow();
+	await expect(waitMockCall(callback)).rejects.toThrow();
 
 	// still not called
 	expect(callback.mock.calls).toEqual([]);
