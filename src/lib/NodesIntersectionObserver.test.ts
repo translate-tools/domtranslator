@@ -59,8 +59,7 @@ beforeEach(() => {
 });
 
 describe('Trigger callback for nodes in viewport', () => {
-// /// 	
-test('triggers for element', async () => {
+	test('triggers for element', async () => {
 		const intersectionObserver = new NodesIntersectionObserver();
 		const div = document.createElement('div');
 
