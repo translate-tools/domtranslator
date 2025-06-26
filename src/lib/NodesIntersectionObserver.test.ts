@@ -62,18 +62,20 @@ describe('Trigger callback for nodes in viewport', () => {
 	test('triggers for element', async () => {
 		const intersectionObserver = new NodesIntersectionObserver();
 		const div = document.createElement('div');
+		document.body.appendChild(div);
 
 		intersectionObserver.observe(div, callback);
-		await expect(waitMockCall(callback)).rejects.toThrow();
+		await waitMockCall(callback);
 
 		expect(callback.mock.calls).toEqual([[div]]);
 	});
 	test('triggers for node', async () => {
 		const intersectionObserver = new NodesIntersectionObserver();
 		const textNode = new Text('Hello, World!');
+		document.body.appendChild(textNode);
 
 		intersectionObserver.observe(textNode, callback);
-		await expect(waitMockCall(callback)).rejects.toThrow();
+		await waitMockCall(callback);
 
 		expect(callback.mock.calls).toEqual([[textNode]]);
 	});
@@ -81,8 +83,13 @@ describe('Trigger callback for nodes in viewport', () => {
 		const intersectionObserver = new NodesIntersectionObserver();
 		const attr = document.createAttribute('title');
 
+		// attach attr to DOM
+		const div = document.createElement('div');
+		div.setAttributeNode(attr);
+		document.body.appendChild(div);
+
 		intersectionObserver.observe(attr, callback);
-		await expect(waitMockCall(callback)).rejects.toThrow();
+		await waitMockCall(callback);
 
 		expect(callback.mock.calls).toEqual([[attr]]);
 	});
