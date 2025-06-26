@@ -30,8 +30,6 @@ const resetElementPosition = (
 	document.dispatchEvent(new Event('scroll'));
 };
 
-const callback = vi.fn();
-
 const waitMockCall = (callback: Mock, timeout = 200) => {
 	return new Promise<void>((resolve, reject) => {
 		const start = Date.now();
@@ -42,13 +40,15 @@ const waitMockCall = (callback: Mock, timeout = 200) => {
 				resolve();
 			}
 
-			if (timeout && Date.now() - start > timeout) {
+			if (Date.now() - start > timeout) {
 				clearInterval(interval);
 				reject('Timeout expired');
 			}
 		}, 10);
 	});
 };
+
+const callback = vi.fn();
 
 beforeEach(() => {
 	resetElementPosition(document.body, { width: 1280, height: 960 });
