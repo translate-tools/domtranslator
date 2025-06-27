@@ -284,6 +284,9 @@ describe('basic usage', () => {
 				).toMatch(containsRegex(TRANSLATION_SYMBOL));
 
 				expect(document.documentElement.outerHTML).toMatchSnapshot();
+
+				// Disable translation
+				domTranslator.unobserve(document.documentElement);
 			});
 		},
 	),
