@@ -1,3 +1,5 @@
+import { Mock } from 'vitest';
+
 export const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 export const awaitTranslation = () => delay(120);
 
@@ -35,5 +37,50 @@ export const mockBoundingClientRect = (
 			right: rect.width + rect.x,
 			...rect,
 		}),
+	});
+};
+
+export const resetElementPosition = (
+	node: HTMLElement,
+	{
+		width = 100,
+		height = 100,
+		x = 0,
+		y = 0,
+	}: {
+		width?: number;
+		height?: number;
+		x?: number;
+		y?: number;
+	} = {},
+) => {
+	mockBoundingClientRect(node, {
+		width,
+		height,
+		x,
+		y,
+	});
+	// simulate a scroll event; the polyfill listens for the "scroll" event on the document
+	// The polyfill starts recalculating element positions only after the event
+	document.dispatchEvent(new Event('scroll'));
+};
+
+export const waitForMockCall = (callback: Mock, timeout = 200) => {
+	const initialCallCount = callback.mock.calls.length;
+
+	return new Promise((resolve, reject) => {
+		const start = Date.now();
+
+		const interval = setInterval(() => {
+			if (callback.mock.calls.length > initialCallCount) {
+				clearInterval(interval);
+				resolve(callback.mock.calls);
+			}
+
+			if (Date.now() - start > timeout) {
+				clearInterval(interval);
+				reject(new Error('Timeout expired'));
+			}
+		}, 10);
 	});
 };
