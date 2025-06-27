@@ -1,3 +1,9 @@
+export const isElementNode = (node: Node): node is Element =>
+	node.nodeType === Node.ELEMENT_NODE;
+export const isAttributeNode = (node: Node): node is Attr =>
+	node.nodeType === Node.ATTRIBUTE_NODE;
+export const isTextNode = (node: Node): node is Text => node.nodeType === Node.TEXT_NODE;
+
 export const searchParent = (
 	node: Node,
 	callback: (value: Node) => boolean,
@@ -31,15 +37,15 @@ export const configureTranslatableNodePredicate = (config: NodesFilterOptions = 
 		let nearestElement: Element | null = null;
 
 		// Check node type and filters for its type
-		if (node instanceof Element) {
+		if (isElementNode(node)) {
 			nearestElement = node;
-		} else if (node instanceof Attr) {
+		} else if (isAttributeNode(node)) {
 			if (!translatableAttributes.has(node.name)) {
 				return false;
 			}
 
 			nearestElement = node.ownerElement;
-		} else if (node instanceof Text) {
+		} else if (isTextNode(node)) {
 			nearestElement = node.parentElement;
 		}
 

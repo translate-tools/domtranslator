@@ -1,4 +1,5 @@
 import { isInViewport } from './utils/isInViewport';
+import { isAttributeNode, isTextNode } from './utils/nodes';
 
 export type NodeTranslatedCallback = (node: Node) => void;
 export type TranslatorInterface = (text: string, priority: number) => Promise<string>;
@@ -32,14 +33,14 @@ interface NodeData {
 function getNodePriority(node: Node) {
 	let score = 0;
 
-	if (node instanceof Attr) {
+	if (isAttributeNode(node)) {
 		score += 1;
 		const parent = node.ownerElement;
 		if (parent && isInViewport(parent)) {
 			// Attribute of visible element is important than text of non-visible element
 			score += 2;
 		}
-	} else if (node instanceof Text) {
+	} else if (isTextNode(node)) {
 		score += 2;
 		const parent = node.parentElement;
 		if (parent && isInViewport(parent)) {
