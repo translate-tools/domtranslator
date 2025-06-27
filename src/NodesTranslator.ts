@@ -1,5 +1,6 @@
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationDispatcher } from './TranslationDispatcher';
+import { isElementNode } from './utils/nodes';
 import { DOMNodesTranslator } from '.';
 
 // TODO: consider local language definitions (and implement `from`, `to` parameters for translator to specify default or locale languages)
@@ -58,7 +59,7 @@ export class NodesTranslator {
 			);
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
-			if (!attributeName || !(target instanceof Element)) return;
+			if (!attributeName || !isElementNode(target)) return;
 
 			const attribute = target.attributes.getNamedItem(attributeName);
 			if (attribute === null) return;
