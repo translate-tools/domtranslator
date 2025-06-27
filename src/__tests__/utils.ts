@@ -75,11 +75,13 @@ export const waitForMockCall = (callback: Mock, timeout = 200) => {
 			if (callback.mock.calls.length > initialCallCount) {
 				clearInterval(interval);
 				resolve(callback.mock.calls);
+				return;
 			}
 
 			if (Date.now() - start > timeout) {
 				clearInterval(interval);
 				reject(new Error('Timeout expired'));
+				return;
 			}
 		}, 10);
 	});
