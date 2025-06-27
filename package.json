@@ -16,7 +16,8 @@
 		"test-fast": "TEST_FAST=true vitest",
 		"build": "rm -rf dist && gulp",
 		"release": "npm run build && cd dist && npm publish",
-		"prettify": "prettier --write \"{*,**/*}.{ts,tsx,js,jsx}\" && eslint --fix \"{*,**/*}.{ts,tsx,js,jsx}\" && stylelint --fix \"{*,**/*}.css\"",
+		"prettify": "prettier --write \"{*,**/*}.{ts,tsx,js,jsx}\" && eslint --fix \"{*,**/*}.{ts,tsx,js,jsx}\"",
+		"lint": "prettier \"{*,**/*}.{ts,tsx,js,jsx}\" --check && eslint --max-warnings 0 \"{*,**/*}.{ts,tsx,js,jsx}\"",
 		"lint:text": "textlint \"{*,**/*}.md\"",
 		"packages:upgrade": "npm-check-updates -u",
 		"prepare": "husky install"
