@@ -1,5 +1,6 @@
 import { DOMNodesTranslator, NodeTranslatedCallback } from './DOMNodesTranslator';
 import { NodesIntersectionObserver } from './lib/NodesIntersectionObserver';
+import { isElementNode } from './utils/nodes';
 import { visitWholeTree } from './utils/visitWholeTree';
 
 export type TranslatableNodePredicate = (node: Node) => boolean;
@@ -64,9 +65,9 @@ export class TranslationDispatcher {
 		};
 
 		// Translate all nodes which element contains (text nodes and attributes of current and inner elements)
-		if (node instanceof Element) {
+		if (isElementNode(node)) {
 			visitWholeTree(node, (node) => {
-				if (node instanceof Element) return;
+				if (isElementNode(node)) return;
 				translate(node);
 			});
 		} else {
@@ -90,9 +91,9 @@ export class TranslationDispatcher {
 		};
 
 		// restore all nested nodes
-		if (node instanceof Element) {
+		if (isElementNode(node)) {
 			visitWholeTree(node, (node) => {
-				if (node instanceof Element) return;
+				if (isElementNode(node)) return;
 				restore(node);
 			});
 		} else {

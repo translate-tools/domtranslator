@@ -1,3 +1,4 @@
+import { isElementNode } from './nodes';
 import { walkNode } from './walkNode';
 
 /**
@@ -8,7 +9,7 @@ export function visitWholeTree(node: Element, callback: (node: Node) => void) {
 	walkNode(node, NodeFilter.SHOW_ALL, true, (node) => {
 		callback(node);
 
-		if (node instanceof Element) {
+		if (isElementNode(node)) {
 			// Handle nodes from opened shadow DOM
 			if (node.shadowRoot !== null) {
 				for (const child of Array.from(node.shadowRoot.children)) {

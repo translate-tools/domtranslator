@@ -1,28 +1,12 @@
 import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationDispatcher } from './TranslationDispatcher';
-import { DOMNodesTranslator } from '.';
-
-// TODO: consider local language definitions (and implement `from`, `to` parameters for translator to specify default or locale languages)
-// TODO: scan nodes lazy - defer scan to `requestIdleCallback` instead of instant scan
-// TODO: describe nodes life cycle
+import { isElementNode } from './utils/nodes';
 
 /**
  * Module for dynamic translate a DOM nodes
  */
 export class NodesTranslator {
-	private readonly dispatcher;
-	private readonly nodesTranslator;
-
-	constructor({
-		dispatcher,
-		nodesTranslator,
-	}: {
-		dispatcher: TranslationDispatcher;
-		nodesTranslator: DOMNodesTranslator;
-	}) {
-		this.dispatcher = dispatcher;
-		this.nodesTranslator = nodesTranslator;
-	}
+	constructor(readonly dispatcher: TranslationDispatcher) {}
 
 	// Stores nodes mutated as a result of translation
 	// used to prevent handling mutation events triggered by our own translations
@@ -58,7 +42,7 @@ export class NodesTranslator {
 			);
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
-			if (!attributeName || !(target instanceof Element)) return;
+			if (!attributeName || !isElementNode(target)) return;
 
 			const attribute = target.attributes.getNamedItem(attributeName);
 			if (attribute === null) return;
@@ -98,9 +82,5 @@ export class NodesTranslator {
 		});
 		this.observedNodesStorage.get(node)?.disconnect();
 		this.observedNodesStorage.delete(node);
-	}
-
-	public getNodeData(node: Node) {
-		return this.nodesTranslator.getOriginalNodeText(node);
 	}
 }
