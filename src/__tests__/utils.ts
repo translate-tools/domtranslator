@@ -68,7 +68,7 @@ export const resetElementPosition = (
 export const waitForMockCall = (callback: Mock, timeout = 200) => {
 	const initialCallCount = callback.mock.calls.length;
 
-	return new Promise((resolve, reject) => {
+	return new Promise<Mock['mock']['calls']>((resolve, reject) => {
 		const start = Date.now();
 
 		const interval = setInterval(() => {
