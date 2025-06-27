@@ -1,7 +1,6 @@
 import { readFileSync } from 'fs';
 
-import { Config } from '../DefaultNodesTranslator';
-import { DOMNodesTranslator, TranslatorInterface } from '../DOMNodesTranslator';
+import { DOMNodesTranslator } from '../DOMNodesTranslator';
 import { NodesIntersectionObserver } from '../lib/NodesIntersectionObserver';
 import { NodesTranslator } from '../NodesTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
@@ -28,31 +27,6 @@ const fillDocument = (text: string) => {
 	document.write(text);
 };
 
-function buildTranslationServices(
-	translateCallback: TranslatorInterface,
-	config: { lazyTranslate: boolean; isTranslatableNode?: (node: Node) => boolean },
-) {
-	const isTranslatableNode =
-		config.isTranslatableNode ?? configureTranslatableNodePredicate();
-
-	const domNodesTranslator = new DOMNodesTranslator(translateCallback);
-
-	const nodesIntersectionObserver = config.lazyTranslate
-		? new NodesIntersectionObserver()
-		: undefined;
-
-	const translatorDispatcher = new TranslationDispatcher({
-		filter: isTranslatableNode,
-		nodesTranslator: domNodesTranslator,
-		nodesIntersectionObserver,
-	});
-
-	return {
-		nodesTranslator: domNodesTranslator,
-		dispatcher: translatorDispatcher,
-	};
-}
-
 describe('basic usage', () => {
 	const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
@@ -66,11 +40,15 @@ describe('basic usage', () => {
 			const parsedHTML = document.documentElement.outerHTML;
 
 			// Translate document
-			const domTranslator = new NodesTranslator({
-				...buildTranslationServices(translator, {
-					lazyTranslate,
+			const domTranslator = new NodesTranslator(
+				new TranslationDispatcher({
+					filter: configureTranslatableNodePredicate(),
+					nodesTranslator: new DOMNodesTranslator(translator),
+					nodesIntersectionObserver: lazyTranslate
+						? new NodesIntersectionObserver()
+						: undefined,
 				}),
-			});
+			);
 			domTranslator.observe(document.documentElement);
 
 			await awaitTranslation();
@@ -108,19 +86,22 @@ describe('basic usage', () => {
 					'textarea',
 				],
 			} satisfies NodesFilterOptions;
-			const options = {
-				lazyTranslate: isLazyTranslation,
-				isTranslatableNode: configureTranslatableNodePredicate(filterOptions),
-			} satisfies Config;
 
 			test('translate whole document', async () => {
 				fillDocument(sample);
 				const parsedHTML = document.documentElement.outerHTML;
 
 				// Translate document
-				const domTranslator = new NodesTranslator({
-					...buildTranslationServices(translator, options),
-				});
+				const domTranslator = new NodesTranslator(
+					new TranslationDispatcher({
+						filter: configureTranslatableNodePredicate(filterOptions),
+						nodesTranslator: new DOMNodesTranslator(translator),
+						nodesIntersectionObserver: isLazyTranslation
+							? new NodesIntersectionObserver()
+							: undefined,
+					}),
+				);
+
 				domTranslator.observe(document.documentElement);
 
 				await awaitTranslation();
@@ -135,9 +116,15 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new NodesTranslator({
-					...buildTranslationServices(translator, options),
-				});
+				const domTranslator = new NodesTranslator(
+					new TranslationDispatcher({
+						filter: configureTranslatableNodePredicate(filterOptions),
+						nodesTranslator: new DOMNodesTranslator(translator),
+						nodesIntersectionObserver: isLazyTranslation
+							? new NodesIntersectionObserver()
+							: undefined,
+					}),
+				);
 				domTranslator.observe(document.documentElement);
 
 				await awaitTranslation();
@@ -191,9 +178,15 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new NodesTranslator({
-					...buildTranslationServices(translator, options),
-				});
+				const domTranslator = new NodesTranslator(
+					new TranslationDispatcher({
+						filter: configureTranslatableNodePredicate(filterOptions),
+						nodesTranslator: new DOMNodesTranslator(translator),
+						nodesIntersectionObserver: isLazyTranslation
+							? new NodesIntersectionObserver()
+							: undefined,
+					}),
+				);
 
 				const pElm = document.querySelector('p');
 				const form = document.querySelector('form');
@@ -239,11 +232,9 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const { dispatcher, nodesTranslator } = buildTranslationServices(
-					translator,
-					{
-						...options,
-						isTranslatableNode: configureTranslatableNodePredicate({
+				const domTranslator = new NodesTranslator(
+					new TranslationDispatcher({
+						filter: configureTranslatableNodePredicate({
 							...filterOptions,
 							ignoredSelectors: [
 								...filterOptions.ignoredSelectors,
@@ -251,12 +242,13 @@ describe('basic usage', () => {
 								'.custom-elements :checked',
 							],
 						}),
-					},
+						nodesTranslator: new DOMNodesTranslator(translator),
+						nodesIntersectionObserver: isLazyTranslation
+							? new NodesIntersectionObserver()
+							: undefined,
+					}),
 				);
-				const domTranslator = new NodesTranslator({
-					dispatcher,
-					nodesTranslator: nodesTranslator,
-				});
+
 				domTranslator.observe(document.documentElement);
 
 				await awaitTranslation();
