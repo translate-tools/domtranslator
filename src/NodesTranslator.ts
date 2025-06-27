@@ -2,10 +2,6 @@ import { XMutationObserver } from './lib/XMutationObserver';
 import { TranslationDispatcher } from './TranslationDispatcher';
 import { isElementNode } from './utils/nodes';
 
-// TODO: consider local language definitions (and implement `from`, `to` parameters for translator to specify default or locale languages)
-// TODO: scan nodes lazy - defer scan to `requestIdleCallback` instead of instant scan
-// TODO: describe nodes life cycle
-
 /**
  * Module for dynamic translate a DOM nodes
  */
