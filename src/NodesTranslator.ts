@@ -1,7 +1,7 @@
 import { isInViewport } from './utils/isInViewport';
 import { isAttributeNode, isTextNode } from './utils/nodes';
 
-export type NodeTranslatedCallback = (node: Node) => void;
+export type TranslatedNodeCallback = (node: Node) => void;
 export type TranslatorInterface = (text: string, priority: number) => Promise<string>;
 
 interface NodeData {
@@ -56,17 +56,17 @@ function getNodePriority(node: Node) {
  * Manages a translation state of DOM nodes. Translates text-containing nodes (Text, Attr, etc).
  * Registers nodes and initiates translation, updates the translation when a node is modified or deleted.
  */
-export class DOMNodesTranslator {
+export class NodesTranslator {
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 
 	constructor(private readonly translateCallback: TranslatorInterface) {}
 
-	public hasNode(node: Node) {
+	public has(node: Node) {
 		return this.nodeStorage.has(node);
 	}
 
-	public getOriginalNodeText(node: Node) {
+	public getOriginalText(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
 		return nodeData ? nodeData.originalText : null;
 	}
@@ -75,8 +75,8 @@ export class DOMNodesTranslator {
 	 * Translates nodes that contain text (e.g., Text, Attr)
 	 * After translation calls the callback with the translated node
 	 */
-	public translateNode = (node: Node, callback?: NodeTranslatedCallback) => {
-		if (this.hasNode(node)) throw new Error('This node has already been translated');
+	public translate = (node: Node, callback?: TranslatedNodeCallback) => {
+		if (this.has(node)) throw new Error('This node has already been translated');
 
 		if (node.nodeType !== Node.ATTRIBUTE_NODE && node.nodeType !== Node.TEXT_NODE) {
 			throw new Error(
@@ -100,7 +100,7 @@ export class DOMNodesTranslator {
 	/**
 	 * Restores the original node text
 	 */
-	public restoreNode(node: Node) {
+	public restore(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
 		if (!nodeData) return;
 
@@ -114,7 +114,7 @@ export class DOMNodesTranslator {
 	 * Translates node after it has been modified
 	 * After translation calls the callback with the translated node
 	 */
-	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
+	public update(node: Node, callback?: TranslatedNodeCallback) {
 		const nodeData = this.nodeStorage.get(node);
 		if (!nodeData)
 			throw new Error('Node cannot be updated because it was never translated');
@@ -126,7 +126,7 @@ export class DOMNodesTranslator {
 	/**
 	 * Call only for new and updated nodes
 	 */
-	private translateNodeContent(node: Node, callback?: NodeTranslatedCallback) {
+	private translateNodeContent(node: Node, callback?: TranslatedNodeCallback) {
 		const nodeData = this.nodeStorage.get(node);
 		if (!nodeData) {
 			throw new Error('Node is not register');

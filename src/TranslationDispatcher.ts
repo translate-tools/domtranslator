@@ -1,5 +1,5 @@
-import { DOMNodesTranslator, NodeTranslatedCallback } from './DOMNodesTranslator';
 import { NodesIntersectionObserver } from './lib/NodesIntersectionObserver';
+import { NodesTranslator, TranslatedNodeCallback } from './NodesTranslator';
 import { isElementNode } from './utils/nodes';
 import { visitWholeTree } from './utils/visitWholeTree';
 
@@ -19,7 +19,7 @@ export class TranslationDispatcher {
 		filter,
 		nodesIntersectionObserver,
 	}: {
-		nodesTranslator: DOMNodesTranslator;
+		nodesTranslator: NodesTranslator;
 		/**
 		 * Determines which nodes should be translated
 		 */
@@ -40,7 +40,7 @@ export class TranslationDispatcher {
 	 * @param callback - Called asynchronously after each node is translated, in the order of translation.
 	 * The callback receives the translated node as argument.
 	 */
-	public translateNode(node: Node, callback?: NodeTranslatedCallback) {
+	public translateNode(node: Node, callback?: TranslatedNodeCallback) {
 		// Handle text nodes and attributes
 		const translate = (node: Node) => {
 			if (this.filter && !this.filter(node)) return;
@@ -54,14 +54,14 @@ export class TranslationDispatcher {
 				const isAttachedToDOM = node.getRootNode() !== node;
 				if (isAttachedToDOM) {
 					this.nodesIntersectionObserver.observe(node, (node) => {
-						this.nodesTranslator.translateNode(node, callback);
+						this.nodesTranslator.translate(node, callback);
 					});
 					return;
 				}
 			}
 
 			// translate immediately
-			this.nodesTranslator.translateNode(node, callback);
+			this.nodesTranslator.translate(node, callback);
 		};
 
 		// Translate all nodes which element contains (text nodes and attributes of current and inner elements)
@@ -85,7 +85,7 @@ export class TranslationDispatcher {
 			if (this.nodesIntersectionObserver) {
 				this.nodesIntersectionObserver.unobserve(node);
 			}
-			this.nodesTranslator.restoreNode(node);
+			this.nodesTranslator.restore(node);
 
 			if (callback) callback(node);
 		};
@@ -106,11 +106,11 @@ export class TranslationDispatcher {
 	 *
 	 * @param callback - Called asynchronously with the translated node once the update is complete
 	 */
-	public updateNode(node: Node, callback?: NodeTranslatedCallback) {
-		this.nodesTranslator.updateNode(node, callback);
+	public updateNode(node: Node, callback?: TranslatedNodeCallback) {
+		this.nodesTranslator.update(node, callback);
 	}
 
 	public hasNode(node: Node) {
-		return this.nodesTranslator.hasNode(node);
+		return this.nodesTranslator.has(node);
 	}
 }

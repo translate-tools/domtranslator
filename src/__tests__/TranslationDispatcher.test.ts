@@ -1,5 +1,5 @@
-import { DOMNodesTranslator } from '../DOMNodesTranslator';
 import { NodesIntersectionObserver } from '../lib/NodesIntersectionObserver';
+import { NodesTranslator } from '../NodesTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import {
 	awaitTranslation,
@@ -23,7 +23,7 @@ describe('Translate node in lazy-translation mode', () => {
 	test('immediately translates non-intersecting node', async () => {
 		const translationDispatcher = new TranslationDispatcher({
 			filter: isTranslatableNode,
-			nodesTranslator: new DOMNodesTranslator(translator),
+			nodesTranslator: new NodesTranslator(translator),
 			nodesIntersectionObserver: new NodesIntersectionObserver(),
 		});
 
@@ -47,7 +47,7 @@ describe('Translate node in lazy-translation mode', () => {
 	test('immediately translates node not attached to document.body', async () => {
 		const translationDispatcher = new TranslationDispatcher({
 			filter: isTranslatableNode,
-			nodesTranslator: new DOMNodesTranslator(translator),
+			nodesTranslator: new NodesTranslator(translator),
 			nodesIntersectionObserver: new NodesIntersectionObserver(),
 		});
 
@@ -67,7 +67,7 @@ describe('Translate node in lazy-translation mode', () => {
 	test('immediately translates node inside shadow DOM', async () => {
 		const translationDispatcher = new TranslationDispatcher({
 			filter: isTranslatableNode,
-			nodesTranslator: new DOMNodesTranslator(translator),
+			nodesTranslator: new NodesTranslator(translator),
 			nodesIntersectionObserver: new NodesIntersectionObserver(),
 		});
 
@@ -95,7 +95,7 @@ describe('Translate node in lazy-translation mode', () => {
 test('Translates and restores the element and its child elements', async () => {
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
-		nodesTranslator: new DOMNodesTranslator(translator),
+		nodesTranslator: new NodesTranslator(translator),
 		nodesIntersectionObserver: new NodesIntersectionObserver(),
 	});
 
@@ -124,7 +124,7 @@ test('Callback is called after the node is restored', async () => {
 	const callback = vi.fn();
 	const translationDispatcher = new TranslationDispatcher({
 		filter: isTranslatableNode,
-		nodesTranslator: new DOMNodesTranslator(translator),
+		nodesTranslator: new NodesTranslator(translator),
 		nodesIntersectionObserver: new NodesIntersectionObserver(),
 	});
 
@@ -148,7 +148,7 @@ test('Does not translate ignored node', async () => {
 	const filter = (node: Node) => node.nodeName !== 'title';
 	const translationDispatcher = new TranslationDispatcher({
 		filter,
-		nodesTranslator: new DOMNodesTranslator(translator),
+		nodesTranslator: new NodesTranslator(translator),
 		nodesIntersectionObserver: new NodesIntersectionObserver(),
 	});
 

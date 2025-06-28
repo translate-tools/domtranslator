@@ -1,8 +1,8 @@
 import { readFileSync } from 'fs';
 
-import { DOMNodesTranslator } from '../DOMNodesTranslator';
 import { DOMTranslator } from '../DOMTranslator';
 import { NodesIntersectionObserver } from '../lib/NodesIntersectionObserver';
+import { NodesTranslator } from '../NodesTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
 import {
@@ -43,7 +43,7 @@ describe('basic usage', () => {
 			const domTranslator = new DOMTranslator(
 				new TranslationDispatcher({
 					filter: configureTranslatableNodePredicate(),
-					nodesTranslator: new DOMNodesTranslator(translator),
+					nodesTranslator: new NodesTranslator(translator),
 					nodesIntersectionObserver: lazyTranslate
 						? new NodesIntersectionObserver()
 						: undefined,
@@ -95,7 +95,7 @@ describe('basic usage', () => {
 				const domTranslator = new DOMTranslator(
 					new TranslationDispatcher({
 						filter: configureTranslatableNodePredicate(filterOptions),
-						nodesTranslator: new DOMNodesTranslator(translator),
+						nodesTranslator: new NodesTranslator(translator),
 						nodesIntersectionObserver: isLazyTranslation
 							? new NodesIntersectionObserver()
 							: undefined,
@@ -119,7 +119,7 @@ describe('basic usage', () => {
 				const domTranslator = new DOMTranslator(
 					new TranslationDispatcher({
 						filter: configureTranslatableNodePredicate(filterOptions),
-						nodesTranslator: new DOMNodesTranslator(translator),
+						nodesTranslator: new NodesTranslator(translator),
 						nodesIntersectionObserver: isLazyTranslation
 							? new NodesIntersectionObserver()
 							: undefined,
@@ -181,7 +181,7 @@ describe('basic usage', () => {
 				const domTranslator = new DOMTranslator(
 					new TranslationDispatcher({
 						filter: configureTranslatableNodePredicate(filterOptions),
-						nodesTranslator: new DOMNodesTranslator(translator),
+						nodesTranslator: new NodesTranslator(translator),
 						nodesIntersectionObserver: isLazyTranslation
 							? new NodesIntersectionObserver()
 							: undefined,
@@ -242,7 +242,7 @@ describe('basic usage', () => {
 								'.custom-elements :checked',
 							],
 						}),
-						nodesTranslator: new DOMNodesTranslator(translator),
+						nodesTranslator: new NodesTranslator(translator),
 						nodesIntersectionObserver: isLazyTranslation
 							? new NodesIntersectionObserver()
 							: undefined,
