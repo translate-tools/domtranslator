@@ -5,7 +5,7 @@ import { isElementNode } from './utils/nodes';
 /**
  * Module for dynamic translate a DOM nodes
  */
-export class NodesTranslator {
+export class DOMTranslator {
 	constructor(readonly dispatcher: TranslationDispatcher) {}
 
 	// Stores nodes mutated as a result of translation
