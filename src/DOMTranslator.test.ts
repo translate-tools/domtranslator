@@ -1,13 +1,13 @@
-import { DOMTranslator } from '../DOMTranslator';
-import { NodesIntersectionObserver } from '../NodesIntersectionObserver';
-import { NodesTranslator } from '../NodesTranslator';
 import {
 	awaitTranslation,
 	mockBoundingClientRect,
 	startsWithRegex,
 	TRANSLATION_SYMBOL,
 	translator,
-} from './utils';
+} from './__tests__/utils';
+import { DOMTranslator } from './DOMTranslator';
+import { NodesIntersectionObserver } from './NodesIntersectionObserver';
+import { NodesTranslator } from './NodesTranslator';
 
 require('intersection-observer');
 

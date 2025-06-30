@@ -1,12 +1,13 @@
-import { DOMTranslator } from '../DOMTranslator';
-import { NodesTranslator } from '../NodesTranslator';
 import {
 	awaitTranslation,
 	startsWithRegex,
 	TRANSLATION_SYMBOL,
 	translator,
-} from './utils';
-import { PersistentDOMTranslator } from '..';
+} from '../../__tests__/utils';
+import { DOMTranslator } from '../../DOMTranslator';
+import { NodesTranslator } from '../../NodesTranslator';
+
+import { PersistentDOMTranslator } from '../..';
 
 beforeEach(() => {
 	document.body.innerHTML = '';

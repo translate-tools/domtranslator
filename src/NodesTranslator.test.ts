@@ -1,11 +1,11 @@
-import { NodesTranslator } from '../NodesTranslator';
 import {
 	awaitTranslation,
 	delay,
 	startsWithRegex,
 	TRANSLATION_SYMBOL,
 	translator,
-} from './utils';
+} from './__tests__/utils';
+import { NodesTranslator } from './NodesTranslator';
 
 test('Translates a node and restores the original node text', async () => {
 	const nodesTranslator = new NodesTranslator(translator);

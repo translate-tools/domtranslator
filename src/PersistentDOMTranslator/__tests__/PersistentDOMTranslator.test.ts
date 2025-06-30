@@ -1,10 +1,5 @@
 import { readFileSync } from 'fs';
 
-import { DOMTranslator } from '../DOMTranslator';
-import { NodesIntersectionObserver } from '../NodesIntersectionObserver';
-import { NodesTranslator } from '../NodesTranslator';
-import { PersistentDOMTranslator } from '../PersistentDOMTranslator';
-import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
 import {
 	awaitTranslation,
 	containsRegex,
@@ -12,7 +7,16 @@ import {
 	startsWithRegex,
 	TRANSLATION_SYMBOL,
 	translator,
-} from './utils';
+} from '../../__tests__/utils';
+import { DOMTranslator } from '../../DOMTranslator';
+import { NodesIntersectionObserver } from '../../NodesIntersectionObserver';
+import { NodesTranslator } from '../../NodesTranslator';
+import {
+	configureTranslatableNodePredicate,
+	NodesFilterOptions,
+} from '../../utils/nodes';
+
+import { PersistentDOMTranslator } from '..';
 
 require('intersection-observer');
 
