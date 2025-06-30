@@ -12,31 +12,20 @@ export interface IDomTranslator extends DOMProcessor, StateStorage<NodeTranslati
  * Translates DOM tree with filtering and optionally in lazy mode
  */
 export class DOMTranslator implements IDomTranslator {
-	private readonly nodesProcessor;
-	private readonly nodesIntersectionObserver;
-	private readonly filter;
+	constructor(
+		readonly nodesProcessor: DOMProcessor & StateStorage<NodeTranslationState>,
+		readonly config: {
+			/**
+			 * If is provided, nodes can be translated delayed - after intersect the viewport
+			 */
+			nodesIntersectionObserver?: NodesIntersectionObserver;
 
-	constructor({
-		nodesProcessor,
-		nodesIntersectionObserver,
-		filter,
-	}: {
-		nodesProcessor: DOMProcessor & StateStorage<NodeTranslationState>;
-
-		/**
-		 * If is provided, nodes can be translated delayed - after intersect the viewport
-		 */
-		nodesIntersectionObserver?: NodesIntersectionObserver;
-
-		/**
-		 * Determines which nodes should be translated
-		 */
-		filter?: (node: Node) => boolean;
-	}) {
-		this.nodesProcessor = nodesProcessor;
-		this.nodesIntersectionObserver = nodesIntersectionObserver;
-		this.filter = filter;
-	}
+			/**
+			 * Determines which nodes should be translated
+			 */
+			filter?: (node: Node) => boolean;
+		} = {},
+	) {}
 
 	/**
 	 * Translates DOM tree.
@@ -46,19 +35,21 @@ export class DOMTranslator implements IDomTranslator {
 	 * @param callback - Fires for each node, once it has been translated. Target node is passed as first argument
 	 */
 	public process(node: Node, callback?: ProcessedNodeCallback) {
+		const { nodesIntersectionObserver, filter } = this.config;
+
 		// Handle text nodes and attributes
 		const translate = (node: Node) => {
-			if (this.filter && !this.filter(node)) return;
+			if (filter && !filter(node)) return;
 
 			// translate later if possible
-			if (this.nodesIntersectionObserver) {
+			if (nodesIntersectionObserver) {
 				// Check that the node is attached to the DOM. This means the node is accessible by traversing the current DOM
 				// This check is necessary to avoid lazy translation for nodes that are detached from the DOM,
 				// since they potentially may never intersect with the viewport
 
 				const isAttachedToDOM = node.getRootNode() !== node;
 				if (isAttachedToDOM) {
-					this.nodesIntersectionObserver.observe(node, (node) => {
+					nodesIntersectionObserver.observe(node, (node) => {
 						this.nodesProcessor.process(node, callback);
 					});
 					return;
@@ -86,9 +77,11 @@ export class DOMTranslator implements IDomTranslator {
 	 * @param callback - Fires for each node, once it has been restored. Target node is passed as first argument
 	 */
 	public restore(node: Node, callback?: (node: Node) => void) {
+		const { nodesIntersectionObserver } = this.config;
+
 		const restore = (node: Node) => {
-			if (this.nodesIntersectionObserver) {
-				this.nodesIntersectionObserver.unobserve(node);
+			if (nodesIntersectionObserver) {
+				nodesIntersectionObserver.unobserve(node);
 			}
 
 			this.nodesProcessor.restore(node);

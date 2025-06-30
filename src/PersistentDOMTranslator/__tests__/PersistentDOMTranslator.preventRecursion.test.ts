@@ -17,9 +17,7 @@ beforeEach(() => {
 test('Translation of node does not trigger recursive translation', async () => {
 	const translationSpy = vi.fn(translator);
 	const nodesTranslator = new PersistentDOMTranslator(
-		new DOMTranslator({
-			nodesProcessor: new NodesTranslator(translationSpy),
-		}),
+		new DOMTranslator(new NodesTranslator(translationSpy)),
 	);
 
 	const div = document.createElement('div');
@@ -38,9 +36,7 @@ test('Translation of node does not trigger recursive translation', async () => {
 test('Updating a node does not trigger recursive translation', async () => {
 	const translationSpy = vi.fn(translator);
 	const nodesTranslator = new PersistentDOMTranslator(
-		new DOMTranslator({
-			nodesProcessor: new NodesTranslator(translationSpy),
-		}),
+		new DOMTranslator(new NodesTranslator(translationSpy)),
 	);
 
 	const div = document.createElement('div');
@@ -70,9 +66,7 @@ test('Updating a node does not trigger recursive translation', async () => {
 test('Changed nodes do not trigger recursive translation', async () => {
 	const translationSpy = vi.fn(translator);
 	const nodesTranslator = new PersistentDOMTranslator(
-		new DOMTranslator({
-			nodesProcessor: new NodesTranslator(translationSpy),
-		}),
+		new DOMTranslator(new NodesTranslator(translationSpy)),
 	);
 
 	// create parent node

@@ -24,37 +24,38 @@ const translator = async (text) => '[translated] ' + text;
 
 // `PersistentDOMTranslator` will translate updated nodes with use `DOMTranslator`
 const domTranslator = new PersistentDOMTranslator(
-	new DOMTranslator({
+	new DOMTranslator(
 		// Nodes will be translated with fake translator,
 		// that is just adds a text prefix to original text
-		nodesProcessor: new NodesTranslator(translator),
+		new NodesTranslator(translator),
+		{
+			// When `nodesIntersectionObserver` is provided, a lazy translation mode will be used.
+			// Nodes will be translated only when intersects a viewport
+			nodesIntersectionObserver: new NodesIntersectionObserver(),
 
-		// When `nodesIntersectionObserver` is provided, a lazy translation mode will be used.
-		// Nodes will be translated only when intersects a viewport
-		nodesIntersectionObserver: new NodesIntersectionObserver(),
-
-		// Filter will skip nodes that must not be translated
-		filter: configureTranslatableNodePredicate({
-			// Only listed attributes will be translated
-			translatableAttributes: [
-				'title',
-				'alt',
-				'placeholder',
-				'label',
-				'aria-label',
-			],
-			// Any elements not included in list will be translated
-			ignoredSelectors: [
-				'meta',
-				'link',
-				'script',
-				'noscript',
-				'style',
-				'code',
-				'textarea',
-			],
-		}),
-	}),
+			// Filter will skip nodes that must not be translated
+			filter: configureTranslatableNodePredicate({
+				// Only listed attributes will be translated
+				translatableAttributes: [
+					'title',
+					'alt',
+					'placeholder',
+					'label',
+					'aria-label',
+				],
+				// Any elements not included in list will be translated
+				ignoredSelectors: [
+					'meta',
+					'link',
+					'script',
+					'noscript',
+					'style',
+					'code',
+					'textarea',
+				],
+			}),
+		}
+	),
 );
 
 // You may translate whole document

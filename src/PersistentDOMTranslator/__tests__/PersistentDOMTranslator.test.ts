@@ -45,9 +45,8 @@ describe('basic usage', () => {
 
 			// Translate document
 			const domTranslator = new PersistentDOMTranslator(
-				new DOMTranslator({
+				new DOMTranslator(new NodesTranslator(translator), {
 					filter: configureTranslatableNodePredicate(),
-					nodesProcessor: new NodesTranslator(translator),
 					nodesIntersectionObserver: lazyTranslate
 						? new NodesIntersectionObserver()
 						: undefined,
@@ -97,9 +96,8 @@ describe('basic usage', () => {
 
 				// Translate document
 				const domTranslator = new PersistentDOMTranslator(
-					new DOMTranslator({
+					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate(filterOptions),
-						nodesProcessor: new NodesTranslator(translator),
 						nodesIntersectionObserver: isLazyTranslation
 							? new NodesIntersectionObserver()
 							: undefined,
@@ -121,9 +119,8 @@ describe('basic usage', () => {
 
 				// Translate document
 				const domTranslator = new PersistentDOMTranslator(
-					new DOMTranslator({
+					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate(filterOptions),
-						nodesProcessor: new NodesTranslator(translator),
 						nodesIntersectionObserver: isLazyTranslation
 							? new NodesIntersectionObserver()
 							: undefined,
@@ -183,9 +180,8 @@ describe('basic usage', () => {
 
 				// Translate document
 				const domTranslator = new PersistentDOMTranslator(
-					new DOMTranslator({
+					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate(filterOptions),
-						nodesProcessor: new NodesTranslator(translator),
 						nodesIntersectionObserver: isLazyTranslation
 							? new NodesIntersectionObserver()
 							: undefined,
@@ -237,7 +233,7 @@ describe('basic usage', () => {
 
 				// Translate document
 				const domTranslator = new PersistentDOMTranslator(
-					new DOMTranslator({
+					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate({
 							...filterOptions,
 							ignoredSelectors: [
@@ -246,7 +242,6 @@ describe('basic usage', () => {
 								'.custom-elements :checked',
 							],
 						}),
-						nodesProcessor: new NodesTranslator(translator),
 						nodesIntersectionObserver: isLazyTranslation
 							? new NodesIntersectionObserver()
 							: undefined,
