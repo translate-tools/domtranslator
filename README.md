@@ -206,3 +206,20 @@ export type Config = {
 	filter?: (node: Node) => boolean;
 };
 ```
+
+When `nodesIntersectionObserver` option is provided, translation will be run in lazy mode that depends on implementation of `NodesIntersectionObserver`.
+
+You may provide instance of `NodesIntersectionObserver` to translate only nodes in browser viewport.
+If node is out of viewport, it will be not translated automatically. Instead `IntersectionObserver` will start watch over node, and once it will intersect viewport, translation will be started.
+
+When `filter` option is provided, it will be called for each node and in case callback will return `false`, node will be not translated.
+
+Keep in mind that `filter` will be called for every `Node`, not `Element`. If you have only 1 element on page with 5 attributes and text inside, callback will be called 6 times for every of mentioned nodes.
+
+You may use `configureTranslatableNodePredicate` util as shown in example above, to configure callback to filter out nodes.
+
+```
+import { configureTranslatableNodePredicate } from 'domtranslator/utils/nodes';
+```
+
+Or, you may implement this logic yourself.
