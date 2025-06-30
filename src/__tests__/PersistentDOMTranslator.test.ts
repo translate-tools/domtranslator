@@ -1,8 +1,8 @@
 import { readFileSync } from 'fs';
 
-import { DOMTranslator } from '../DOMTranslator';
 import { NodesIntersectionObserver } from '../lib/NodesIntersectionObserver';
 import { NodesTranslator } from '../NodesTranslator';
+import { PersistentDOMTranslator } from '../PersistentDOMTranslator';
 import { TranslationDispatcher } from '../TranslationDispatcher';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
 import {
@@ -40,7 +40,7 @@ describe('basic usage', () => {
 			const parsedHTML = document.documentElement.outerHTML;
 
 			// Translate document
-			const domTranslator = new DOMTranslator(
+			const domTranslator = new PersistentDOMTranslator(
 				new TranslationDispatcher({
 					filter: configureTranslatableNodePredicate(),
 					nodesTranslator: new NodesTranslator(translator),
@@ -92,7 +92,7 @@ describe('basic usage', () => {
 				const parsedHTML = document.documentElement.outerHTML;
 
 				// Translate document
-				const domTranslator = new DOMTranslator(
+				const domTranslator = new PersistentDOMTranslator(
 					new TranslationDispatcher({
 						filter: configureTranslatableNodePredicate(filterOptions),
 						nodesTranslator: new NodesTranslator(translator),
@@ -116,7 +116,7 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new DOMTranslator(
+				const domTranslator = new PersistentDOMTranslator(
 					new TranslationDispatcher({
 						filter: configureTranslatableNodePredicate(filterOptions),
 						nodesTranslator: new NodesTranslator(translator),
@@ -178,7 +178,7 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new DOMTranslator(
+				const domTranslator = new PersistentDOMTranslator(
 					new TranslationDispatcher({
 						filter: configureTranslatableNodePredicate(filterOptions),
 						nodesTranslator: new NodesTranslator(translator),
@@ -232,7 +232,7 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new DOMTranslator(
+				const domTranslator = new PersistentDOMTranslator(
 					new TranslationDispatcher({
 						filter: configureTranslatableNodePredicate({
 							...filterOptions,

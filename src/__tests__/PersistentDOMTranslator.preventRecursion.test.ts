@@ -6,7 +6,7 @@ import {
 	TRANSLATION_SYMBOL,
 	translator,
 } from './utils';
-import { DOMTranslator } from '..';
+import { PersistentDOMTranslator } from '..';
 
 beforeEach(() => {
 	document.body.innerHTML = '';
@@ -15,7 +15,7 @@ beforeEach(() => {
 
 test('Translation of node does not trigger recursive translation', async () => {
 	const translationSpy = vi.fn(translator);
-	const nodesTranslator = new DOMTranslator(
+	const nodesTranslator = new PersistentDOMTranslator(
 		new TranslationDispatcher({
 			nodesTranslator: new NodesTranslator(translationSpy),
 		}),
@@ -36,7 +36,7 @@ test('Translation of node does not trigger recursive translation', async () => {
 
 test('Updating a node does not trigger recursive translation', async () => {
 	const translationSpy = vi.fn(translator);
-	const nodesTranslator = new DOMTranslator(
+	const nodesTranslator = new PersistentDOMTranslator(
 		new TranslationDispatcher({
 			nodesTranslator: new NodesTranslator(translationSpy),
 		}),
@@ -68,7 +68,7 @@ test('Updating a node does not trigger recursive translation', async () => {
 
 test('Changed nodes do not trigger recursive translation', async () => {
 	const translationSpy = vi.fn(translator);
-	const nodesTranslator = new DOMTranslator(
+	const nodesTranslator = new PersistentDOMTranslator(
 		new TranslationDispatcher({
 			nodesTranslator: new NodesTranslator(translationSpy),
 		}),
