@@ -223,3 +223,16 @@ import { configureTranslatableNodePredicate } from 'domtranslator/utils/nodes';
 ```
 
 Or, you may implement this logic yourself.
+
+## PersistentDOMTranslator
+
+Translates DOM tree persistently.
+
+Unlike `DOMTranslator`, when nodes in tree is updates, it will be automatically translated.
+
+This feature is implemented with `MutationObserver` and protected against recursion when translated node trigger update, that translate node and trigger update.
+
+
+### constructor(readonly translator: IDomTranslator)
+
+Constructor expects instance of `DOMTranslator` or another object that implement its interface.
