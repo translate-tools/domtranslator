@@ -1,10 +1,10 @@
-import { DOMProcessor, ProcessedNodeCallback } from './DOMProcessor';
 import { NodesIntersectionObserver } from './NodesIntersectionObserver';
 import { NodeTranslationState } from './NodesTranslator';
+import { DOMProcessor, ProcessedNodeCallback, StateStorage } from './types';
 import { isElementNode } from './utils/nodes';
 import { visitWholeTree } from './utils/visitWholeTree';
 
-export interface IDomTranslator extends DOMProcessor<NodeTranslationState> {
+export interface IDomTranslator extends DOMProcessor, StateStorage<NodeTranslationState> {
 	restore(node: Node, callback?: (node: Node) => void): void;
 }
 
@@ -21,7 +21,7 @@ export class DOMTranslator implements IDomTranslator {
 		nodesIntersectionObserver,
 		filter,
 	}: {
-		nodesProcessor: DOMProcessor<NodeTranslationState>;
+		nodesProcessor: DOMProcessor & StateStorage<NodeTranslationState>;
 
 		/**
 		 * If is provided, nodes can be translated delayed - after intersect the viewport

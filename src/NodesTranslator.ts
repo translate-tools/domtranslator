@@ -1,4 +1,4 @@
-import { DOMProcessor, ProcessedNodeCallback } from './DOMProcessor';
+import { DOMProcessor, ProcessedNodeCallback, StateStorage } from './types';
 import { isInViewport } from './utils/isInViewport';
 import { isAttributeNode, isTextNode } from './utils/nodes';
 
@@ -60,7 +60,7 @@ function getNodePriority(node: Node) {
  * Class is purposed for translate primitive nodes.
  * It manages only node values itself, with no recursive processing nested nodes.
  */
-export class NodesTranslator implements DOMProcessor<NodeTranslationState> {
+export class NodesTranslator implements DOMProcessor, StateStorage<NodeTranslationState> {
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 
