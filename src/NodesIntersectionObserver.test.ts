@@ -1,4 +1,4 @@
-import { resetElementPosition, waitForMockCall } from '../__tests__/utils';
+import { resetElementPosition, waitForMockCall } from './__tests__/utils';
 import { NodesIntersectionObserver } from './NodesIntersectionObserver';
 
 require('intersection-observer');

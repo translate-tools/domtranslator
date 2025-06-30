@@ -1,6 +1,6 @@
 import { IDomTranslator } from './DOMTranslator';
-import { XMutationObserver } from './lib/XMutationObserver';
 import { isElementNode } from './utils/nodes';
+import { XMutationObserver } from './utils/XMutationObserver';
 
 /**
  * Translates DOM tree persistently. When nodes in tree is updates, it will be automatically translated.

@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 
 import { DOMTranslator } from '../DOMTranslator';
-import { NodesIntersectionObserver } from '../lib/NodesIntersectionObserver';
+import { NodesIntersectionObserver } from '../NodesIntersectionObserver';
 import { NodesTranslator } from '../NodesTranslator';
 import { PersistentDOMTranslator } from '../PersistentDOMTranslator';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';

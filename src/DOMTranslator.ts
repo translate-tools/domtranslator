@@ -1,5 +1,5 @@
 import { DOMProcessor, ProcessedNodeCallback } from './DOMProcessor';
-import { NodesIntersectionObserver } from './lib/NodesIntersectionObserver';
+import { NodesIntersectionObserver } from './NodesIntersectionObserver';
 import { NodeTranslationState } from './NodesTranslator';
 import { isElementNode } from './utils/nodes';
 import { visitWholeTree } from './utils/visitWholeTree';

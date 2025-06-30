@@ -1,5 +1,5 @@
 import { DOMTranslator } from '../DOMTranslator';
-import { NodesIntersectionObserver } from '../lib/NodesIntersectionObserver';
+import { NodesIntersectionObserver } from '../NodesIntersectionObserver';
 import { NodesTranslator } from '../NodesTranslator';
 import {
 	awaitTranslation,

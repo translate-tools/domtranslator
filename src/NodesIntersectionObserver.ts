@@ -1,4 +1,4 @@
-import { isIntersectableNode } from '../utils/isIntersectableNode';
+import { isIntersectableNode } from './utils/isIntersectableNode';
 
 type Callback = (node: Node) => void;
 
