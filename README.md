@@ -18,10 +18,10 @@ Install with `npm install domtranslator`
 
 ```js
 import {
-	PersistentDOMTranslator,
-	DOMTranslator,
-	NodesTranslator,
-	NodesIntersectionObserver
+  PersistentDOMTranslator,
+  DOMTranslator,
+  NodesTranslator,
+  NodesIntersectionObserver
 } from 'domtranslator';
 
 import { configureTranslatableNodePredicate } from 'domtranslator/utils/nodes';
@@ -31,38 +31,38 @@ const translator = async (text) => '[translated] ' + text;
 
 // `PersistentDOMTranslator` will translate updated nodes with use `DOMTranslator`
 const domTranslator = new PersistentDOMTranslator(
-	new DOMTranslator(
-		// Nodes will be translated with fake translator,
-		// that is just adds a text prefix to original text
-		new NodesTranslator(translator),
-		{
-			// When `nodesIntersectionObserver` is provided, a lazy translation mode will be used.
-			// Nodes will be translated only when intersects a viewport
-			nodesIntersectionObserver: new NodesIntersectionObserver(),
+  new DOMTranslator(
+    // Nodes will be translated with fake translator,
+    // that is just adds a text prefix to original text
+    new NodesTranslator(translator),
+    {
+      // When `nodesIntersectionObserver` is provided, a lazy translation mode will be used.
+      // Nodes will be translated only when intersects a viewport
+      nodesIntersectionObserver: new NodesIntersectionObserver(),
 
-			// Filter will skip nodes that must not be translated
-			filter: configureTranslatableNodePredicate({
-				// Only listed attributes will be translated
-				translatableAttributes: [
-					'title',
-					'alt',
-					'placeholder',
-					'label',
-					'aria-label',
-				],
-				// Any elements not included in list will be translated
-				ignoredSelectors: [
-					'meta',
-					'link',
-					'script',
-					'noscript',
-					'style',
-					'code',
-					'textarea',
-				],
-			}),
-		}
-	),
+      // Filter will skip nodes that must not be translated
+      filter: configureTranslatableNodePredicate({
+        // Only listed attributes will be translated
+        translatableAttributes: [
+          'title',
+          'alt',
+          'placeholder',
+          'label',
+          'aria-label',
+        ],
+        // Any elements not included in list will be translated
+        ignoredSelectors: [
+          'meta',
+          'link',
+          'script',
+          'noscript',
+          'style',
+          'code',
+          'textarea',
+        ],
+      }),
+    }
+  ),
 );
 
 // You may translate whole document
@@ -83,30 +83,30 @@ domTranslator.unobserve(document.documentElement);
 So if you would run this code against next HTML document
 ```html
 <body>
-	<div>
-		<p>
-			Hello <strong>Jake</strong>, welcome back!
-		</p>
+  <div>
+    <p>
+      Hello <strong>Jake</strong>, welcome back!
+    </p>
 
-		<p>
-			<a href="#">Check feedback</a> for your <i title="Epic DnB drop">recent work</i>.
-		</p>
-	</div>
+    <p>
+      <a href="#">Check feedback</a> for your <i title="Epic DnB drop">recent work</i>.
+    </p>
+  </div>
 </body>
 ```
 
 Your result would be
 ```html
 <body>
-	<div>
-		<p>
-			[translated] Hello <strong>[translated] Jake</strong>[translated] , welcome back!
-		</p>
+  <div>
+    <p>
+      [translated] Hello <strong>[translated] Jake</strong>[translated] , welcome back!
+    </p>
 
-		<p>
-			<a href="#">[translated] Check feedback</a>[translated]  for your <i title="[translated] Epic DnB drop">[translated] recent work</i>.
-		</p>
-	</div>
+    <p>
+      <a href="#">[translated] Check feedback</a>[translated]  for your <i title="[translated] Epic DnB drop">[translated] recent work</i>.
+    </p>
+  </div>
 </body>
 ```
 
@@ -176,7 +176,7 @@ The state includes original text of node if node translated or `null` in case no
 
 ```ts
 export type NodeTranslationState = {
-	originalText: string | null;
+  originalText: string | null;
 };
 ```
 
@@ -195,15 +195,15 @@ Config is described by next type
 
 ```ts
 export type Config = {
-	/**
-	 * If is provided, nodes can be translated delayed - after intersect the viewport
-	 */
-	nodesIntersectionObserver?: NodesIntersectionObserver;
+  /**
+   * If is provided, nodes can be translated delayed - after intersect the viewport
+   */
+  nodesIntersectionObserver?: NodesIntersectionObserver;
 
-	/**
-	 * Determines which nodes should be translated
-	 */
-	filter?: (node: Node) => boolean;
+  /**
+   * Determines which nodes should be translated
+   */
+  filter?: (node: Node) => boolean;
 };
 ```
 
