@@ -102,3 +102,100 @@ Your result would be
 	</div>
 </body>
 ```
+
+# API
+
+## NodesTranslator
+
+The `NodesTranslator` class is purposed to translate text nodes.
+
+To translate element with its nested text nodes and attributes, use `DOMTranslator`.
+
+Usage example
+
+```ts
+import { NodesTranslator } from 'domtranslator';
+
+const nodesTranslator = new NodesTranslator(translator);
+
+const altAttr = document.querySelector('img').getAttribute('alt');
+nodesTranslator.process(altAttr);
+```
+
+In this example we get `Attr` node of image and translate it.
+
+Below listed documentation for class methods.
+
+### constructor(translator: (text: string, priority: number) => Promise<string>)
+
+Translator is a callback that will be called to translate node text.
+
+Callback will be called when node is translates first time and when node is updated and must be translated again.
+
+Arguments passed to a callback is
+- `text` - a node text for translation
+- `priority` - a measured priority of node, based on its position in document, its content and context. The greater number - the more important node. This is optional parameter to use, if you need to schedule translating based on node importance score.
+
+### process(node: Node, callback?: ProcessedNodeCallback): void
+
+Method run node text translation.
+
+If callback is provided, it will be called once node will be translated. Target node will be passed in arguments.
+
+This method may be called only once for one node, otherwise throws error.
+
+### update(node: Node, callback?: ProcessedNodeCallback): void
+
+Method run translation for node text if node is already processed. Otherwise throws error.
+
+Works equal to `process` method.
+
+### restore(node: Node): void
+
+Method restores original node text
+
+### has(node: Node): boolean
+
+Method returns `boolean` that reflect translation state of node.
+
+If returned `true` - it means node is translated.
+
+### getState(node: Node): NodeTranslationState | null
+
+If node is translated, this method returns node state, otherwise `null` will be returned.
+
+The state includes original text of node if node translated or `null` in case node is in pending of translation.
+
+
+```ts
+export type NodeTranslationState = {
+	originalText: string | null;
+};
+```
+
+## DOMTranslator
+
+The `DOMTranslator` class works equal to `NodesTranslator` but
+- it recursive translates whole DOM tree passed to its methods
+- can translate nodes lazy
+- can filter nodes to skip those that should not be translated (like URLs or class names, etc)
+
+### constructor(nodesTranslator: NodesTranslator, config: Config)
+
+A `nodesTranslator` is an instance of `NodesTranslator`.
+
+Config is described by next type
+
+```ts
+export type Config = {
+	/**
+	 * If is provided, nodes can be translated delayed - after intersect the viewport
+	 */
+	nodesIntersectionObserver?: NodesIntersectionObserver;
+
+	/**
+	 * Determines which nodes should be translated
+	 */
+	filter?: (node: Node) => boolean;
+};
+```
