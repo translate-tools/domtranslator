@@ -6,6 +6,10 @@ export type Translator = (text: string, priority: number) => Promise<string>;
 
 export type NodeTranslationState = { originalText: string | null };
 
+export interface INodesTranslator
+	extends DOMProcessor,
+		StateStorage<NodeTranslationState> {}
+
 interface NodeData {
 	/**
 	 * Unique node identifier
@@ -60,7 +64,7 @@ function getNodePriority(node: Node) {
  * Class is purposed for translate primitive nodes.
  * It manages only node values itself, with no recursive processing nested nodes.
  */
-export class NodesTranslator implements DOMProcessor, StateStorage<NodeTranslationState> {
+export class NodesTranslator implements INodesTranslator {
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 

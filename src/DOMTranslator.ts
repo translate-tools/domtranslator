@@ -8,23 +8,25 @@ export interface IDomTranslator extends DOMProcessor, StateStorage<NodeTranslati
 	restore(node: Node, callback?: (node: Node) => void): void;
 }
 
+export type Config = {
+	/**
+	 * If is provided, nodes can be translated delayed - after intersect the viewport
+	 */
+	nodesIntersectionObserver?: NodesIntersectionObserver;
+
+	/**
+	 * Determines which nodes should be translated
+	 */
+	filter?: (node: Node) => boolean;
+};
+
 /**
  * Translates DOM tree with filtering and optionally in lazy mode
  */
 export class DOMTranslator implements IDomTranslator {
 	constructor(
 		readonly nodesProcessor: DOMProcessor & StateStorage<NodeTranslationState>,
-		readonly config: {
-			/**
-			 * If is provided, nodes can be translated delayed - after intersect the viewport
-			 */
-			nodesIntersectionObserver?: NodesIntersectionObserver;
-
-			/**
-			 * Determines which nodes should be translated
-			 */
-			filter?: (node: Node) => boolean;
-		} = {},
+		readonly config: Config = {},
 	) {}
 
 	/**
