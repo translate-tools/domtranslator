@@ -12,7 +12,7 @@ test('Translates a node and restores the original node text', async () => {
 	const text = 'Hello world!';
 	const node = new Text(text);
 
-	nodesTranslator.translate(node);
+	nodesTranslator.process(node);
 	await awaitTranslation();
 	expect(node.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
@@ -26,18 +26,18 @@ test('Stores original node text on translation and clears it after restoration',
 	const node = new Text(text);
 
 	// before translation
-	expect(nodesTranslator.getOriginalText(node)).toBe(null);
+	expect(nodesTranslator.getState(node)).toBe(null);
 
-	nodesTranslator.translate(node);
+	nodesTranslator.process(node);
 	await awaitTranslation();
 
 	expect(node.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
-	expect(nodesTranslator.getOriginalText(node)).toBe(text);
+	expect(nodesTranslator.getState(node)).toStrictEqual({ originalText: text });
 
 	// after restore
 	nodesTranslator.restore(node);
 	expect(node.nodeValue).toBe(text);
-	expect(nodesTranslator.getOriginalText(node)).toBe(null);
+	expect(nodesTranslator.getState(node)).toBe(null);
 });
 
 test('hasNode returns true if node is currently translated and false if not', async () => {
@@ -48,7 +48,7 @@ test('hasNode returns true if node is currently translated and false if not', as
 	// not exists before translate
 	expect(nodesTranslator.has(node)).toBe(false);
 
-	nodesTranslator.translate(node);
+	nodesTranslator.process(node);
 	await awaitTranslation();
 	expect(node.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	expect(nodesTranslator.has(node)).toBe(true);
@@ -65,7 +65,7 @@ test('updateNode method translates the modified node', async () => {
 	attrNode.nodeValue = text1;
 
 	// translate
-	nodesTranslator.translate(attrNode);
+	nodesTranslator.process(attrNode);
 	await awaitTranslation();
 	expect(attrNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
@@ -92,7 +92,7 @@ test('Calls the callback after a node is translated and updated', async () => {
 	const attrNode = document.createAttribute('title');
 	attrNode.nodeValue = text1;
 
-	nodesTranslator.translate(attrNode, callback);
+	nodesTranslator.process(attrNode, callback);
 	await awaitTranslation();
 
 	expect(attrNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
@@ -131,14 +131,14 @@ test('translateNode throws an error when called on the same node more than once'
 	const attrNode = document.createAttribute('title');
 	attrNode.nodeValue = text;
 
-	nodesTranslator.translate(attrNode, callback);
+	nodesTranslator.process(attrNode, callback);
 	await awaitTranslation();
 
 	expect(attrNode.nodeValue).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	expect(callback.mock.calls).toEqual([[attrNode]]);
 
 	await awaitTranslation();
-	expect(() => nodesTranslator.translate(attrNode, callback)).toThrowError();
+	expect(() => nodesTranslator.process(attrNode, callback)).toThrowError();
 });
 
 test('Callback is called only once after latest completed translation', async () => {
@@ -162,7 +162,7 @@ test('Callback is called only once after latest completed translation', async ()
 	attrNode.nodeValue = text1;
 
 	// first slow translation (300ms)
-	nodesTranslator.translate(attrNode, callback);
+	nodesTranslator.process(attrNode, callback);
 
 	// waiting (less then 300 ms); the translation is not completed yet, callback should not be called
 	await delay(100);

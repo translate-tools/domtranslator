@@ -1,8 +1,10 @@
+import { DOMProcessor, ProcessedNodeCallback } from './DOMProcessor';
 import { isInViewport } from './utils/isInViewport';
 import { isAttributeNode, isTextNode } from './utils/nodes';
 
-export type TranslatedNodeCallback = (node: Node) => void;
-export type TranslatorInterface = (text: string, priority: number) => Promise<string>;
+export type Translator = (text: string, priority: number) => Promise<string>;
+
+export type NodeTranslationState = { originalText: string | null };
 
 interface NodeData {
 	/**
@@ -53,29 +55,34 @@ function getNodePriority(node: Node) {
 }
 
 /**
- * Manages a translation state of DOM nodes. Translates text-containing nodes (Text, Attr, etc).
- * Registers nodes and initiates translation, updates the translation when a node is modified or deleted.
+ * Manages translation state of DOM nodes.
+ *
+ * Class is purposed for translate primitive nodes.
+ * It manages only node values itself, with no recursive processing nested nodes.
  */
-export class NodesTranslator {
+export class NodesTranslator implements DOMProcessor<NodeTranslationState> {
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 
-	constructor(private readonly translateCallback: TranslatorInterface) {}
+	constructor(private readonly translateCallback: Translator) {}
 
 	public has(node: Node) {
 		return this.nodeStorage.has(node);
 	}
 
-	public getOriginalText(node: Node) {
+	public getState(node: Node) {
 		const nodeData = this.nodeStorage.get(node);
-		return nodeData ? nodeData.originalText : null;
+		if (!nodeData) return null;
+
+		const { originalText } = nodeData;
+		return { originalText };
 	}
 
 	/**
 	 * Translates nodes that contain text (e.g., Text, Attr)
 	 * After translation calls the callback with the translated node
 	 */
-	public translate = (node: Node, callback?: TranslatedNodeCallback) => {
+	public process = (node: Node, callback?: ProcessedNodeCallback) => {
 		if (this.has(node)) throw new Error('This node has already been translated');
 
 		if (node.nodeType !== Node.ATTRIBUTE_NODE && node.nodeType !== Node.TEXT_NODE) {
@@ -114,7 +121,7 @@ export class NodesTranslator {
 	 * Translates node after it has been modified
 	 * After translation calls the callback with the translated node
 	 */
-	public update(node: Node, callback?: TranslatedNodeCallback) {
+	public update(node: Node, callback?: ProcessedNodeCallback) {
 		const nodeData = this.nodeStorage.get(node);
 		if (!nodeData)
 			throw new Error('Node cannot be updated because it was never translated');
@@ -126,7 +133,7 @@ export class NodesTranslator {
 	/**
 	 * Call only for new and updated nodes
 	 */
-	private translateNodeContent(node: Node, callback?: TranslatedNodeCallback) {
+	private translateNodeContent(node: Node, callback?: ProcessedNodeCallback) {
 		const nodeData = this.nodeStorage.get(node);
 		if (!nodeData) {
 			throw new Error('Node is not register');

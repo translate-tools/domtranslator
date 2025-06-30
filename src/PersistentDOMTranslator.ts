@@ -1,12 +1,12 @@
+import { IDomTranslator } from './DOMTranslator';
 import { XMutationObserver } from './lib/XMutationObserver';
-import { TranslationDispatcher } from './TranslationDispatcher';
 import { isElementNode } from './utils/nodes';
 
 /**
- * Module for dynamic translate a DOM nodes
+ * Translates DOM tree persistently. When nodes in tree is updates, it will be automatically translated.
  */
 export class PersistentDOMTranslator {
-	constructor(readonly dispatcher: TranslationDispatcher) {}
+	constructor(readonly translator: IDomTranslator) {}
 
 	// Stores nodes mutated as a result of translation
 	// used to prevent handling mutation events triggered by our own translations
@@ -23,13 +23,11 @@ export class PersistentDOMTranslator {
 		this.observedNodesStorage.set(node, observer);
 
 		observer.addHandler('elementAdded', ({ target }) => {
-			if (this.dispatcher.hasNode(target)) return;
-			this.dispatcher.translateNode(target, (node: Node) =>
-				this.mutatedNodes.add(node),
-			);
+			if (this.translator.has(target)) return;
+			this.translator.process(target, (node: Node) => this.mutatedNodes.add(node));
 		});
 		observer.addHandler('elementRemoved', ({ target }) => {
-			this.dispatcher.restoreNode(target);
+			this.translator.restore(target);
 		});
 		observer.addHandler('characterData', ({ target }) => {
 			// skip this update if it was triggered by the translation itself
@@ -37,9 +35,7 @@ export class PersistentDOMTranslator {
 				this.mutatedNodes.delete(target);
 				return;
 			}
-			this.dispatcher.updateNode(target, (node: Node) =>
-				this.mutatedNodes.add(node),
-			);
+			this.translator.update(target, (node: Node) => this.mutatedNodes.add(node));
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
 			if (!attributeName || !isElementNode(target)) return;
@@ -54,20 +50,20 @@ export class PersistentDOMTranslator {
 			}
 
 			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
-			if (this.dispatcher.hasNode(attribute)) {
-				this.dispatcher.updateNode(attribute, (node: Node) =>
+			if (this.translator.has(attribute)) {
+				this.translator.update(attribute, (node: Node) =>
 					this.mutatedNodes.add(node),
 				);
 				return;
 			}
-			this.dispatcher.translateNode(attribute, (node: Node) =>
+			this.translator.process(attribute, (node: Node) =>
 				this.mutatedNodes.add(node),
 			);
 		});
 
 		observer.observe(node);
 
-		this.dispatcher.translateNode(node, (node: Node) => this.mutatedNodes.add(node));
+		this.translator.process(node, (node: Node) => this.mutatedNodes.add(node));
 	}
 
 	public unobserve(node: Element) {
@@ -77,7 +73,7 @@ export class PersistentDOMTranslator {
 
 		// mutatedNodes may include nodes from multiple observed tree elements — remove only those belonging to the unobserved
 		// restoreNode calls the callback after restoring each node; the callback removes that node from mutatedNodes
-		this.dispatcher.restoreNode(node, (node) => {
+		this.translator.restore(node, (node) => {
 			this.mutatedNodes.delete(node);
 		});
 		this.observedNodesStorage.get(node)?.disconnect();

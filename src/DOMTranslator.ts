@@ -1,46 +1,51 @@
+import { DOMProcessor, ProcessedNodeCallback } from './DOMProcessor';
 import { NodesIntersectionObserver } from './lib/NodesIntersectionObserver';
-import { NodesTranslator, TranslatedNodeCallback } from './NodesTranslator';
+import { NodeTranslationState } from './NodesTranslator';
 import { isElementNode } from './utils/nodes';
 import { visitWholeTree } from './utils/visitWholeTree';
 
-export type TranslatableNodePredicate = (node: Node) => boolean;
+export interface IDomTranslator extends DOMProcessor<NodeTranslationState> {
+	restore(node: Node, callback?: (node: Node) => void): void;
+}
 
 /**
- * Coordinates the DOM nodes translation process.
- * Chooses between lazy and immediate translation; defaults to immediate if not provided.
+ * Translates DOM tree with filtering and optionally in lazy mode
  */
-export class TranslationDispatcher {
-	private readonly filter;
-	private readonly nodesTranslator;
+export class DOMTranslator implements IDomTranslator {
+	private readonly nodesProcessor;
 	private readonly nodesIntersectionObserver;
+	private readonly filter;
 
 	constructor({
-		nodesTranslator,
-		filter,
+		nodesProcessor,
 		nodesIntersectionObserver,
+		filter,
 	}: {
-		nodesTranslator: NodesTranslator;
-		/**
-		 * Determines which nodes should be translated
-		 */
-		filter?: TranslatableNodePredicate;
+		nodesProcessor: DOMProcessor<NodeTranslationState>;
+
 		/**
 		 * If is provided, nodes can be translated delayed - after intersect the viewport
 		 */
 		nodesIntersectionObserver?: NodesIntersectionObserver;
+
+		/**
+		 * Determines which nodes should be translated
+		 */
+		filter?: (node: Node) => boolean;
 	}) {
-		this.filter = filter;
-		this.nodesTranslator = nodesTranslator;
+		this.nodesProcessor = nodesProcessor;
 		this.nodesIntersectionObserver = nodesIntersectionObserver;
+		this.filter = filter;
 	}
 
 	/**
-	 * Translates the node and all its nested translatable nodes (Text, Attr, etc.)
+	 * Translates DOM tree.
 	 *
-	 * @param callback - Called asynchronously after each node is translated, in the order of translation.
-	 * The callback receives the translated node as argument.
+	 * If passed Element, all nested nodes (like Text, Attr, etc.) will be processed recursively.
+	 *
+	 * @param callback - Fires for each node, once it has been translated. Target node is passed as first argument
 	 */
-	public translateNode(node: Node, callback?: TranslatedNodeCallback) {
+	public process(node: Node, callback?: ProcessedNodeCallback) {
 		// Handle text nodes and attributes
 		const translate = (node: Node) => {
 			if (this.filter && !this.filter(node)) return;
@@ -54,14 +59,14 @@ export class TranslationDispatcher {
 				const isAttachedToDOM = node.getRootNode() !== node;
 				if (isAttachedToDOM) {
 					this.nodesIntersectionObserver.observe(node, (node) => {
-						this.nodesTranslator.translate(node, callback);
+						this.nodesProcessor.process(node, callback);
 					});
 					return;
 				}
 			}
 
 			// translate immediately
-			this.nodesTranslator.translate(node, callback);
+			this.nodesProcessor.process(node, callback);
 		};
 
 		// Translate all nodes which element contains (text nodes and attributes of current and inner elements)
@@ -76,16 +81,17 @@ export class TranslationDispatcher {
 	}
 
 	/**
-	 * Restores the original node text. For elements, restores each child node (Text, Attr, etc.)
+	 * Restores the original nodes values in passed tree
 	 *
-	 * @param callback - Called synchronously after each node is restored, receiving the restored node
+	 * @param callback - Fires for each node, once it has been restored. Target node is passed as first argument
 	 */
-	public restoreNode(node: Node, callback?: (node: Node) => void) {
+	public restore(node: Node, callback?: (node: Node) => void) {
 		const restore = (node: Node) => {
 			if (this.nodesIntersectionObserver) {
 				this.nodesIntersectionObserver.unobserve(node);
 			}
-			this.nodesTranslator.restore(node);
+
+			this.nodesProcessor.restore(node);
 
 			if (callback) callback(node);
 		};
@@ -106,11 +112,15 @@ export class TranslationDispatcher {
 	 *
 	 * @param callback - Called asynchronously with the translated node once the update is complete
 	 */
-	public updateNode(node: Node, callback?: TranslatedNodeCallback) {
-		this.nodesTranslator.update(node, callback);
+	public update(node: Node, callback?: ProcessedNodeCallback) {
+		this.nodesProcessor.update(node, callback);
 	}
 
-	public hasNode(node: Node) {
-		return this.nodesTranslator.has(node);
+	public has(node: Node) {
+		return this.nodesProcessor.has(node);
+	}
+
+	public getState(node: Node) {
+		return this.nodesProcessor.getState(node);
 	}
 }

@@ -1,9 +1,9 @@
 import { readFileSync } from 'fs';
 
+import { DOMTranslator } from '../DOMTranslator';
 import { NodesIntersectionObserver } from '../lib/NodesIntersectionObserver';
 import { NodesTranslator } from '../NodesTranslator';
 import { PersistentDOMTranslator } from '../PersistentDOMTranslator';
-import { TranslationDispatcher } from '../TranslationDispatcher';
 import { configureTranslatableNodePredicate, NodesFilterOptions } from '../utils/nodes';
 import {
 	awaitTranslation,
@@ -41,9 +41,9 @@ describe('basic usage', () => {
 
 			// Translate document
 			const domTranslator = new PersistentDOMTranslator(
-				new TranslationDispatcher({
+				new DOMTranslator({
 					filter: configureTranslatableNodePredicate(),
-					nodesTranslator: new NodesTranslator(translator),
+					nodesProcessor: new NodesTranslator(translator),
 					nodesIntersectionObserver: lazyTranslate
 						? new NodesIntersectionObserver()
 						: undefined,
@@ -93,9 +93,9 @@ describe('basic usage', () => {
 
 				// Translate document
 				const domTranslator = new PersistentDOMTranslator(
-					new TranslationDispatcher({
+					new DOMTranslator({
 						filter: configureTranslatableNodePredicate(filterOptions),
-						nodesTranslator: new NodesTranslator(translator),
+						nodesProcessor: new NodesTranslator(translator),
 						nodesIntersectionObserver: isLazyTranslation
 							? new NodesIntersectionObserver()
 							: undefined,
@@ -117,9 +117,9 @@ describe('basic usage', () => {
 
 				// Translate document
 				const domTranslator = new PersistentDOMTranslator(
-					new TranslationDispatcher({
+					new DOMTranslator({
 						filter: configureTranslatableNodePredicate(filterOptions),
-						nodesTranslator: new NodesTranslator(translator),
+						nodesProcessor: new NodesTranslator(translator),
 						nodesIntersectionObserver: isLazyTranslation
 							? new NodesIntersectionObserver()
 							: undefined,
@@ -179,9 +179,9 @@ describe('basic usage', () => {
 
 				// Translate document
 				const domTranslator = new PersistentDOMTranslator(
-					new TranslationDispatcher({
+					new DOMTranslator({
 						filter: configureTranslatableNodePredicate(filterOptions),
-						nodesTranslator: new NodesTranslator(translator),
+						nodesProcessor: new NodesTranslator(translator),
 						nodesIntersectionObserver: isLazyTranslation
 							? new NodesIntersectionObserver()
 							: undefined,
@@ -233,7 +233,7 @@ describe('basic usage', () => {
 
 				// Translate document
 				const domTranslator = new PersistentDOMTranslator(
-					new TranslationDispatcher({
+					new DOMTranslator({
 						filter: configureTranslatableNodePredicate({
 							...filterOptions,
 							ignoredSelectors: [
@@ -242,7 +242,7 @@ describe('basic usage', () => {
 								'.custom-elements :checked',
 							],
 						}),
-						nodesTranslator: new NodesTranslator(translator),
+						nodesProcessor: new NodesTranslator(translator),
 						nodesIntersectionObserver: isLazyTranslation
 							? new NodesIntersectionObserver()
 							: undefined,
