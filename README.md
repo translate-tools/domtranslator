@@ -59,13 +59,46 @@ const domTranslator = new PersistentDOMTranslator(
 );
 
 // You may translate whole document
-// domTranslator.observe(document.documentElement);
+domTranslator.observe(document.documentElement);
 
 // Or just few elements
-domTranslator.observe(document.querySelector('#widget1'));
-domTranslator.observe(document.querySelector('#widget2'));
-domTranslator.observe(document.querySelector('#widget3'));
+// domTranslator.observe(document.querySelector('#widget1'));
+// domTranslator.observe(document.querySelector('#widget2'));
+// domTranslator.observe(document.querySelector('#widget3'));
 
 // You may disable translation for any element, and restore its original text
-domTranslator.unobserve(document.querySelector('#widget2'));
+domTranslator.unobserve(document.documentElement);
+
+// Or for specific element
+// domTranslator.unobserve(document.querySelector('#widget2'));
+```
+
+So if you would run this code against next HTML document
+```html
+<body>
+	<div>
+		<p>
+			Hello <strong>Jake</strong>, welcome back!
+		</p>
+
+		<p>
+			<a href="#">Check feedback</a> for your <i title="Epic DnB drop">recent work</i>.
+		</p>
+	</div>
+</body>
+```
+
+Your result would be
+```html
+<body>
+	<div>
+		<p>
+			[translated] Hello <strong>[translated] Jake</strong>[translated] , welcome back!
+		</p>
+
+		<p>
+			<a href="#">[translated] Check feedback</a>[translated]  for your <i title="[translated] Epic DnB drop">[translated] recent work</i>.
+		</p>
+	</div>
+</body>
 ```
