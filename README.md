@@ -17,7 +17,14 @@ Some of key features
 Install with `npm install domtranslator`
 
 ```js
-import { NodesTranslator } from 'domtranslator';
+import {
+	PersistentDOMTranslator,
+	DOMTranslator,
+	NodesTranslator,
+	NodesIntersectionObserver
+} from 'domtranslator';
+
+import { configureTranslatableNodePredicate } from 'domtranslator/utils/nodes';
 
 // Dummy translator
 const translator = async (text) => '[translated] ' + text;
