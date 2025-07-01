@@ -6,8 +6,6 @@ Simple and powerful DOM translator.
 
 [![](https://primebits.org/badges/built-by.svg)](https://primebits.org)
 
-<video src="assets/demo.webm" autoplay loop muted playsinline height="400"></video>
-
 
 # About
 
