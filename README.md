@@ -133,7 +133,7 @@ In this example we get `Attr` node of image and translate it.
 
 Below listed documentation for class methods.
 
-### constructor(translator: (text: string, priority: number) => Promise<string>)
+### constructor(translator: (text: string, score: number) => Promise<string>)
 
 Translator is a callback that will be called to translate node text.
 
@@ -141,7 +141,7 @@ Callback will be called when node is translates first time and when node is upda
 
 Arguments passed to a callback is
 - `text` - a node text for translation
-- `priority` - a measured priority of node, based on its position in document, its content and context. The greater number - the more important node. This is optional parameter to use, if you need to schedule translating based on node importance score.
+- `score` - a measured importance score of node, based on its position in document, its content and context. The greater number - the more important node. This is optional parameter to use, if you need to schedule translating based on node importance score.
 
 ### process(node: Node, callback?: ProcessedNodeCallback): void
 

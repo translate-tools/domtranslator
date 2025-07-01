@@ -1,3 +1,5 @@
+import { isInViewport } from './isInViewport';
+
 export const isElementNode = (node: Node): node is Element =>
 	node.nodeType === Node.ELEMENT_NODE;
 export const isAttributeNode = (node: Node): node is Attr =>
@@ -58,3 +60,28 @@ export const configureTranslatableNodePredicate = (config: NodesFilterOptions = 
 		return !isNotTranslatable;
 	};
 };
+
+/**
+ * Calculate node priority for translate, the bigger number the important a node text
+ */
+export function getNodeImportanceScore(node: Node) {
+	let score = 0;
+
+	if (isAttributeNode(node)) {
+		score += 1;
+		const parent = node.ownerElement;
+		if (parent && isInViewport(parent)) {
+			// Attribute of visible element is important than text of non-visible element
+			score += 2;
+		}
+	} else if (isTextNode(node)) {
+		score += 2;
+		const parent = node.parentElement;
+		if (parent && isInViewport(parent)) {
+			// Text of visible element is most important node for translation
+			score += 2;
+		}
+	}
+
+	return score;
+}

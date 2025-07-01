@@ -1,14 +1,22 @@
 import { DOMProcessor, ProcessedNodeCallback, StateStorage } from './types';
-import { isInViewport } from './utils/isInViewport';
-import { isAttributeNode, isTextNode } from './utils/nodes';
+import { getNodeImportanceScore } from './utils/nodes';
 
-export type Translator = (text: string, priority: number) => Promise<string>;
+export type Translator = (text: string, score: number) => Promise<string>;
 
 export type NodeTranslationState = { originalText: string | null };
 
 export interface INodesTranslator
 	extends DOMProcessor,
 		StateStorage<NodeTranslationState> {}
+
+export type Config = {
+	/**
+	 * Function to score node importance
+	 * @param node Target node to score
+	 * @returns Score as number. The greater  - the important node are
+	 */
+	nodeImportanceScore?: (node: Node) => number;
+};
 
 interface NodeData {
 	/**
@@ -28,34 +36,10 @@ interface NodeData {
 	originalText: null | string;
 
 	/**
-	 * Priority to translate node. The bigger the faster will translate
+	 * Node importance score for translate scheduling purposes.
+	 * The greater the important node are and the faster should be translated
 	 */
-	priority: number;
-}
-
-/**
- * Calculate node priority for translate, the bigger number the importance text
- */
-function getNodePriority(node: Node) {
-	let score = 0;
-
-	if (isAttributeNode(node)) {
-		score += 1;
-		const parent = node.ownerElement;
-		if (parent && isInViewport(parent)) {
-			// Attribute of visible element is important than text of non-visible element
-			score += 2;
-		}
-	} else if (isTextNode(node)) {
-		score += 2;
-		const parent = node.parentElement;
-		if (parent && isInViewport(parent)) {
-			// Text of visible element is most important node for translation
-			score += 2;
-		}
-	}
-
-	return score;
+	importanceScore: number;
 }
 
 /**
@@ -68,7 +52,15 @@ export class NodesTranslator implements INodesTranslator {
 	private idCounter = 0;
 	private nodeStorage = new WeakMap<Node, NodeData>();
 
-	constructor(private readonly translateCallback: Translator) {}
+	private readonly config;
+	constructor(
+		private readonly translateCallback: Translator,
+		{ nodeImportanceScore = getNodeImportanceScore }: Config = {},
+	) {
+		this.config = {
+			nodeImportanceScore,
+		};
+	}
 
 	public has(node: Node) {
 		return this.nodeStorage.has(node);
@@ -102,7 +94,7 @@ export class NodesTranslator implements INodesTranslator {
 			id: this.idCounter++,
 			updateId: 1,
 			originalText: null,
-			priority: getNodePriority(node),
+			importanceScore: this.config.nodeImportanceScore(node),
 		});
 
 		this.translateNodeContent(node, callback);
@@ -147,19 +139,22 @@ export class NodesTranslator implements INodesTranslator {
 
 		const nodeId = nodeData.id;
 		const nodeContext = nodeData.updateId;
-		return this.translateCallback(node.nodeValue, nodeData.priority).then((text) => {
-			const actualNodeData = this.nodeStorage.get(node);
-			if (!actualNodeData || nodeId !== actualNodeData.id) {
-				return;
-			}
-			if (nodeContext !== actualNodeData.updateId) {
-				return;
-			}
+		return this.translateCallback(node.nodeValue, nodeData.importanceScore).then(
+			(text) => {
+				const actualNodeData = this.nodeStorage.get(node);
+				if (!actualNodeData || nodeId !== actualNodeData.id) {
+					return;
+				}
+				if (nodeContext !== actualNodeData.updateId) {
+					return;
+				}
 
-			actualNodeData.originalText = node.nodeValue !== null ? node.nodeValue : '';
-			node.nodeValue = text;
+				actualNodeData.originalText =
+					node.nodeValue !== null ? node.nodeValue : '';
+				node.nodeValue = text;
 
-			if (callback) callback(node);
-		});
+				if (callback) callback(node);
+			},
+		);
 	}
 }
