@@ -8,6 +8,18 @@
 		"type": "git",
 		"url": "https://github.com/translate-tools/domtranslator"
 	},
+	"keywords": [
+		"dom",
+		"translation",
+		"translate",
+		"languages",
+		"localization",
+		"internationalization",
+		"i18n",
+		"locale",
+		"intl",
+		"google"
+	],
 	"publishConfig": {
 		"access": "public"
 	},
