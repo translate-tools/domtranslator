@@ -1,5 +1,11 @@
 Simple and powerful DOM translator.
 
+![](https://img.shields.io/npm/l/domtranslator) [![](https://img.shields.io/npm/v/domtranslator.svg)](https://www.npmjs.com/package/domtranslator) ![](https://img.shields.io/bundlejs/size/domtranslator) [![](https://img.shields.io/github/contributors/translate-tools/domtranslator
+)](https://github.com/translate-tools/domtranslator/graphs/contributors)
+
+
+[![](https://primebits.org/badges/built-by.svg)](https://primebits.org)
+
 
 # About
 
