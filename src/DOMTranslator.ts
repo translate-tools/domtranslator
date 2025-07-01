@@ -8,7 +8,7 @@ export interface IDomTranslator extends DOMProcessor, StateStorage<NodeTranslati
 	restore(node: Node, callback?: (node: Node) => void): void;
 }
 
-export type Config = {
+type Config = {
 	/**
 	 * If is provided, nodes can be translated delayed - after intersect the viewport
 	 */

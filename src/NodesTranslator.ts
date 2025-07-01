@@ -9,7 +9,7 @@ export interface INodesTranslator
 	extends DOMProcessor,
 		StateStorage<NodeTranslationState> {}
 
-export type Config = {
+type Config = {
 	/**
 	 * Function to score node importance
 	 * @param node Target node to score
