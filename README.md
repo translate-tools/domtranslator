@@ -22,6 +22,10 @@ Some of key features
 
 Install with `npm install domtranslator`
 
+Check out [Live Demo](https://stackblitz.com/edit/vitejs-vite-sk32ryok?file=index.html) to see a real world usage example with a real translator.
+
+Simple example with dummy translator is
+
 ```js
 import {
   PersistentDOMTranslator,
