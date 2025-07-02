@@ -246,3 +246,14 @@ This feature is implemented with `MutationObserver` and protected against recurs
 ### constructor(readonly translator: IDomTranslator)
 
 Constructor expects instance of `DOMTranslator` or another object that implement its interface.
+
+
+# Support us
+
+[![](https://img.shields.io/github/stars/translate-tools/domtranslator)](https://github.com/translate-tools/domtranslator)
+
+This project follows a [FOSS principles](https://en.wikipedia.org/wiki/Free_and_open-source_software). If you like this package spread the word about it.
+
+Star repo on GitHub, share it on social media.
+
+You also may support a project with your contributions. Create issue or pull request in our repo.
