@@ -13,7 +13,7 @@ function tsCompilerFactory(outPath, settings) {
 		const tsProject = gulpTypescript.createProject('tsconfig.json', settings);
 
 		return gulp
-			.src(['src/**/!(*.test).{ts,tsx}'])
+			.src(['src/**/!(*.test).{ts,tsx}', '!src/**/__tests__/**'])
 			.pipe(gulpSourceMaps.init())
 			.pipe(tsProject())
 			.pipe(gulpSourceMaps.write('./sourcemaps'))
