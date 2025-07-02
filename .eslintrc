@@ -22,6 +22,14 @@
 		"plugin:import/warnings",
 		"plugin:import/typescript"
 	],
+	"settings": {
+		"import/resolver": {
+			"typescript": {
+				"alwaysTryTypes": true, // always try to resolve types under @types package
+				"project": "./tsconfig.json"
+			}
+		}
+	},
 	"rules": {
 		"import/no-useless-path-segments": [
 			"error",
