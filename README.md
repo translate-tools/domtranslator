@@ -18,11 +18,15 @@ Some of key features
 - Translation of web pages with dynamical changes is supported
 - Highly configurable design let you start translate any document in minutes
 
+Screenshot of [Live Demo][demo-url]
+
+[![](./assets/demo.png)][demo-url]
+
 # Usage
 
 Install with `npm install domtranslator`
 
-Check out [Live Demo](https://stackblitz.com/edit/vitejs-vite-sk32ryok?file=index.html) to see a real world usage example with a real translator.
+Check out [Live Demo][demo-url] to see a real world usage example with a real translator.
 
 Simple example with dummy translator is
 
@@ -257,3 +261,6 @@ This project follows a [FOSS principles](https://en.wikipedia.org/wiki/Free_and_
 Star repo on GitHub, share it on social media.
 
 You also may support a project with your contributions. Create issue or pull request in our repo.
+
+
+[demo-url]: https://stackblitz.com/edit/vitejs-vite-sk32ryok?file=index.html
