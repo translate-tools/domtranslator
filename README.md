@@ -35,7 +35,7 @@ import {
   PersistentDOMTranslator,
   DOMTranslator,
   NodesTranslator,
-  NodesIntersectionObserver
+  IntersectionDOMTranslationScheduler
 } from 'domtranslator';
 
 import { configureTranslatableNodePredicate } from 'domtranslator/utils/nodes';
@@ -50,9 +50,9 @@ const domTranslator = new PersistentDOMTranslator(
     // that is just adds a text prefix to original text
     new NodesTranslator(translator),
     {
-      // When `nodesIntersectionObserver` is provided, a lazy translation mode will be used.
+      // When `scheduler` is provided, a lazy translation mode will be used.
       // Nodes will be translated only when intersects a viewport
-      nodesIntersectionObserver: new NodesIntersectionObserver(),
+      scheduler: new IntersectionDOMTranslationScheduler(),
 
       // Filter will skip nodes that must not be translated
       filter: configureTranslatableNodePredicate({
@@ -212,7 +212,7 @@ export type Config = {
   /**
    * If is provided, nodes can be translated delayed - after intersect the viewport
    */
-  nodesIntersectionObserver?: NodesIntersectionObserver;
+  scheduler?: IntersectionDOMTranslationScheduler;
 
   /**
    * Determines which nodes should be translated
@@ -221,9 +221,9 @@ export type Config = {
 };
 ```
 
-When `nodesIntersectionObserver` option is provided, translation will be run in lazy mode that depends on implementation of `NodesIntersectionObserver`.
+When `scheduler` option is provided, translation will be run in lazy mode that depends on implementation of `IntersectionDOMTranslationScheduler`.
 
-You may provide instance of `NodesIntersectionObserver` to translate only nodes in browser viewport.
+You may provide instance of `IntersectionDOMTranslationScheduler` to translate only nodes in browser viewport.
 If node is out of viewport, it will be not translated automatically. Instead `IntersectionObserver` will start watch over node, and once it will intersect viewport, translation will be started.
 
 When `filter` option is provided, it will be called for each node and in case callback will return `false`, node will be not translated.

@@ -10,3 +10,8 @@ export interface StateStorage<S> {
 	has(node: Node): boolean;
 	getState(node: Node): S | null;
 }
+
+export interface DOMTranslationScheduler {
+	add(node: Node, callback: (node: Node) => void): void;
+	remove(node: Node): void;
+}

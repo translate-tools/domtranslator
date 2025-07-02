@@ -1,5 +1,5 @@
-import { isIntersectableNode } from './utils/isIntersectableNode';
-import { isAttributeNode, isElementNode } from './utils/nodes';
+import { isIntersectableNode } from './isIntersectableNode';
+import { isAttributeNode, isElementNode } from './nodes';
 
 type Callback = (node: Node) => void;
 

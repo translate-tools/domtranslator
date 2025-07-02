@@ -9,7 +9,7 @@ import {
 	translator,
 } from '../../__tests__/utils';
 import { DOMTranslator } from '../../DOMTranslator';
-import { NodesIntersectionObserver } from '../../NodesIntersectionObserver';
+import { IntersectionDOMTranslationScheduler } from '../../IntersectionDOMTranslationScheduler';
 import { NodesTranslator } from '../../NodesTranslator';
 import {
 	configureTranslatableNodePredicate,
@@ -47,8 +47,8 @@ describe('basic usage', () => {
 			const domTranslator = new PersistentDOMTranslator(
 				new DOMTranslator(new NodesTranslator(translator), {
 					filter: configureTranslatableNodePredicate(),
-					nodesIntersectionObserver: lazyTranslate
-						? new NodesIntersectionObserver()
+					scheduler: lazyTranslate
+						? new IntersectionDOMTranslationScheduler()
 						: undefined,
 				}),
 			);
@@ -98,8 +98,8 @@ describe('basic usage', () => {
 				const domTranslator = new PersistentDOMTranslator(
 					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate(filterOptions),
-						nodesIntersectionObserver: isLazyTranslation
-							? new NodesIntersectionObserver()
+						scheduler: isLazyTranslation
+							? new IntersectionDOMTranslationScheduler()
 							: undefined,
 					}),
 				);
@@ -121,8 +121,8 @@ describe('basic usage', () => {
 				const domTranslator = new PersistentDOMTranslator(
 					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate(filterOptions),
-						nodesIntersectionObserver: isLazyTranslation
-							? new NodesIntersectionObserver()
+						scheduler: isLazyTranslation
+							? new IntersectionDOMTranslationScheduler()
 							: undefined,
 					}),
 				);
@@ -182,8 +182,8 @@ describe('basic usage', () => {
 				const domTranslator = new PersistentDOMTranslator(
 					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate(filterOptions),
-						nodesIntersectionObserver: isLazyTranslation
-							? new NodesIntersectionObserver()
+						scheduler: isLazyTranslation
+							? new IntersectionDOMTranslationScheduler()
 							: undefined,
 					}),
 				);
@@ -242,8 +242,8 @@ describe('basic usage', () => {
 								'.custom-elements :checked',
 							],
 						}),
-						nodesIntersectionObserver: isLazyTranslation
-							? new NodesIntersectionObserver()
+						scheduler: isLazyTranslation
+							? new IntersectionDOMTranslationScheduler()
 							: undefined,
 					}),
 				);

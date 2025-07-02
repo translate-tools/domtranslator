@@ -1,6 +1,10 @@
-import { NodesIntersectionObserver } from './NodesIntersectionObserver';
 import { NodeTranslationState } from './NodesTranslator';
-import { DOMProcessor, ProcessedNodeCallback, StateStorage } from './types';
+import {
+	DOMProcessor,
+	DOMTranslationScheduler,
+	ProcessedNodeCallback,
+	StateStorage,
+} from './types';
 import { isElementNode } from './utils/nodes';
 import { visitWholeTree } from './utils/visitWholeTree';
 
@@ -12,7 +16,7 @@ type Config = {
 	/**
 	 * If is provided, nodes can be translated delayed - after intersect the viewport
 	 */
-	nodesIntersectionObserver?: NodesIntersectionObserver;
+	scheduler?: DOMTranslationScheduler;
 
 	/**
 	 * Determines which nodes should be translated
@@ -37,21 +41,21 @@ export class DOMTranslator implements IDomTranslator {
 	 * @param callback - Fires for each node, once it has been translated. Target node is passed as first argument
 	 */
 	public process(node: Node, callback?: ProcessedNodeCallback) {
-		const { nodesIntersectionObserver, filter } = this.config;
+		const { scheduler, filter } = this.config;
 
 		// Handle text nodes and attributes
 		const translate = (node: Node) => {
 			if (filter && !filter(node)) return;
 
 			// translate later if possible
-			if (nodesIntersectionObserver) {
+			if (scheduler) {
 				// Check that the node is attached to the DOM. This means the node is accessible by traversing the current DOM
 				// This check is necessary to avoid lazy translation for nodes that are detached from the DOM,
 				// since they potentially may never intersect with the viewport
 
 				const isAttachedToDOM = node.getRootNode() !== node;
 				if (isAttachedToDOM) {
-					nodesIntersectionObserver.observe(node, (node) => {
+					scheduler.add(node, (node) => {
 						this.nodesProcessor.process(node, callback);
 					});
 					return;
@@ -79,11 +83,11 @@ export class DOMTranslator implements IDomTranslator {
 	 * @param callback - Fires for each node, once it has been restored. Target node is passed as first argument
 	 */
 	public restore(node: Node, callback?: (node: Node) => void) {
-		const { nodesIntersectionObserver } = this.config;
+		const { scheduler } = this.config;
 
 		const restore = (node: Node) => {
-			if (nodesIntersectionObserver) {
-				nodesIntersectionObserver.unobserve(node);
+			if (scheduler) {
+				scheduler.remove(node);
 			}
 
 			this.nodesProcessor.restore(node);
