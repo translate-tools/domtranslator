@@ -35,7 +35,7 @@ import {
   PersistentDOMTranslator,
   DOMTranslator,
   NodesTranslator,
-  IntersectionDOMTranslationScheduler
+  IntersectionScheduler
 } from 'domtranslator';
 
 import { configureTranslatableNodePredicate } from 'domtranslator/utils/nodes';
@@ -52,7 +52,7 @@ const domTranslator = new PersistentDOMTranslator(
     {
       // When `scheduler` is provided, a lazy translation mode will be used.
       // Nodes will be translated only when intersects a viewport
-      scheduler: new IntersectionDOMTranslationScheduler(),
+      scheduler: new IntersectionScheduler(),
 
       // Filter will skip nodes that must not be translated
       filter: configureTranslatableNodePredicate({
@@ -212,7 +212,7 @@ export type Config = {
   /**
    * If is provided, nodes can be translated delayed - after intersect the viewport
    */
-  scheduler?: IntersectionDOMTranslationScheduler;
+  scheduler?: IntersectionScheduler;
 
   /**
    * Determines which nodes should be translated
@@ -221,9 +221,9 @@ export type Config = {
 };
 ```
 
-When `scheduler` option is provided, translation will be run in lazy mode that depends on implementation of `IntersectionDOMTranslationScheduler`.
+When `scheduler` option is provided, translation will be run in lazy mode that depends on implementation of `IntersectionScheduler`.
 
-You may provide instance of `IntersectionDOMTranslationScheduler` to translate only nodes in browser viewport.
+You may provide instance of `IntersectionScheduler` to translate only nodes in browser viewport.
 If node is out of viewport, it will be not translated automatically. Instead `IntersectionObserver` will start watch over node, and once it will intersect viewport, translation will be started.
 
 When `filter` option is provided, it will be called for each node and in case callback will return `false`, node will be not translated.

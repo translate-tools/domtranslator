@@ -6,7 +6,7 @@ import {
 	translator,
 } from './__tests__/utils';
 import { DOMTranslator } from './DOMTranslator';
-import { IntersectionDOMTranslationScheduler } from './IntersectionDOMTranslationScheduler';
+import { IntersectionScheduler } from './IntersectionScheduler';
 import { NodesTranslator } from './NodesTranslator';
 
 require('intersection-observer');
@@ -23,7 +23,7 @@ describe('Translate node in lazy-translation mode', () => {
 	test('immediately translates non-intersecting node', async () => {
 		const translationDispatcher = new DOMTranslator(new NodesTranslator(translator), {
 			filter: isTranslatableNode,
-			scheduler: new IntersectionDOMTranslationScheduler(),
+			scheduler: new IntersectionScheduler(),
 		});
 
 		// OPTION node is not intersectable; it cannot be translated later
@@ -46,7 +46,7 @@ describe('Translate node in lazy-translation mode', () => {
 	test('immediately translates node not attached to document.body', async () => {
 		const translationDispatcher = new DOMTranslator(new NodesTranslator(translator), {
 			filter: isTranslatableNode,
-			scheduler: new IntersectionDOMTranslationScheduler(),
+			scheduler: new IntersectionScheduler(),
 		});
 
 		// div not attached to body, it cannot be translated later
@@ -65,7 +65,7 @@ describe('Translate node in lazy-translation mode', () => {
 	test('immediately translates node inside shadow DOM', async () => {
 		const translationDispatcher = new DOMTranslator(new NodesTranslator(translator), {
 			filter: isTranslatableNode,
-			scheduler: new IntersectionDOMTranslationScheduler(),
+			scheduler: new IntersectionScheduler(),
 		});
 
 		// The element nested inside a shadow element is not directly attached to document.body
@@ -92,7 +92,7 @@ describe('Translate node in lazy-translation mode', () => {
 test('Translates and restores the element and its child elements', async () => {
 	const translationDispatcher = new DOMTranslator(new NodesTranslator(translator), {
 		filter: isTranslatableNode,
-		scheduler: new IntersectionDOMTranslationScheduler(),
+		scheduler: new IntersectionScheduler(),
 	});
 
 	const div1 = document.createElement('div');
@@ -120,7 +120,7 @@ test('Callback is called after the node is restored', async () => {
 	const callback = vi.fn();
 	const translationDispatcher = new DOMTranslator(new NodesTranslator(translator), {
 		filter: isTranslatableNode,
-		scheduler: new IntersectionDOMTranslationScheduler(),
+		scheduler: new IntersectionScheduler(),
 	});
 
 	const div = document.createElement('div');
@@ -143,7 +143,7 @@ test('Does not translate ignored node', async () => {
 	const filter = (node: Node) => node.nodeName !== 'title';
 	const translationDispatcher = new DOMTranslator(new NodesTranslator(translator), {
 		filter,
-		scheduler: new IntersectionDOMTranslationScheduler(),
+		scheduler: new IntersectionScheduler(),
 	});
 
 	const div = document.createElement('div');

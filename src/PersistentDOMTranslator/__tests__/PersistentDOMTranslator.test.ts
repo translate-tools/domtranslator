@@ -9,7 +9,7 @@ import {
 	translator,
 } from '../../__tests__/utils';
 import { DOMTranslator } from '../../DOMTranslator';
-import { IntersectionDOMTranslationScheduler } from '../../IntersectionDOMTranslationScheduler';
+import { IntersectionScheduler } from '../../IntersectionScheduler';
 import { NodesTranslator } from '../../NodesTranslator';
 import {
 	configureTranslatableNodePredicate,
@@ -47,9 +47,7 @@ describe('basic usage', () => {
 			const domTranslator = new PersistentDOMTranslator(
 				new DOMTranslator(new NodesTranslator(translator), {
 					filter: configureTranslatableNodePredicate(),
-					scheduler: lazyTranslate
-						? new IntersectionDOMTranslationScheduler()
-						: undefined,
+					scheduler: lazyTranslate ? new IntersectionScheduler() : undefined,
 				}),
 			);
 			domTranslator.observe(document.documentElement);
@@ -99,7 +97,7 @@ describe('basic usage', () => {
 					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate(filterOptions),
 						scheduler: isLazyTranslation
-							? new IntersectionDOMTranslationScheduler()
+							? new IntersectionScheduler()
 							: undefined,
 					}),
 				);
@@ -122,7 +120,7 @@ describe('basic usage', () => {
 					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate(filterOptions),
 						scheduler: isLazyTranslation
-							? new IntersectionDOMTranslationScheduler()
+							? new IntersectionScheduler()
 							: undefined,
 					}),
 				);
@@ -183,7 +181,7 @@ describe('basic usage', () => {
 					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate(filterOptions),
 						scheduler: isLazyTranslation
-							? new IntersectionDOMTranslationScheduler()
+							? new IntersectionScheduler()
 							: undefined,
 					}),
 				);
@@ -243,7 +241,7 @@ describe('basic usage', () => {
 							],
 						}),
 						scheduler: isLazyTranslation
-							? new IntersectionDOMTranslationScheduler()
+							? new IntersectionScheduler()
 							: undefined,
 					}),
 				);

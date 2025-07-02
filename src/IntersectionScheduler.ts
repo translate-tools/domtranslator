@@ -1,7 +1,7 @@
 import { DOMTranslationScheduler } from './types';
 import { NodesIntersectionObserver } from './utils/NodesIntersectionObserver';
 
-export class IntersectionDOMTranslationScheduler implements DOMTranslationScheduler {
+export class IntersectionScheduler implements DOMTranslationScheduler {
 	private readonly intersectionObserver;
 	constructor(intersectionConfig?: IntersectionObserverInit) {
 		this.intersectionObserver = new NodesIntersectionObserver(intersectionConfig);
