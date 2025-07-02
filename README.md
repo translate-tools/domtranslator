@@ -212,7 +212,7 @@ export type Config = {
   /**
    * If is provided, nodes can be translated delayed - after intersect the viewport
    */
-  scheduler?: IntersectionScheduler;
+  scheduler?: DOMTranslationScheduler;
 
   /**
    * Determines which nodes should be translated
@@ -221,7 +221,7 @@ export type Config = {
 };
 ```
 
-When `scheduler` option is provided, translation will be run in lazy mode that depends on implementation of `IntersectionScheduler`.
+When `scheduler` option is provided, translation will be run in lazy mode that depends on implementation of `DOMTranslationScheduler`.
 
 You may provide instance of `IntersectionScheduler` to translate only nodes in browser viewport.
 If node is out of viewport, it will be not translated automatically. Instead `IntersectionObserver` will start watch over node, and once it will intersect viewport, translation will be started.
