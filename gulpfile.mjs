@@ -4,6 +4,7 @@ import cleanPackageJson from 'gulp-clean-package';
 import gulpSourceMaps from 'gulp-sourcemaps';
 import gulpTypescript from 'gulp-typescript';
 import mergeStream from 'merge-stream';
+import path from 'path';
 
 const buildDir = 'dist';
 
@@ -46,13 +47,16 @@ function buildESM() {
 
 function copyMetaFiles() {
 	return mergeStream(
-		// Clean package.json
-		gulp
-			.src(['./package.json'])
-			.pipe(cleanPackageJson({ publicProperties: ['publishConfig'] })),
-		// Copy other
-		gulp.src(['README.md', 'LICENSE']),
-	).pipe(gulp.dest(buildDir));
+		mergeStream(
+			// Clean package.json
+			gulp
+				.src(['./package.json'])
+				.pipe(cleanPackageJson({ publicProperties: ['publishConfig'] })),
+			// Copy other
+			gulp.src(['README.md', 'LICENSE']),
+		).pipe(gulp.dest(buildDir)),
+		gulp.src('assets/*', { encoding: false }).pipe(gulp.dest(path.join(buildDir, 'assets'))),
+	);
 }
 
 function clean() {
