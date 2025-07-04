@@ -80,18 +80,18 @@ const domTranslator = new PersistentDOMTranslator(
 );
 
 // You may translate whole document
-domTranslator.observe(document.documentElement);
+domTranslator.translate(document.documentElement);
 
 // Or just few elements
-// domTranslator.observe(document.querySelector('#widget1'));
-// domTranslator.observe(document.querySelector('#widget2'));
-// domTranslator.observe(document.querySelector('#widget3'));
+// domTranslator.translate(document.querySelector('#widget1'));
+// domTranslator.translate(document.querySelector('#widget2'));
+// domTranslator.translate(document.querySelector('#widget3'));
 
 // You may disable translation for any element, and restore its original text
-domTranslator.unobserve(document.documentElement);
+domTranslator.restore(document.documentElement);
 
 // Or for specific element
-// domTranslator.unobserve(document.querySelector('#widget2'));
+// domTranslator.restore(document.querySelector('#widget2'));
 ```
 
 So if you would run this code against next HTML document

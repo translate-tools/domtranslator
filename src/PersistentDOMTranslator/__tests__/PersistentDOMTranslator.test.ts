@@ -44,19 +44,19 @@ describe('basic usage', () => {
 			const parsedHTML = document.documentElement.outerHTML;
 
 			// Translate document
-			const domTranslator = new PersistentDOMTranslator(
+			const persistentTranslator = new PersistentDOMTranslator(
 				new DOMTranslator(new NodesTranslator(translator), {
 					filter: configureTranslatableNodePredicate(),
 					scheduler: lazyTranslate ? new IntersectionScheduler() : undefined,
 				}),
 			);
-			domTranslator.observe(document.documentElement);
+			persistentTranslator.translate(document.documentElement);
 
 			await awaitTranslation();
 			expect(document.documentElement.outerHTML).toMatchSnapshot();
 
 			// Disable translation
-			domTranslator.unobserve(document.documentElement);
+			persistentTranslator.restore(document.documentElement);
 			expect(document.documentElement.outerHTML).toBe(parsedHTML);
 		});
 	});
@@ -93,7 +93,7 @@ describe('basic usage', () => {
 				const parsedHTML = document.documentElement.outerHTML;
 
 				// Translate document
-				const domTranslator = new PersistentDOMTranslator(
+				const persistentTranslator = new PersistentDOMTranslator(
 					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate(filterOptions),
 						scheduler: isLazyTranslation
@@ -102,13 +102,13 @@ describe('basic usage', () => {
 					}),
 				);
 
-				domTranslator.observe(document.documentElement);
+				persistentTranslator.translate(document.documentElement);
 
 				await awaitTranslation();
 				expect(document.documentElement.outerHTML).toMatchSnapshot();
 
 				// Disable translation
-				domTranslator.unobserve(document.documentElement);
+				persistentTranslator.restore(document.documentElement);
 				expect(document.documentElement.outerHTML).toBe(parsedHTML);
 			});
 
@@ -116,7 +116,7 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new PersistentDOMTranslator(
+				const persistentTranslator = new PersistentDOMTranslator(
 					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate(filterOptions),
 						scheduler: isLazyTranslation
@@ -124,7 +124,7 @@ describe('basic usage', () => {
 							: undefined,
 					}),
 				);
-				domTranslator.observe(document.documentElement);
+				persistentTranslator.translate(document.documentElement);
 
 				await awaitTranslation();
 
@@ -160,7 +160,7 @@ describe('basic usage', () => {
 				}
 
 				// Disable translation
-				domTranslator.unobserve(document.documentElement);
+				persistentTranslator.restore(document.documentElement);
 				expect(div1.innerHTML).not.toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 				if (elmA !== null) {
@@ -177,7 +177,7 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new PersistentDOMTranslator(
+				const persistentTranslator = new PersistentDOMTranslator(
 					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate(filterOptions),
 						scheduler: isLazyTranslation
@@ -193,8 +193,8 @@ describe('basic usage', () => {
 				if (!pElm || !form || !figure)
 					throw new Error('Not found elements for test');
 
-				domTranslator.observe(form);
-				domTranslator.observe(figure);
+				persistentTranslator.translate(form);
+				persistentTranslator.translate(figure);
 
 				await awaitTranslation();
 
@@ -203,25 +203,25 @@ describe('basic usage', () => {
 				expect(getElementText(form)).toContain(TRANSLATION_SYMBOL);
 
 				// Disable translation
-				domTranslator.unobserve(form);
+				persistentTranslator.restore(form);
 				expect(getElementText(form)).not.toContain(TRANSLATION_SYMBOL);
 				expect(getElementText(figure)).toContain(TRANSLATION_SYMBOL);
 
-				domTranslator.unobserve(figure);
+				persistentTranslator.restore(figure);
 				expect(getElementText(form)).not.toContain(TRANSLATION_SYMBOL);
 				expect(getElementText(figure)).not.toContain(TRANSLATION_SYMBOL);
 
 				// Enable translation back
-				domTranslator.observe(form);
-				domTranslator.observe(figure);
+				persistentTranslator.translate(form);
+				persistentTranslator.translate(figure);
 				await awaitTranslation();
 
 				expect(getElementText(figure)).toContain(TRANSLATION_SYMBOL);
 				expect(getElementText(form)).toContain(TRANSLATION_SYMBOL);
 
 				// Disable translation for all elements
-				domTranslator.unobserve(form);
-				domTranslator.unobserve(figure);
+				persistentTranslator.restore(form);
+				persistentTranslator.restore(figure);
 				expect(getElementText(form)).not.toContain(TRANSLATION_SYMBOL);
 				expect(getElementText(figure)).not.toContain(TRANSLATION_SYMBOL);
 			});
@@ -230,7 +230,7 @@ describe('basic usage', () => {
 				fillDocument(sample);
 
 				// Translate document
-				const domTranslator = new PersistentDOMTranslator(
+				const persistentTranslator = new PersistentDOMTranslator(
 					new DOMTranslator(new NodesTranslator(translator), {
 						filter: configureTranslatableNodePredicate({
 							...filterOptions,
@@ -246,7 +246,7 @@ describe('basic usage', () => {
 					}),
 				);
 
-				domTranslator.observe(document.documentElement);
+				persistentTranslator.translate(document.documentElement);
 
 				await awaitTranslation();
 
@@ -275,7 +275,7 @@ describe('basic usage', () => {
 				expect(document.documentElement.outerHTML).toMatchSnapshot();
 
 				// Disable translation
-				domTranslator.unobserve(document.documentElement);
+				persistentTranslator.restore(document.documentElement);
 			});
 		},
 	),

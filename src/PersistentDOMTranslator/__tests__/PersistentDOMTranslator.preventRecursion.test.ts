@@ -16,7 +16,7 @@ beforeEach(() => {
 
 test('Translation of node does not trigger recursive translation', async () => {
 	const translationSpy = vi.fn(translator);
-	const nodesTranslator = new PersistentDOMTranslator(
+	const persistentTranslator = new PersistentDOMTranslator(
 		new DOMTranslator(new NodesTranslator(translationSpy)),
 	);
 
@@ -24,7 +24,7 @@ test('Translation of node does not trigger recursive translation', async () => {
 	div.textContent = 'Simple text';
 	document.body.appendChild(div);
 
-	nodesTranslator.observe(div);
+	persistentTranslator.translate(div);
 	await awaitTranslation();
 	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
@@ -35,7 +35,7 @@ test('Translation of node does not trigger recursive translation', async () => {
 
 test('Updating a node does not trigger recursive translation', async () => {
 	const translationSpy = vi.fn(translator);
-	const nodesTranslator = new PersistentDOMTranslator(
+	const persistentTranslator = new PersistentDOMTranslator(
 		new DOMTranslator(new NodesTranslator(translationSpy)),
 	);
 
@@ -43,7 +43,7 @@ test('Updating a node does not trigger recursive translation', async () => {
 	div.setAttribute('title', 'title text');
 	document.body.appendChild(div);
 
-	nodesTranslator.observe(div);
+	persistentTranslator.translate(div);
 	await awaitTranslation();
 	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
@@ -65,7 +65,7 @@ test('Updating a node does not trigger recursive translation', async () => {
 
 test('Changed nodes do not trigger recursive translation', async () => {
 	const translationSpy = vi.fn(translator);
-	const nodesTranslator = new PersistentDOMTranslator(
+	const persistentTranslator = new PersistentDOMTranslator(
 		new DOMTranslator(new NodesTranslator(translationSpy)),
 	);
 
@@ -73,7 +73,7 @@ test('Changed nodes do not trigger recursive translation', async () => {
 	const parentDiv = document.createElement('div');
 	document.body.appendChild(parentDiv);
 
-	nodesTranslator.observe(parentDiv);
+	persistentTranslator.translate(parentDiv);
 	await awaitTranslation();
 
 	expect(translationSpy).toBeCalledTimes(0);

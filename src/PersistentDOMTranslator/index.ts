@@ -13,7 +13,7 @@ export class PersistentDOMTranslator {
 	private readonly mutatedNodes = new WeakSet<Node>();
 
 	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
-	public observe(node: Element) {
+	public translate(node: Element) {
 		if (this.observedNodesStorage.has(node)) {
 			throw new Error('Node already under observe');
 		}
@@ -68,7 +68,7 @@ export class PersistentDOMTranslator {
 		this.translator.translate(node, (node: Node) => this.mutatedNodes.add(node));
 	}
 
-	public unobserve(node: Element) {
+	public restore(node: Element) {
 		if (!this.observedNodesStorage.has(node)) {
 			throw new Error('Node is not under observe');
 		}
