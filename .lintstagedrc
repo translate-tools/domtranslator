@@ -4,8 +4,7 @@
 		"eslint --fix"
 	],
 	"*.{md,mdx}": [
-		"prettier --write --parser markdown",
-		"textlint --fix"
+		"prettier --write --parser markdown"
 	],
 	"*.json": [
 		"prettier --write --parser json"

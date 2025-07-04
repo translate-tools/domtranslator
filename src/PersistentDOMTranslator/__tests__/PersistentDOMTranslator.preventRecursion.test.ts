@@ -1,42 +1,30 @@
-import { DOMNodesTranslator } from '../DOMNodesTranslator';
-import { TranslationDispatcher } from '../TranslationDispatcher';
 import {
 	awaitTranslation,
 	startsWithRegex,
 	TRANSLATION_SYMBOL,
 	translator,
-} from './utils';
-import { NodesTranslator, TranslatorInterface } from '..';
+} from '../../__tests__/utils';
+import { DOMTranslator } from '../../DOMTranslator';
+import { NodesTranslator } from '../../NodesTranslator';
+
+import { PersistentDOMTranslator } from '../..';
 
 beforeEach(() => {
 	document.body.innerHTML = '';
 	vi.clearAllMocks();
 });
 
-function buildTranslationServices(translator: TranslatorInterface) {
-	const translationSpy = vi.fn(translator);
-
-	const domNodeTranslator = new DOMNodesTranslator(translationSpy);
-	const dispatcher = new TranslationDispatcher({
-		filter: () => true,
-		nodesTranslator: domNodeTranslator,
-	});
-	const nodesTranslator = new NodesTranslator({
-		dispatcher,
-		nodesTranslator: domNodeTranslator,
-	});
-
-	return { nodesTranslator, translationSpy };
-}
-
 test('Translation of node does not trigger recursive translation', async () => {
-	const { nodesTranslator, translationSpy } = buildTranslationServices(translator);
+	const translationSpy = vi.fn(translator);
+	const persistentTranslator = new PersistentDOMTranslator(
+		new DOMTranslator(new NodesTranslator(translationSpy)),
+	);
 
 	const div = document.createElement('div');
 	div.textContent = 'Simple text';
 	document.body.appendChild(div);
 
-	nodesTranslator.observe(div);
+	persistentTranslator.translate(div);
 	await awaitTranslation();
 	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
@@ -46,13 +34,16 @@ test('Translation of node does not trigger recursive translation', async () => {
 });
 
 test('Updating a node does not trigger recursive translation', async () => {
-	const { nodesTranslator, translationSpy } = buildTranslationServices(translator);
+	const translationSpy = vi.fn(translator);
+	const persistentTranslator = new PersistentDOMTranslator(
+		new DOMTranslator(new NodesTranslator(translationSpy)),
+	);
 
 	const div = document.createElement('div');
 	div.setAttribute('title', 'title text');
 	document.body.appendChild(div);
 
-	nodesTranslator.observe(div);
+	persistentTranslator.translate(div);
 	await awaitTranslation();
 	expect(div.getAttribute('title')).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
@@ -73,13 +64,16 @@ test('Updating a node does not trigger recursive translation', async () => {
 });
 
 test('Changed nodes do not trigger recursive translation', async () => {
-	const { nodesTranslator, translationSpy } = buildTranslationServices(translator);
+	const translationSpy = vi.fn(translator);
+	const persistentTranslator = new PersistentDOMTranslator(
+		new DOMTranslator(new NodesTranslator(translationSpy)),
+	);
 
 	// create parent node
 	const parentDiv = document.createElement('div');
 	document.body.appendChild(parentDiv);
 
-	nodesTranslator.observe(parentDiv);
+	persistentTranslator.translate(parentDiv);
 	await awaitTranslation();
 
 	expect(translationSpy).toBeCalledTimes(0);

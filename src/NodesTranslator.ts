@@ -1,106 +1,160 @@
-import { XMutationObserver } from './lib/XMutationObserver';
-import { TranslationDispatcher } from './TranslationDispatcher';
-import { DOMNodesTranslator } from '.';
+import { DOMTranslationDispatcher, ProcessedNodeCallback, StateStorage } from './types';
+import { getNodeImportanceScore } from './utils/nodes';
 
-// TODO: consider local language definitions (and implement `from`, `to` parameters for translator to specify default or locale languages)
-// TODO: scan nodes lazy - defer scan to `requestIdleCallback` instead of instant scan
-// TODO: describe nodes life cycle
+export type Translator = (text: string, score: number) => Promise<string>;
+
+export type NodeTranslationState = { originalText: string | null };
+
+export interface INodesTranslator
+	extends DOMTranslationDispatcher,
+		StateStorage<NodeTranslationState> {}
+
+type Config = {
+	/**
+	 * Function to score node importance
+	 * @param node Target node to score
+	 * @returns Score as number. The greater  - the important node are
+	 */
+	nodeImportanceScore?: (node: Node) => number;
+};
+
+interface NodeData {
+	/**
+	 * Unique node identifier
+	 */
+	id: number;
+
+	/**
+	 * Each node update should increase the value
+	 */
+	updateId: number;
+
+	/**
+	 * Original node text, before start translation
+	 * Contains `null` for node that not been translated yet
+	 */
+	originalText: null | string;
+
+	/**
+	 * Node importance score for translate scheduling purposes.
+	 * The greater the important node are and the faster should be translated
+	 */
+	importanceScore: number;
+}
 
 /**
- * Module for dynamic translate a DOM nodes
+ * Manages translation state of DOM nodes.
+ *
+ * Class is purposed for translate primitive nodes.
+ * It manages only node values itself, with no recursive processing nested nodes.
  */
-export class NodesTranslator {
-	private readonly dispatcher;
-	private readonly nodesTranslator;
+export class NodesTranslator implements INodesTranslator {
+	private idCounter = 0;
+	private nodeStorage = new WeakMap<Node, NodeData>();
 
-	constructor({
-		dispatcher,
-		nodesTranslator,
-	}: {
-		dispatcher: TranslationDispatcher;
-		nodesTranslator: DOMNodesTranslator;
-	}) {
-		this.dispatcher = dispatcher;
-		this.nodesTranslator = nodesTranslator;
+	private readonly config;
+	constructor(
+		private readonly translateCallback: Translator,
+		{ nodeImportanceScore = getNodeImportanceScore }: Config = {},
+	) {
+		this.config = {
+			nodeImportanceScore,
+		};
 	}
 
-	// Stores nodes mutated as a result of translation
-	// used to prevent handling mutation events triggered by our own translations
-	private readonly mutatedNodes = new WeakSet<Node>();
+	public has(node: Node) {
+		return this.nodeStorage.has(node);
+	}
 
-	private readonly observedNodesStorage = new Map<Element, XMutationObserver>();
-	public observe(node: Element) {
-		if (this.observedNodesStorage.has(node)) {
-			throw new Error('Node already under observe');
+	public getState(node: Node) {
+		const nodeData = this.nodeStorage.get(node);
+		if (!nodeData) return null;
+
+		const { originalText } = nodeData;
+		return { originalText };
+	}
+
+	/**
+	 * Translates nodes that contain text (e.g., Text, Attr)
+	 * After translation calls the callback with the translated node
+	 */
+	public translate = (node: Node, callback?: ProcessedNodeCallback) => {
+		if (this.has(node)) throw new Error('This node has already been translated');
+
+		if (node.nodeType !== Node.ATTRIBUTE_NODE && node.nodeType !== Node.TEXT_NODE) {
+			throw new Error(
+				'Cannot translate node: only Text and Attr nodes are supported',
+			);
 		}
 
-		// Observe node and children changes
-		const observer = new XMutationObserver();
-		this.observedNodesStorage.set(node, observer);
+		// Skip empty text
+		if (node.nodeValue === null || node.nodeValue.trim().length == 0) return;
 
-		observer.addHandler('elementAdded', ({ target }) => {
-			if (this.dispatcher.hasNode(target)) return;
-			this.dispatcher.translateNode(target, (node: Node) =>
-				this.mutatedNodes.add(node),
-			);
-		});
-		observer.addHandler('elementRemoved', ({ target }) => {
-			this.dispatcher.restoreNode(target);
-		});
-		observer.addHandler('characterData', ({ target }) => {
-			// skip this update if it was triggered by the translation itself
-			if (this.mutatedNodes.has(target)) {
-				this.mutatedNodes.delete(target);
-				return;
-			}
-			this.dispatcher.updateNode(target, (node: Node) =>
-				this.mutatedNodes.add(node),
-			);
-		});
-		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
-			if (!attributeName || !(target instanceof Element)) return;
-
-			const attribute = target.attributes.getNamedItem(attributeName);
-			if (attribute === null) return;
-
-			// skip this update if it was triggered by the translation itself
-			if (this.mutatedNodes.has(attribute)) {
-				this.mutatedNodes.delete(attribute);
-				return;
-			}
-
-			// NOTE: If need delete untracked nodes, we should keep relates like Element -> attributes
-			if (this.dispatcher.hasNode(attribute)) {
-				this.dispatcher.updateNode(attribute, (node: Node) =>
-					this.mutatedNodes.add(node),
-				);
-				return;
-			}
-			this.dispatcher.translateNode(attribute, (node: Node) =>
-				this.mutatedNodes.add(node),
-			);
+		this.nodeStorage.set(node, {
+			id: this.idCounter++,
+			updateId: 1,
+			originalText: null,
+			importanceScore: this.config.nodeImportanceScore(node),
 		});
 
-		observer.observe(node);
+		this.translateNodeContent(node, callback);
+	};
 
-		this.dispatcher.translateNode(node, (node: Node) => this.mutatedNodes.add(node));
+	/**
+	 * Restores the original node text
+	 */
+	public restore(node: Node) {
+		const nodeData = this.nodeStorage.get(node);
+		if (!nodeData) return;
+
+		if (nodeData.originalText !== null) {
+			node.nodeValue = nodeData.originalText;
+		}
+		this.nodeStorage.delete(node);
 	}
 
-	public unobserve(node: Element) {
-		if (!this.observedNodesStorage.has(node)) {
-			throw new Error('Node is not under observe');
+	/**
+	 * Translates node after it has been modified
+	 * After translation calls the callback with the translated node
+	 */
+	public update(node: Node, callback?: ProcessedNodeCallback) {
+		const nodeData = this.nodeStorage.get(node);
+		if (!nodeData)
+			throw new Error('Node cannot be updated because it was never translated');
+
+		nodeData.updateId++;
+		this.translateNodeContent(node, callback);
+	}
+
+	/**
+	 * Call only for new and updated nodes
+	 */
+	private translateNodeContent(node: Node, callback?: ProcessedNodeCallback) {
+		const nodeData = this.nodeStorage.get(node);
+		if (!nodeData) {
+			throw new Error('Node is not register');
 		}
 
-		// mutatedNodes may include nodes from multiple observed tree elements — remove only those belonging to the unobserved
-		// restoreNode calls the callback after restoring each node; the callback removes that node from mutatedNodes
-		this.dispatcher.restoreNode(node, (node) => {
-			this.mutatedNodes.delete(node);
-		});
-		this.observedNodesStorage.get(node)?.disconnect();
-		this.observedNodesStorage.delete(node);
-	}
+		if (node.nodeValue === null) return;
 
-	public getNodeData(node: Node) {
-		return this.nodesTranslator.getOriginalNodeText(node);
+		const nodeId = nodeData.id;
+		const nodeContext = nodeData.updateId;
+		return this.translateCallback(node.nodeValue, nodeData.importanceScore).then(
+			(text) => {
+				const actualNodeData = this.nodeStorage.get(node);
+				if (!actualNodeData || nodeId !== actualNodeData.id) {
+					return;
+				}
+				if (nodeContext !== actualNodeData.updateId) {
+					return;
+				}
+
+				actualNodeData.originalText =
+					node.nodeValue !== null ? node.nodeValue : '';
+				node.nodeValue = text;
+
+				if (callback) callback(node);
+			},
+		);
 	}
 }
