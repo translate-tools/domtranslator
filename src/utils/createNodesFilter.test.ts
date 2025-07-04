@@ -18,6 +18,7 @@ test('invalid selectors must be ignored', () => {
 
 	const filter = createNodesFilter({
 		ignoredSelectors: [';', '!', '3', '.card', '<'],
+		attributesList: ['class'],
 	});
 
 	expect(() => filter(img)).not.toThrow();
@@ -36,6 +37,7 @@ test('attributes on non-matched nodes is skipped', () => {
 
 	const filter = createNodesFilter({
 		ignoredSelectors: ['.card'],
+		attributesList: ['alt'],
 	});
 
 	expect(filter(img.getAttributeNode('alt') as Node)).toBe(false);
@@ -45,7 +47,7 @@ test('attributes on non-matched nodes is skipped', () => {
 	expect(filter(img)).toBe(false);
 });
 
-test('only attributes in list is match', () => {
+test('only attributes in list does match', () => {
 	const container = document.querySelector('.container') as HTMLElement;
 	const card = document.querySelector('.card') as HTMLElement;
 	const img = document.querySelector('.card img') as HTMLElement;
