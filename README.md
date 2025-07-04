@@ -140,7 +140,7 @@ import { NodesTranslator } from 'domtranslator';
 const nodesTranslator = new NodesTranslator(translator);
 
 const altAttr = document.querySelector('img').getAttribute('alt');
-nodesTranslator.process(altAttr);
+nodesTranslator.translate(altAttr);
 ```
 
 In this example we get `Attr` node of image and translate it.
@@ -157,7 +157,7 @@ Arguments passed to a callback is
 - `text` - a node text for translation
 - `score` - a measured importance score of node, based on its position in document, its content and context. The greater number - the more important node. This is optional parameter to use, if you need to schedule translating based on node importance score.
 
-### process(node: Node, callback?: ProcessedNodeCallback): void
+### translate(node: Node, callback?: ProcessedNodeCallback): void
 
 Method run node text translation.
 
@@ -169,7 +169,7 @@ This method may be called only once for one node, otherwise throws error.
 
 Method run translation for node text if node is already processed. Otherwise throws error.
 
-Works equal to `process` method.
+Works equal to `translate` method.
 
 ### restore(node: Node): void
 

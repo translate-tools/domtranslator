@@ -1,6 +1,6 @@
 import { NodeTranslationState } from './NodesTranslator';
 import {
-	DOMProcessor,
+	DOMTranslationDispatcher,
 	DOMTranslationScheduler,
 	ProcessedNodeCallback,
 	StateStorage,
@@ -8,7 +8,9 @@ import {
 import { isElementNode } from './utils/nodes';
 import { visitWholeTree } from './utils/visitWholeTree';
 
-export interface IDomTranslator extends DOMProcessor, StateStorage<NodeTranslationState> {
+export interface IDomTranslator
+	extends DOMTranslationDispatcher,
+		StateStorage<NodeTranslationState> {
 	restore(node: Node, callback?: (node: Node) => void): void;
 }
 
@@ -29,7 +31,8 @@ type Config = {
  */
 export class DOMTranslator implements IDomTranslator {
 	constructor(
-		readonly nodesProcessor: DOMProcessor & StateStorage<NodeTranslationState>,
+		readonly nodesTranslator: DOMTranslationDispatcher &
+			StateStorage<NodeTranslationState>,
 		readonly config: Config = {},
 	) {}
 
@@ -40,7 +43,7 @@ export class DOMTranslator implements IDomTranslator {
 	 *
 	 * @param callback - Fires for each node, once it has been translated. Target node is passed as first argument
 	 */
-	public process(node: Node, callback?: ProcessedNodeCallback) {
+	public translate(node: Node, callback?: ProcessedNodeCallback) {
 		const { scheduler, filter } = this.config;
 
 		// Handle text nodes and attributes
@@ -56,14 +59,14 @@ export class DOMTranslator implements IDomTranslator {
 				const isAttachedToDOM = node.getRootNode() !== node;
 				if (isAttachedToDOM) {
 					scheduler.add(node, (node) => {
-						this.nodesProcessor.process(node, callback);
+						this.nodesTranslator.translate(node, callback);
 					});
 					return;
 				}
 			}
 
 			// translate immediately
-			this.nodesProcessor.process(node, callback);
+			this.nodesTranslator.translate(node, callback);
 		};
 
 		// Translate all nodes which element contains (text nodes and attributes of current and inner elements)
@@ -90,7 +93,7 @@ export class DOMTranslator implements IDomTranslator {
 				scheduler.remove(node);
 			}
 
-			this.nodesProcessor.restore(node);
+			this.nodesTranslator.restore(node);
 
 			if (callback) callback(node);
 		};
@@ -112,14 +115,14 @@ export class DOMTranslator implements IDomTranslator {
 	 * @param callback - Called asynchronously with the translated node once the update is complete
 	 */
 	public update(node: Node, callback?: ProcessedNodeCallback) {
-		this.nodesProcessor.update(node, callback);
+		this.nodesTranslator.update(node, callback);
 	}
 
 	public has(node: Node) {
-		return this.nodesProcessor.has(node);
+		return this.nodesTranslator.has(node);
 	}
 
 	public getState(node: Node) {
-		return this.nodesProcessor.getState(node);
+		return this.nodesTranslator.getState(node);
 	}
 }

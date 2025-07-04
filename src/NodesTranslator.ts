@@ -1,4 +1,4 @@
-import { DOMProcessor, ProcessedNodeCallback, StateStorage } from './types';
+import { DOMTranslationDispatcher, ProcessedNodeCallback, StateStorage } from './types';
 import { getNodeImportanceScore } from './utils/nodes';
 
 export type Translator = (text: string, score: number) => Promise<string>;
@@ -6,7 +6,7 @@ export type Translator = (text: string, score: number) => Promise<string>;
 export type NodeTranslationState = { originalText: string | null };
 
 export interface INodesTranslator
-	extends DOMProcessor,
+	extends DOMTranslationDispatcher,
 		StateStorage<NodeTranslationState> {}
 
 type Config = {
@@ -78,7 +78,7 @@ export class NodesTranslator implements INodesTranslator {
 	 * Translates nodes that contain text (e.g., Text, Attr)
 	 * After translation calls the callback with the translated node
 	 */
-	public process = (node: Node, callback?: ProcessedNodeCallback) => {
+	public translate = (node: Node, callback?: ProcessedNodeCallback) => {
 		if (this.has(node)) throw new Error('This node has already been translated');
 
 		if (node.nodeType !== Node.ATTRIBUTE_NODE && node.nodeType !== Node.TEXT_NODE) {

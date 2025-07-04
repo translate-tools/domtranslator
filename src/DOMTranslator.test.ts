@@ -21,7 +21,7 @@ const isTranslatableNode = () => true;
 
 describe('Translate node in lazy-translation mode', () => {
 	test('immediately translates non-intersecting node', async () => {
-		const translationDispatcher = new DOMTranslator(new NodesTranslator(translator), {
+		const domTranslator = new DOMTranslator(new NodesTranslator(translator), {
 			filter: isTranslatableNode,
 			scheduler: new IntersectionScheduler(),
 		});
@@ -38,13 +38,13 @@ describe('Translate node in lazy-translation mode', () => {
 		mockBoundingClientRect(option, { width: 100, height: 100, x: 0, y: -1000 });
 
 		// the element is translated regardless of viewport intersection
-		translationDispatcher.process(select);
+		domTranslator.translate(select);
 		await awaitTranslation();
 		expect(option.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	});
 
 	test('immediately translates node not attached to document.body', async () => {
-		const translationDispatcher = new DOMTranslator(new NodesTranslator(translator), {
+		const domTranslator = new DOMTranslator(new NodesTranslator(translator), {
 			filter: isTranslatableNode,
 			scheduler: new IntersectionScheduler(),
 		});
@@ -57,13 +57,13 @@ describe('Translate node in lazy-translation mode', () => {
 		mockBoundingClientRect(div, { width: 100, height: 100, x: 0, y: -1000 });
 
 		// the element is translated regardless of viewport intersection
-		translationDispatcher.process(div);
+		domTranslator.translate(div);
 		await awaitTranslation();
 		expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	});
 
 	test('immediately translates node inside shadow DOM', async () => {
-		const translationDispatcher = new DOMTranslator(new NodesTranslator(translator), {
+		const domTranslator = new DOMTranslator(new NodesTranslator(translator), {
 			filter: isTranslatableNode,
 			scheduler: new IntersectionScheduler(),
 		});
@@ -83,14 +83,14 @@ describe('Translate node in lazy-translation mode', () => {
 		mockBoundingClientRect(div, { width: 100, height: 100, x: 0, y: -1000 });
 
 		// the element is translated regardless of viewport intersection
-		translationDispatcher.process(div);
+		domTranslator.translate(div);
 		await awaitTranslation();
 		expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	});
 });
 
 test('Translates and restores the element and its child elements', async () => {
-	const translationDispatcher = new DOMTranslator(new NodesTranslator(translator), {
+	const domTranslator = new DOMTranslator(new NodesTranslator(translator), {
 		filter: isTranslatableNode,
 		scheduler: new IntersectionScheduler(),
 	});
@@ -104,13 +104,13 @@ test('Translates and restores the element and its child elements', async () => {
 	div1.appendChild(div2);
 	document.body.appendChild(div1);
 
-	translationDispatcher.process(div1);
+	domTranslator.translate(div1);
 	await awaitTranslation();
 
 	expect(div1.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 	expect(div2.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
-	translationDispatcher.restore(div1);
+	domTranslator.restore(div1);
 	// check the text content of the element itself, because div1.textContent includes the text of child nodes
 	expect(div1.childNodes[0].textContent).toBe(text1);
 	expect(div2.childNodes[0].textContent).toBe(text2);
@@ -118,7 +118,7 @@ test('Translates and restores the element and its child elements', async () => {
 
 test('Callback is called after the node is restored', async () => {
 	const callback = vi.fn();
-	const translationDispatcher = new DOMTranslator(new NodesTranslator(translator), {
+	const domTranslator = new DOMTranslator(new NodesTranslator(translator), {
 		filter: isTranslatableNode,
 		scheduler: new IntersectionScheduler(),
 	});
@@ -129,19 +129,19 @@ test('Callback is called after the node is restored', async () => {
 	document.body.appendChild(div);
 
 	// translate
-	translationDispatcher.process(div);
+	domTranslator.translate(div);
 	await awaitTranslation();
 	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));
 
 	// restore
-	translationDispatcher.restore(div, callback);
+	domTranslator.restore(div, callback);
 	expect(div.textContent).toBe(text);
 	expect(callback.mock.calls).toEqual([[div.childNodes[0]]]);
 });
 
 test('Does not translate ignored node', async () => {
 	const filter = (node: Node) => node.nodeName !== 'title';
-	const translationDispatcher = new DOMTranslator(new NodesTranslator(translator), {
+	const domTranslator = new DOMTranslator(new NodesTranslator(translator), {
 		filter,
 		scheduler: new IntersectionScheduler(),
 	});
@@ -154,7 +154,7 @@ test('Does not translate ignored node', async () => {
 	div.setAttributeNode(attrNode);
 	document.body.appendChild(div);
 
-	translationDispatcher.process(div);
+	domTranslator.translate(div);
 	await awaitTranslation();
 
 	expect(div.textContent).toMatch(startsWithRegex(TRANSLATION_SYMBOL));

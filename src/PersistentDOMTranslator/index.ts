@@ -24,7 +24,9 @@ export class PersistentDOMTranslator {
 
 		observer.addHandler('elementAdded', ({ target }) => {
 			if (this.translator.has(target)) return;
-			this.translator.process(target, (node: Node) => this.mutatedNodes.add(node));
+			this.translator.translate(target, (node: Node) =>
+				this.mutatedNodes.add(node),
+			);
 		});
 		observer.addHandler('elementRemoved', ({ target }) => {
 			this.translator.restore(target);
@@ -56,14 +58,14 @@ export class PersistentDOMTranslator {
 				);
 				return;
 			}
-			this.translator.process(attribute, (node: Node) =>
+			this.translator.translate(attribute, (node: Node) =>
 				this.mutatedNodes.add(node),
 			);
 		});
 
 		observer.observe(node);
 
-		this.translator.process(node, (node: Node) => this.mutatedNodes.add(node));
+		this.translator.translate(node, (node: Node) => this.mutatedNodes.add(node));
 	}
 
 	public unobserve(node: Element) {

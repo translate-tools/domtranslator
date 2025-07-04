@@ -1,14 +1,14 @@
 export type ProcessedNodeCallback = (node: Node) => void;
 
-export interface DOMProcessor {
-	process(node: Node, callback?: ProcessedNodeCallback): void;
-	update(node: Node, callback?: ProcessedNodeCallback): void;
-	restore(node: Node): void;
-}
-
 export interface StateStorage<S> {
 	has(node: Node): boolean;
 	getState(node: Node): S | null;
+}
+
+export interface DOMTranslationDispatcher {
+	translate(node: Node, callback?: ProcessedNodeCallback): void;
+	update(node: Node, callback?: ProcessedNodeCallback): void;
+	restore(node: Node): void;
 }
 
 /**
