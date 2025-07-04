@@ -31,6 +31,10 @@ export type NodesFilterOptions = {
 	attributesList?: string[];
 };
 
+/**
+ * Configure and return a filter function for `Node` objects.
+ * Filter function returns `true` for nodes that match filter and `false` otherwise
+ */
 export const createNodesFilter = (config: NodesFilterOptions = {}) => {
 	const { ignoredSelectors = [] } = config;
 	const attributesList = new Set(config.attributesList);
@@ -53,7 +57,7 @@ export const createNodesFilter = (config: NodesFilterOptions = {}) => {
 
 		if (!nearestElement) return false;
 
-		const isNotTranslatable = ignoredSelectors.some((selector) => {
+		const isMatchIgnoredSelector = ignoredSelectors.some((selector) => {
 			try {
 				return (
 					nearestElement.matches(selector) || nearestElement.closest(selector)
@@ -62,7 +66,8 @@ export const createNodesFilter = (config: NodesFilterOptions = {}) => {
 				return false;
 			}
 		});
-		return !isNotTranslatable;
+
+		return !isMatchIgnoredSelector;
 	};
 };
 
