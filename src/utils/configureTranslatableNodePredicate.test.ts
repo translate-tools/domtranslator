@@ -1,26 +1,30 @@
 import { configureTranslatableNodePredicate } from './nodes';
 
 beforeEach(() => {
-	document.body.textContent = '';
 	vi.clearAllMocks();
+	document.body.innerHTML = `
+	<div class="container">
+		<div class="card">
+			<img src="#"/>
+		</div>
+	</div>
+	`;
 });
 
-test('invalid selectors are skipped', () => {
-	const container = document.createElement('div');
-	container.classList.add('container');
-
-	const card = document.createElement('div');
-	card.classList.add('card');
-
-	const img = document.createElement('img');
-
-	container.appendChild(card);
-	card.appendChild(img);
+test('invalid selectors must be ignored', () => {
+	const container = document.querySelector('.container') as HTMLElement;
+	const card = document.querySelector('.card') as HTMLElement;
+	const img = document.querySelector('.card img') as HTMLElement;
 
 	const filter = configureTranslatableNodePredicate({
-		ignoredSelectors: [';', '!', '3', '<'],
+		ignoredSelectors: [';', '!', '3', '.card', '<'],
 	});
 
 	expect(() => filter(img)).not.toThrow();
-	expect(filter(img)).toBe(true);
+
+	expect(filter(container)).toBe(true);
+	expect(filter(card)).toBe(false);
+	expect(filter(img)).toBe(false);
+
+	expect(filter(card.getAttributeNode('class') as Node)).toBe(false);
 });
