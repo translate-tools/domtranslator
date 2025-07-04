@@ -53,10 +53,15 @@ export const configureTranslatableNodePredicate = (config: NodesFilterOptions = 
 
 		if (!nearestElement) return false;
 
-		const isNotTranslatable = ignoredSelectors.some(
-			(selector) =>
-				nearestElement.matches(selector) || nearestElement.closest(selector),
-		);
+		const isNotTranslatable = ignoredSelectors.some((selector) => {
+			try {
+				return (
+					nearestElement.matches(selector) || nearestElement.closest(selector)
+				);
+			} catch {
+				return false;
+			}
+		});
 		return !isNotTranslatable;
 	};
 };
