@@ -1,4 +1,4 @@
-import { configureTranslatableNodePredicate } from './nodes';
+import { createNodesFilter } from './nodes';
 
 beforeEach(() => {
 	vi.clearAllMocks();
@@ -16,7 +16,7 @@ test('invalid selectors must be ignored', () => {
 	const card = document.querySelector('.card') as HTMLElement;
 	const img = document.querySelector('.card img') as HTMLElement;
 
-	const filter = configureTranslatableNodePredicate({
+	const filter = createNodesFilter({
 		ignoredSelectors: [';', '!', '3', '.card', '<'],
 	});
 
@@ -34,7 +34,7 @@ test('attributes on non-matched nodes is skipped', () => {
 	const card = document.querySelector('.card') as HTMLElement;
 	const img = document.querySelector('.card img') as HTMLElement;
 
-	const filter = configureTranslatableNodePredicate({
+	const filter = createNodesFilter({
 		ignoredSelectors: ['.card'],
 	});
 
@@ -50,8 +50,8 @@ test('only attributes in list is match', () => {
 	const card = document.querySelector('.card') as HTMLElement;
 	const img = document.querySelector('.card img') as HTMLElement;
 
-	const filter = configureTranslatableNodePredicate({
-		translatableAttributes: ['title', 'data-foo'],
+	const filter = createNodesFilter({
+		attributesList: ['title', 'data-foo'],
 	});
 
 	expect(filter(img.getAttributeNode('title') as Node)).toBe(true);

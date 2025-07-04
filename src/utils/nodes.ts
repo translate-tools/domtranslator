@@ -28,12 +28,12 @@ export const searchParent = (
 
 export type NodesFilterOptions = {
 	ignoredSelectors?: string[];
-	translatableAttributes?: string[];
+	attributesList?: string[];
 };
 
-export const configureTranslatableNodePredicate = (config: NodesFilterOptions = {}) => {
+export const createNodesFilter = (config: NodesFilterOptions = {}) => {
 	const { ignoredSelectors = [] } = config;
-	const translatableAttributes = new Set(config.translatableAttributes);
+	const attributesList = new Set(config.attributesList);
 
 	return (node: Node) => {
 		let nearestElement: Element | null = null;
@@ -42,7 +42,7 @@ export const configureTranslatableNodePredicate = (config: NodesFilterOptions = 
 		if (isElementNode(node)) {
 			nearestElement = node;
 		} else if (isAttributeNode(node)) {
-			if (!translatableAttributes.has(node.name)) {
+			if (!attributesList.has(node.name)) {
 				return false;
 			}
 

@@ -11,10 +11,7 @@ import {
 import { DOMTranslator } from '../../DOMTranslator';
 import { IntersectionScheduler } from '../../IntersectionScheduler';
 import { NodesTranslator } from '../../NodesTranslator';
-import {
-	configureTranslatableNodePredicate,
-	NodesFilterOptions,
-} from '../../utils/nodes';
+import { createNodesFilter, NodesFilterOptions } from '../../utils/nodes';
 
 import { PersistentDOMTranslator } from '..';
 
@@ -46,7 +43,7 @@ describe('basic usage', () => {
 			// Translate document
 			const persistentTranslator = new PersistentDOMTranslator(
 				new DOMTranslator(new NodesTranslator(translator), {
-					filter: configureTranslatableNodePredicate(),
+					filter: createNodesFilter(),
 					scheduler: lazyTranslate ? new IntersectionScheduler() : undefined,
 				}),
 			);
@@ -70,13 +67,7 @@ describe('basic usage', () => {
 			const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
 			const filterOptions = {
-				translatableAttributes: [
-					'title',
-					'alt',
-					'placeholder',
-					'label',
-					'aria-label',
-				],
+				attributesList: ['title', 'alt', 'placeholder', 'label', 'aria-label'],
 				ignoredSelectors: [
 					'meta',
 					'link',
@@ -95,7 +86,7 @@ describe('basic usage', () => {
 				// Translate document
 				const persistentTranslator = new PersistentDOMTranslator(
 					new DOMTranslator(new NodesTranslator(translator), {
-						filter: configureTranslatableNodePredicate(filterOptions),
+						filter: createNodesFilter(filterOptions),
 						scheduler: isLazyTranslation
 							? new IntersectionScheduler()
 							: undefined,
@@ -118,7 +109,7 @@ describe('basic usage', () => {
 				// Translate document
 				const persistentTranslator = new PersistentDOMTranslator(
 					new DOMTranslator(new NodesTranslator(translator), {
-						filter: configureTranslatableNodePredicate(filterOptions),
+						filter: createNodesFilter(filterOptions),
 						scheduler: isLazyTranslation
 							? new IntersectionScheduler()
 							: undefined,
@@ -179,7 +170,7 @@ describe('basic usage', () => {
 				// Translate document
 				const persistentTranslator = new PersistentDOMTranslator(
 					new DOMTranslator(new NodesTranslator(translator), {
-						filter: configureTranslatableNodePredicate(filterOptions),
+						filter: createNodesFilter(filterOptions),
 						scheduler: isLazyTranslation
 							? new IntersectionScheduler()
 							: undefined,
@@ -232,7 +223,7 @@ describe('basic usage', () => {
 				// Translate document
 				const persistentTranslator = new PersistentDOMTranslator(
 					new DOMTranslator(new NodesTranslator(translator), {
-						filter: configureTranslatableNodePredicate({
+						filter: createNodesFilter({
 							...filterOptions,
 							ignoredSelectors: [
 								...filterOptions.ignoredSelectors,

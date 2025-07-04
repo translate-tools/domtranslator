@@ -38,7 +38,7 @@ import {
   IntersectionScheduler
 } from 'domtranslator';
 
-import { configureTranslatableNodePredicate } from 'domtranslator/utils/nodes';
+import { createNodesFilter } from 'domtranslator/utils/nodes';
 
 // Dummy translator
 const translator = async (text) => '[translated] ' + text;
@@ -55,9 +55,9 @@ const domTranslator = new PersistentDOMTranslator(
       scheduler: new IntersectionScheduler(),
 
       // Filter will skip nodes that must not be translated
-      filter: configureTranslatableNodePredicate({
+      filter: createNodesFilter({
         // Only listed attributes will be translated
-        translatableAttributes: [
+        attributesList: [
           'title',
           'alt',
           'placeholder',
@@ -230,10 +230,10 @@ When `filter` option is provided, it will be called for each node and in case ca
 
 Keep in mind that `filter` will be called for every `Node`, not `Element`. If you have only 1 element on page with 5 attributes and text inside, callback will be called 6 times for every of mentioned nodes.
 
-You may use `configureTranslatableNodePredicate` util as shown in example above, to configure callback to filter out nodes.
+You may use `createNodesFilter` util as shown in example above, to configure callback to filter out nodes.
 
 ```
-import { configureTranslatableNodePredicate } from 'domtranslator/utils/nodes';
+import { createNodesFilter } from 'domtranslator/utils/nodes';
 ```
 
 Or, you may implement this logic yourself.
