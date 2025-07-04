@@ -36,7 +36,8 @@ export type NodesFilterOptions = {
  * Filter function returns `true` for nodes that match filter and `false` otherwise
  */
 export const createNodesFilter = (config: NodesFilterOptions = {}) => {
-	const { ignoredSelectors = [] } = config;
+	// Dedupe rules
+	const ignoredSelectors = Array.from(new Set(config.ignoredSelectors));
 	const attributesList = new Set(config.attributesList);
 
 	return (node: Node) => {
