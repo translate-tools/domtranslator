@@ -28,12 +28,17 @@ export const searchParent = (
 
 export type NodesFilterOptions = {
 	ignoredSelectors?: string[];
-	translatableAttributes?: string[];
+	attributesList?: string[];
 };
 
-export const configureTranslatableNodePredicate = (config: NodesFilterOptions = {}) => {
-	const { ignoredSelectors = [] } = config;
-	const translatableAttributes = new Set(config.translatableAttributes);
+/**
+ * Configure and return a filter function for `Node` objects.
+ * Filter function returns `true` for nodes that match filter and `false` otherwise
+ */
+export const createNodesFilter = (config: NodesFilterOptions = {}) => {
+	// Dedupe rules
+	const ignoredSelectors = Array.from(new Set(config.ignoredSelectors));
+	const attributesList = new Set(config.attributesList);
 
 	return (node: Node) => {
 		let nearestElement: Element | null = null;
@@ -42,7 +47,7 @@ export const configureTranslatableNodePredicate = (config: NodesFilterOptions = 
 		if (isElementNode(node)) {
 			nearestElement = node;
 		} else if (isAttributeNode(node)) {
-			if (!translatableAttributes.has(node.name)) {
+			if (!attributesList.has(node.name)) {
 				return false;
 			}
 
@@ -53,11 +58,17 @@ export const configureTranslatableNodePredicate = (config: NodesFilterOptions = 
 
 		if (!nearestElement) return false;
 
-		const isNotTranslatable = ignoredSelectors.some(
-			(selector) =>
-				nearestElement.matches(selector) || nearestElement.closest(selector),
-		);
-		return !isNotTranslatable;
+		const isMatchIgnoredSelector = ignoredSelectors.some((selector) => {
+			try {
+				return (
+					nearestElement.matches(selector) || nearestElement.closest(selector)
+				);
+			} catch {
+				return false;
+			}
+		});
+
+		return !isMatchIgnoredSelector;
 	};
 };
 
