@@ -50,7 +50,7 @@ interface NodeData {
  */
 export class NodesTranslator implements INodesTranslator {
 	private idCounter = 0;
-	private nodeStorage = new WeakMap<Node, NodeData>();
+	private readonly nodeStorage = new WeakMap<Node, NodeData>();
 
 	private readonly config;
 	constructor(

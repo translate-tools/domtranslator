@@ -31,9 +31,9 @@ type Config = {
  */
 export class DOMTranslator implements IDomTranslator {
 	constructor(
-		readonly nodesTranslator: DOMTranslationDispatcher &
+		private readonly nodesTranslator: DOMTranslationDispatcher &
 			StateStorage<NodeTranslationState>,
-		readonly config: Config = {},
+		private readonly config: Config = {},
 	) {}
 
 	/**
