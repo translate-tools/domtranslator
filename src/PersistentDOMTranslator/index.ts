@@ -6,7 +6,7 @@ import { XMutationObserver } from '../utils/XMutationObserver';
  * Translates DOM tree persistently. When nodes in tree is updates, it will be automatically translated.
  */
 export class PersistentDOMTranslator {
-	constructor(readonly translator: IDomTranslator) {}
+	constructor(private readonly translator: IDomTranslator) {}
 
 	// Stores nodes mutated as a result of translation
 	// used to prevent handling mutation events triggered by our own translations
