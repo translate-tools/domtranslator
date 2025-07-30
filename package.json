@@ -47,7 +47,7 @@
 		"eslint-plugin-unused-imports": "^4.1.4",
 		"gulp": "^5.0.1",
 		"gulp-clean-package": "^0.0.2",
-		"gulp-sourcemaps": "^2.6.5",
+		"gulp-sourcemaps": "^3.0.0",
 		"gulp-typescript": "^6.0.0-alpha.1",
 		"husky": "^9.1.7",
 		"intersection-observer": "^0.12.2",
