@@ -54,7 +54,7 @@
 		"jsdom": "^26.1.0",
 		"lint-staged": "^16.1.2",
 		"merge-stream": "^2.0.0",
-		"npm-check-updates": "^18.0.1",
+		"npm-check-updates": "^18.0.2",
 		"prettier": "^3.6.2",
 		"typescript": "^5.8.3",
 		"vitest": "^3.2.4"
