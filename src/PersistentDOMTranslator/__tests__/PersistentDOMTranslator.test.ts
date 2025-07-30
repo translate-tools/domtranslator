@@ -28,6 +28,11 @@ const fillDocument = (text: string) => {
 	document.write(text);
 };
 
+beforeEach(() => {
+	document.body.innerHTML = '';
+	vi.clearAllMocks();
+});
+
 describe('basic usage', () => {
 	const sample = readFileSync(__dirname + '/sample.html', 'utf8');
 
@@ -267,6 +272,79 @@ describe('basic usage', () => {
 
 				// Disable translation
 				persistentTranslator.restore(document.documentElement);
+			});
+
+			test('ignored nodes may be updated with no errors and no translator calls. Case #147', async () => {
+				document.body.innerHTML = `<div id="root"><div id="foo">foo</div><div id="bar">bar</div><div id="baz">baz</div></div>`;
+
+				const rootElement = document.querySelector('#root');
+				const fooElement = document.querySelector('#foo');
+				const barElement = document.querySelector('#bar');
+				const bazElement = document.querySelector('#baz');
+
+				// All elements found
+				expect(rootElement).toBeInstanceOf(HTMLElement);
+				expect(fooElement).toBeInstanceOf(HTMLElement);
+				expect(barElement).toBeInstanceOf(HTMLElement);
+				expect(bazElement).toBeInstanceOf(HTMLElement);
+
+				const translatorSpy = vi.fn(translator);
+				const persistentTranslator = new PersistentDOMTranslator(
+					new DOMTranslator(new NodesTranslator(translatorSpy), {
+						filter: (node) => {
+							if ((barElement as HTMLElement).contains(node)) return false;
+							if (node instanceof Attr && node.ownerElement === barElement)
+								return false;
+
+							return true;
+						},
+						scheduler: isLazyTranslation
+							? new IntersectionScheduler()
+							: undefined,
+					}),
+				);
+
+				// Translation runs fine
+				await expect(
+					Promise.all([
+						persistentTranslator.translate(rootElement as HTMLElement),
+						awaitTranslation(),
+					]),
+				).resolves.not.toThrow();
+
+				// Translated all nodes except ignored
+				expect((rootElement as HTMLElement).id).toMatch(
+					startsWithRegex(TRANSLATION_SYMBOL),
+				);
+				expect((fooElement as HTMLElement).textContent).toMatch(
+					startsWithRegex(TRANSLATION_SYMBOL),
+				);
+				expect((fooElement as HTMLElement).id).toMatch(
+					startsWithRegex(TRANSLATION_SYMBOL),
+				);
+				expect((bazElement as HTMLElement).textContent).toMatch(
+					startsWithRegex(TRANSLATION_SYMBOL),
+				);
+				expect((bazElement as HTMLElement).id).toMatch(
+					startsWithRegex(TRANSLATION_SYMBOL),
+				);
+
+				expect((barElement as HTMLElement).textContent).not.toMatch(
+					startsWithRegex(TRANSLATION_SYMBOL),
+				);
+
+				expect(translatorSpy).toBeCalledTimes(5);
+
+				// Update of ignored node causes no translation calls or any errors
+				expect(barElement?.id).toBe('bar');
+				expect(barElement?.childNodes[0].textContent).toBe('bar');
+				(barElement as HTMLElement).id = 'another-bar-id';
+				(barElement as HTMLElement).childNodes[0].nodeValue = 'another bar text';
+
+				await expect(awaitTranslation()).resolves.not.toThrow();
+				expect(translatorSpy).toBeCalledTimes(5);
+				expect(barElement?.id).toBe('another-bar-id');
+				expect(barElement?.childNodes[0].textContent).toBe('another bar text');
 			});
 		},
 	),

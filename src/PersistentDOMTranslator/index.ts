@@ -37,7 +37,17 @@ export class PersistentDOMTranslator {
 				this.mutatedNodes.delete(target);
 				return;
 			}
-			this.translator.update(target, (node: Node) => this.mutatedNodes.add(node));
+
+			// Translate/update translation depends on state
+			if (this.translator.has(target)) {
+				this.translator.update(target, (node: Node) =>
+					this.mutatedNodes.add(node),
+				);
+			} else {
+				this.translator.translate(target, (node: Node) =>
+					this.mutatedNodes.add(node),
+				);
+			}
 		});
 		observer.addHandler('changeAttribute', ({ target, attributeName }) => {
 			if (!attributeName || !isElementNode(target)) return;
@@ -56,11 +66,11 @@ export class PersistentDOMTranslator {
 				this.translator.update(attribute, (node: Node) =>
 					this.mutatedNodes.add(node),
 				);
-				return;
+			} else {
+				this.translator.translate(attribute, (node: Node) =>
+					this.mutatedNodes.add(node),
+				);
 			}
-			this.translator.translate(attribute, (node: Node) =>
-				this.mutatedNodes.add(node),
-			);
 		});
 
 		observer.observe(node);
