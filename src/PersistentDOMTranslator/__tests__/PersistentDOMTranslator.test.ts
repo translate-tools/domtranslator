@@ -274,77 +274,155 @@ describe('basic usage', () => {
 				persistentTranslator.restore(document.documentElement);
 			});
 
-			test('ignored nodes may be updated with no errors and no translator calls. Case #147', async () => {
-				document.body.innerHTML = `<div id="root"><div id="foo">foo</div><div id="bar">bar</div><div id="baz">baz</div></div>`;
+			describe('Case #147', () => {
+				test('Elements with empty text is translated when text is inserted', async () => {
+					// We trying to catch translator on incorrect "optimization" here.
+					// If translator see "empty" node and say "ok, i don't care about it anymore",
+					// it will lead us to problems with translating of dynamic elements.
+					// For example, chat in Google Meet may create element with empty text first,
+					// and then fill it with text. This test case is emulates described scenario.
 
-				const rootElement = document.querySelector('#root');
-				const fooElement = document.querySelector('#foo');
-				const barElement = document.querySelector('#bar');
-				const bazElement = document.querySelector('#baz');
+					document.body.innerHTML = `<div id="root"><div id="foo">foo</div><div id="bar"></div></div>`;
 
-				// All elements found
-				expect(rootElement).toBeInstanceOf(HTMLElement);
-				expect(fooElement).toBeInstanceOf(HTMLElement);
-				expect(barElement).toBeInstanceOf(HTMLElement);
-				expect(bazElement).toBeInstanceOf(HTMLElement);
+					const rootElement = document.querySelector('#root');
+					const fooElement = document.querySelector('#foo');
+					const barElement = document.querySelector('#bar');
 
-				const translatorSpy = vi.fn(translator);
-				const persistentTranslator = new PersistentDOMTranslator(
-					new DOMTranslator(new NodesTranslator(translatorSpy), {
-						filter: (node) => {
-							if ((barElement as HTMLElement).contains(node)) return false;
-							if (node instanceof Attr && node.ownerElement === barElement)
-								return false;
+					// All elements found
+					expect(rootElement).toBeInstanceOf(HTMLElement);
+					expect(fooElement).toBeInstanceOf(HTMLElement);
+					expect(barElement).toBeInstanceOf(HTMLElement);
 
-							return true;
-						},
-						scheduler: isLazyTranslation
-							? new IntersectionScheduler()
-							: undefined,
-					}),
-				);
+					const translatorSpy = vi.fn(translator);
+					const persistentTranslator = new PersistentDOMTranslator(
+						new DOMTranslator(new NodesTranslator(translatorSpy), {
+							// All attributes is not for translation
+							// Our intention is to skip translation for node with id `bar`
+							filter: (node) => !(node instanceof Attr),
+							scheduler: isLazyTranslation
+								? new IntersectionScheduler()
+								: undefined,
+						}),
+					);
 
-				// Translation runs fine
-				await expect(
-					Promise.all([
-						persistentTranslator.translate(rootElement as HTMLElement),
-						awaitTranslation(),
-					]),
-				).resolves.not.toThrow();
+					// Translation runs fine
+					await expect(
+						Promise.all([
+							persistentTranslator.translate(document.documentElement),
+							awaitTranslation(),
+						]),
+					).resolves.not.toThrow();
 
-				// Translated all nodes except ignored
-				expect((rootElement as HTMLElement).id).toMatch(
-					startsWithRegex(TRANSLATION_SYMBOL),
-				);
-				expect((fooElement as HTMLElement).textContent).toMatch(
-					startsWithRegex(TRANSLATION_SYMBOL),
-				);
-				expect((fooElement as HTMLElement).id).toMatch(
-					startsWithRegex(TRANSLATION_SYMBOL),
-				);
-				expect((bazElement as HTMLElement).textContent).toMatch(
-					startsWithRegex(TRANSLATION_SYMBOL),
-				);
-				expect((bazElement as HTMLElement).id).toMatch(
-					startsWithRegex(TRANSLATION_SYMBOL),
-				);
+					// All attributes is not translated
+					expect(rootElement?.id).toBe('root');
+					expect(fooElement?.id).toBe('foo');
+					expect(barElement?.id).toBe('bar');
 
-				expect((barElement as HTMLElement).textContent).not.toMatch(
-					startsWithRegex(TRANSLATION_SYMBOL),
-				);
+					// Node with text is translated
+					expect(fooElement?.textContent).toMatch(
+						startsWithRegex(TRANSLATION_SYMBOL),
+					);
 
-				expect(translatorSpy).toBeCalledTimes(5);
+					// Node with no text stay with empty text (have no translation)
+					expect(barElement?.textContent).toBe('');
 
-				// Update of ignored node causes no translation calls or any errors
-				expect(barElement?.id).toBe('bar');
-				expect(barElement?.childNodes[0].textContent).toBe('bar');
-				(barElement as HTMLElement).id = 'another-bar-id';
-				(barElement as HTMLElement).childNodes[0].nodeValue = 'another bar text';
+					// We add empty text node that must not be translated (because no content for translation)
+					const textNode = new Text('');
+					barElement?.append(textNode);
 
-				await expect(awaitTranslation()).resolves.not.toThrow();
-				expect(translatorSpy).toBeCalledTimes(5);
-				expect(barElement?.id).toBe('another-bar-id');
-				expect(barElement?.childNodes[0].textContent).toBe('another bar text');
+					await awaitTranslation();
+					expect(barElement?.textContent).toBe('');
+
+					// Now we change value of empty text node
+					// This text must be translated
+					textNode.nodeValue = 'Another content';
+					await awaitTranslation();
+					expect(barElement?.textContent).toMatch(
+						startsWithRegex(TRANSLATION_SYMBOL),
+					);
+
+					persistentTranslator.restore(document.documentElement);
+				});
+
+				test('Ignored nodes may be updated with no errors and no translator calls', async () => {
+					document.body.innerHTML = `<div id="root"><div id="foo">foo</div><div id="bar">bar</div><div id="baz">baz</div></div>`;
+
+					const rootElement = document.querySelector('#root');
+					const fooElement = document.querySelector('#foo');
+					const barElement = document.querySelector('#bar');
+					const bazElement = document.querySelector('#baz');
+
+					// All elements found
+					expect(rootElement).toBeInstanceOf(HTMLElement);
+					expect(fooElement).toBeInstanceOf(HTMLElement);
+					expect(barElement).toBeInstanceOf(HTMLElement);
+					expect(bazElement).toBeInstanceOf(HTMLElement);
+
+					const translatorSpy = vi.fn(translator);
+					const persistentTranslator = new PersistentDOMTranslator(
+						new DOMTranslator(new NodesTranslator(translatorSpy), {
+							filter: (node) => {
+								if ((barElement as HTMLElement).contains(node))
+									return false;
+								if (
+									node instanceof Attr &&
+									node.ownerElement === barElement
+								)
+									return false;
+
+								return true;
+							},
+							scheduler: isLazyTranslation
+								? new IntersectionScheduler()
+								: undefined,
+						}),
+					);
+
+					// Translation runs fine
+					await expect(
+						Promise.all([
+							persistentTranslator.translate(rootElement as HTMLElement),
+							awaitTranslation(),
+						]),
+					).resolves.not.toThrow();
+
+					// Translated all nodes except ignored
+					expect((rootElement as HTMLElement).id).toMatch(
+						startsWithRegex(TRANSLATION_SYMBOL),
+					);
+					expect((fooElement as HTMLElement).textContent).toMatch(
+						startsWithRegex(TRANSLATION_SYMBOL),
+					);
+					expect((fooElement as HTMLElement).id).toMatch(
+						startsWithRegex(TRANSLATION_SYMBOL),
+					);
+					expect((bazElement as HTMLElement).textContent).toMatch(
+						startsWithRegex(TRANSLATION_SYMBOL),
+					);
+					expect((bazElement as HTMLElement).id).toMatch(
+						startsWithRegex(TRANSLATION_SYMBOL),
+					);
+
+					expect((barElement as HTMLElement).textContent).not.toMatch(
+						startsWithRegex(TRANSLATION_SYMBOL),
+					);
+
+					expect(translatorSpy).toBeCalledTimes(5);
+
+					// Update of ignored node causes no translation calls or any errors
+					expect(barElement?.id).toBe('bar');
+					expect(barElement?.childNodes[0].textContent).toBe('bar');
+					(barElement as HTMLElement).id = 'another-bar-id';
+					(barElement as HTMLElement).childNodes[0].nodeValue =
+						'another bar text';
+
+					await expect(awaitTranslation()).resolves.not.toThrow();
+					expect(translatorSpy).toBeCalledTimes(5);
+					expect(barElement?.id).toBe('another-bar-id');
+					expect(barElement?.childNodes[0].textContent).toBe(
+						'another bar text',
+					);
+				});
 			});
 		},
 	),
